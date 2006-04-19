@@ -4,13 +4,15 @@ libgssdpincdir = $(includedir)/gssdp-1.0/libgssdp
 
 lib_LTLIBRARIES = libgssdp-1.0.la
 
-libgssdpinc_HEADERS = 	gssdp-device.h		\
-			gssdp-discoverable.h	\
-			gssdp-root-device.h	\
-			gssdp-service.h		\
+libgssdpinc_HEADERS = 	gssdp-device.h		 \
+			gssdp-discoverable.h	 \
+			gssdp-root-device.h	 \
+			gssdp-service.h		 \
 			gssdp.h
 
-libgssdp_1_0_la_SOURCES = gssdp-discoverable.c
+libgssdp_1_0_la_SOURCES = gssdp-device.c	 \
+			  gssdp-device-private.h \
+			  gssdp-discoverable.c
 
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
 
