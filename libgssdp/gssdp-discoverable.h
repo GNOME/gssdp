@@ -19,10 +19,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <glib-object.h>
+
 #ifndef __GSSDP_DISCOVERABLE_H__
 #define __GSSDP_DISCOVERABLE_H__
-
-#include <glib-object.h>
 
 G_BEGIN_DECLS
 
