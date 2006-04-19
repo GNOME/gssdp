@@ -50,11 +50,12 @@ gssdp_discoverable_type (void) G_GNUC_CONST;
                  GSSDP_TYPE_DISCOVERABLE, \
                  GSSDPDiscoverableClass))
 
+typedef struct _GSSDPDiscoverablePrivate GSSDPDiscoverablePrivate;
+
 typedef struct {
         GObject parent;
 
-        /* future padding */
-        gpointer _gssdp_reserved;
+        GSSDPDiscoverablePrivate *priv;
 } GSSDPDiscoverable;
 
 typedef struct {
