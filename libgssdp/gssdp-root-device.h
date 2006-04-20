@@ -64,11 +64,16 @@ typedef struct {
         GSSDPDeviceClass parent_class;
 
         /* signals */
-        void (* discoverable_available)   (const char *target,
-                                           const char *usn,
-                                           const char *location);
-        void (* discoverable_unavailable) (const char *target,
-                                           const char *usn);
+        void (* discoverable_available)   (GSSDPRootDevice *root_device,
+                                           const char      *target,
+                                           const char      *usn,
+                                           const char      *location);
+        void (* discoverable_unavailable) (GSSDPRootDevice *root_device,
+                                           const char      *target,
+                                           const char      *usn);
+        
+        void (* error)                    (GSSDPRootDevice *root_device,
+                                           GError          *error);
 
         /* future padding */
         void (* _gssdp_reserved1) (void);
@@ -91,6 +96,13 @@ gssdp_root_device_set_server_id (GSSDPRootDevice *root_device,
 
 const char *
 gssdp_root_device_get_server_id (GSSDPRootDevice *root_device);
+
+void
+gssdp_root_device_set_mx        (GSSDPRootDevice *root_device,
+                                 gushort          mx);
+
+gushort
+gssdp_root_device_get_mx        (GSSDPRootDevice *root_device);
 
 const GList *
 gssdp_root_device_get_devices   (GSSDPRootDevice *root_device);

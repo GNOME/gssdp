@@ -6,6 +6,7 @@ lib_LTLIBRARIES = libgssdp-1.0.la
 
 libgssdpinc_HEADERS = 	gssdp-device.h		 \
 			gssdp-discoverable.h	 \
+			gssdp-error.h		 \
 			gssdp-root-device.h	 \
 			gssdp-service.h		 \
 			gssdp.h
@@ -21,6 +22,8 @@ BUILT_SOURCES = gssdp-marshal.c gssdp-marshal.h
 libgssdp_1_0_la_SOURCES = gssdp-device.c		\
 			  gssdp-device-private.h	\
 			  gssdp-discoverable.c		\
+			  gssdp-error.c			\
+			  gssdp-protocol.h		\
 			  gssdp-root-device.c		\
 			  gssdp-root-device-private.h	\
 			  gssdp-service.c		\

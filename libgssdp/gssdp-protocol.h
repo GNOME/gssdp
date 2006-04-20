@@ -19,21 +19,22 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "gssdp-device.h"
-
-#ifndef __GSSDP_DEVICE_PRIVATE_H__
-#define __GSSDP_DEVICE_PRIVATE_H__
+#ifndef __GSSDP_PROTOCOL_H__
+#define __GSSDP_PROTOCOL_H__
 
 G_BEGIN_DECLS
 
-void
-gssdp_device_add_service    (GSSDPDevice  *device,
-                             GSSDPService *service);
+#define SSDP_ADDR "239.255.255.250"
+#define SSDP_PORT 1900
+#define SSDP_PORT_STR "1900"
 
-void
-gssdp_device_remove_service (GSSDPDevice  *device,
-                             GSSDPService *service);
+#define SSDP_DISCOVERY_REQUEST                 \
+   "M-SEARCH * HTTP/1.1\r\n"                   \
+   "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
+   "Man: \"ssdp:discover\"\r\n"                \
+   "ST: %s\r\n"                                \
+   "MX: %d\r\n\r\n"
 
 G_END_DECLS
 
-#endif /* __GSSDP_DEVICE_PRIVATE_H__ */
+#endif /* __GSSDP_PROTOCOL_H__ */

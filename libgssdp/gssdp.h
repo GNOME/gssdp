@@ -21,5 +21,6 @@
 
 #include "gssdp-device.h"
 #include "gssdp-discoverable.h"
+#include "gssdp-error.h"
 #include "gssdp-root-device.h"
 #include "gssdp-service.h"

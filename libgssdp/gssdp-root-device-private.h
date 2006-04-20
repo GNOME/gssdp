@@ -22,7 +22,7 @@
 #include "gssdp-root-device.h"
 
 #ifndef __GSSDP_ROOT_DEVICE_PRIVATE_H__
-#define __GSSDP_ROOT_DEVICE_PRIVANE_H__
+#define __GSSDP_ROOT_DEVICE_PRIVATE_H__
 
 G_BEGIN_DECLS
 

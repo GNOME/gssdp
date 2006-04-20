@@ -19,21 +19,18 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "gssdp-device.h"
+#ifndef __GSSDP_ERROR_H__
+#define __GSSDP_ERROR_H__
 
-#ifndef __GSSDP_DEVICE_PRIVATE_H__
-#define __GSSDP_DEVICE_PRIVATE_H__
+#include <glib.h>
 
 G_BEGIN_DECLS
 
-void
-gssdp_device_add_service    (GSSDPDevice  *device,
-                             GSSDPService *service);
+GQuark
+gssdp_error_quark (void) G_GNUC_CONST;
 
-void
-gssdp_device_remove_service (GSSDPDevice  *device,
-                             GSSDPService *service);
+#define GSSDP_ERROR_QUARK (gssdp_error_quark ())
 
 G_END_DECLS
 
-#endif /* __GSSDP_DEVICE_PRIVATE_H__ */
+#endif /* __GSSDP_ERROR_H__ */
