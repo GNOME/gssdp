@@ -19,11 +19,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* XXX connect to "notify::available" and handle actual advertisement */
-
 #include <config.h>
+#include <string.h>
 
 #include "gssdp-service.h"
+#include "gssdp-device-private.h"
 
 /* Hack around G_DEFINE_TYPE hardcoding the type function name */
 #define gssdp_service_get_type gssdp_service_type
@@ -47,11 +47,51 @@ gssdp_service_init (GSSDPService *service)
 }
 
 static void
+gssdp_service_dispose (GObject *object)
+{
+        GSSDPService *service;
+        GSSDPDevice *parent;
+        GObjectClass *object_class;
+
+        service = GSSDP_SERVICE (object);
+
+        parent = gssdp_discoverable_get_parent (GSSDP_DISCOVERABLE (service));
+        if (parent)
+                gssdp_device_remove_service (parent, service);
+
+        object_class = G_OBJECT_CLASS (gssdp_service_parent_class);
+        object_class->dispose (object);
+}
+
+static void
+gssdp_service_notify (GObject    *object,
+                      GParamSpec *param_spec)
+{
+        GSSDPService *service;
+
+        service = GSSDP_SERVICE (object);
+        
+        if (strcmp (param_spec->name, "parent") == 0) {
+                GSSDPDevice *parent;
+
+                parent = gssdp_discoverable_get_parent
+                                        (GSSDP_DISCOVERABLE (service));
+                if (parent)
+                        gssdp_device_add_service (parent, service);
+        } else if (strcmp (param_spec->name, "available") == 0) {
+                /* XXX */
+        }
+}
+
+static void
 gssdp_service_class_init (GSSDPServiceClass *klass)
 {
         GObjectClass *object_class;
 
 	object_class = G_OBJECT_CLASS (klass);
+
+        object_class->dispose = gssdp_service_dispose;
+        object_class->notify  = gssdp_service_notify;
 
         g_type_class_add_private (klass, sizeof (GSSDPServicePrivate));
 }

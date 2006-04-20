@@ -19,12 +19,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* XXX connect to "notify::available" and handle actual advertisement */
-
 #include <config.h>
+#include <string.h>
 #include <uuid/uuid.h>
 
 #include "gssdp-device-private.h"
+#include "gssdp-root-device-private.h"
 
 /* Hack around G_DEFINE_TYPE hardcoding the type function name */
 #define gssdp_device_get_type gssdp_device_type
@@ -87,6 +87,46 @@ gssdp_device_get_property (GObject    *object,
 }
 
 static void
+gssdp_device_dispose (GObject *object)
+{
+        GSSDPDevice *device, *parent;
+        GObjectClass *object_class;
+
+        device = GSSDP_DEVICE (object);
+
+        parent = gssdp_discoverable_get_parent (GSSDP_DISCOVERABLE (device));
+        if (parent) {
+                gssdp_root_device_remove_device (GSSDP_ROOT_DEVICE (parent),
+                                                 device);
+        }
+
+        object_class = G_OBJECT_CLASS (gssdp_device_parent_class);
+        object_class->dispose (object);
+}
+
+static void
+gssdp_device_notify (GObject    *object,
+                     GParamSpec *param_spec)
+{
+        GSSDPDevice *device;
+
+        device = GSSDP_DEVICE (object);
+        
+        if (strcmp (param_spec->name, "parent") == 0) {
+                GSSDPDevice *parent;
+
+                parent = gssdp_discoverable_get_parent
+                                        (GSSDP_DISCOVERABLE (device));
+                if (parent) {
+                        gssdp_root_device_add_device
+                                        (GSSDP_ROOT_DEVICE (parent), device);
+                }
+        } else if (strcmp (param_spec->name, "available") == 0) {
+                /* XXX */
+        }
+}
+
+static void
 gssdp_device_class_init (GSSDPDeviceClass *klass)
 {
         GObjectClass *object_class;
@@ -94,6 +134,8 @@ gssdp_device_class_init (GSSDPDeviceClass *klass)
 	object_class = G_OBJECT_CLASS (klass);
 
 	object_class->get_property = gssdp_device_get_property;
+	object_class->dispose      = gssdp_device_dispose;
+	object_class->notify       = gssdp_device_notify;
 
         g_type_class_add_private (klass, sizeof (GSSDPDevicePrivate));
 
@@ -156,15 +198,33 @@ gssdp_device_get_uuid (GSSDPDevice *device)
 }
 
 /**
- * Sets the list of contained services of @device to @services
+ * Adds @service to the list of services contained in @device
  **/
 void
-gssdp_device_set_services (GSSDPDevice *device,
-                           GList       *services)
+gssdp_device_add_service (GSSDPDevice  *device,
+                          GSSDPService *service)
 {
         g_return_if_fail (GSSDP_IS_DEVICE (device));
+        g_return_if_fail (GSSDP_IS_SERVICE (service));
 
-        device->priv->services = services;
+        device->priv->services = g_list_append (device->priv->services,
+                                                service);
+
+        g_object_notify (G_OBJECT (device), "services");
+}
+
+/**
+ * Removes @service from the list of services contained in @device
+ **/
+void
+gssdp_device_remove_service (GSSDPDevice  *device,
+                             GSSDPService *service)
+{
+        g_return_if_fail (GSSDP_IS_DEVICE (device));
+        g_return_if_fail (GSSDP_IS_SERVICE (service));
+
+        device->priv->services = g_list_remove (device->priv->services,
+                                                service);
 
         g_object_notify (G_OBJECT (device), "services");
 }

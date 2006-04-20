@@ -83,20 +83,21 @@ gssdp_root_device_new           (const char      *type,
                                  const char      *location);
 
 const char *
-gssdp_root_device_get_location  (GSSDPRootDevice *device);
+gssdp_root_device_get_location  (GSSDPRootDevice *root_device);
 
 void
-gssdp_root_device_set_server_id (GSSDPRootDevice *device,
+gssdp_root_device_set_server_id (GSSDPRootDevice *root_device,
                                  const char      *server_id);
 
 const char *
-gssdp_root_device_get_server_id (GSSDPRootDevice *device);
+gssdp_root_device_get_server_id (GSSDPRootDevice *root_device);
 
 const GList *
-gssdp_root_device_get_devices   (GSSDPRootDevice *device);
+gssdp_root_device_get_devices   (GSSDPRootDevice *root_device);
 
 void
-gssdp_root_device_discover      (const char      *target);
+gssdp_root_device_discover      (GSSDPRootDevice *root_device,
+                                 const char      *target);
 
 G_END_DECLS
 

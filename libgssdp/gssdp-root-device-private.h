@@ -19,21 +19,21 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "gssdp-device.h"
+#include "gssdp-root-device.h"
 
-#ifndef __GSSDP_DEVICE_PRIVATE_H__
-#define __GSSDP_DEVICE_PRIVANE_H__
+#ifndef __GSSDP_ROOT_DEVICE_PRIVATE_H__
+#define __GSSDP_ROOT_DEVICE_PRIVANE_H__
 
 G_BEGIN_DECLS
 
 void
-gssdp_device_add_service    (GSSDPDevice  *device,
-                             GSSDPService *service);
+gssdp_root_device_add_device    (GSSDPRootDevice *root_device,
+                                 GSSDPDevice     *device);
 
 void
-gssdp_device_remove_service (GSSDPDevice  *device,
-                             GSSDPService *service);
+gssdp_root_device_remove_device (GSSDPRootDevice *root_device,
+                                 GSSDPDevice     *device);
 
 G_END_DECLS
 
-#endif /* __GSSDP_DEVICE_PRIVATE_H__ */
+#endif /* __GSSDP_ROOT_DEVICE_PRIVATE_H__ */
