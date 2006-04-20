@@ -138,9 +138,24 @@ gssdp_root_device_init (GSSDPRootDevice *root_device)
                                                SOCK_DGRAM,
                                                IPPROTO_UDP);
         if (root_device->priv->socket_fd != -1) {
-                int boolean, res;
+                struct sockaddr_in addr;
+                gboolean boolean;
+                int res;
                 GSource *source;
                 SocketSource *socket_source;
+                
+                /* Bind to SSDP port */
+                memset (&addr, 0, sizeof (addr));
+                
+                addr.sin_family      = AF_INET;
+                addr.sin_addr.s_addr = htonl (INADDR_ANY);
+                addr.sin_port        = htons (SSDP_PORT);
+
+                res = bind (root_device->priv->socket_fd,
+                            (struct sockaddr *) &addr,
+                            sizeof (addr));
+                if (res == -1)
+                        emit_error (root_device, errno);
 
                 /* Enable broadcasting */
                 boolean = TRUE;
@@ -272,30 +287,12 @@ gssdp_root_device_notify (GObject    *object,
         
         if (strcmp (param_spec->name, "available") == 0) {
                 gboolean available;
-                struct sockaddr_in addr;
                 struct ip_mreq mreq;
                 int res, optname;
 
                 available = gssdp_discoverable_get_available
                                 (GSSDP_DISCOVERABLE (root_device));
 
-                /* Bind or unbind to SSDP port */
-                memset (&addr, 0, sizeof (addr));
-                
-                addr.sin_family      = AF_INET;
-                addr.sin_addr.s_addr = htonl (INADDR_ANY);
-
-                if (available) 
-                        addr.sin_port = htons (SSDP_PORT);
-                else 
-                        addr.sin_port = htons (0); /* FIXME is this OK ? */
-
-                res = bind (root_device->priv->socket_fd,
-                            (struct sockaddr *) &addr,
-                            sizeof (addr));
-                if (res == -1)
-                        emit_error (root_device, errno);
-                
                 /* Add or drop multicast membership */
                 mreq.imr_multiaddr.s_addr = inet_addr (SSDP_ADDR);
                 mreq.imr_interface.s_addr = htonl (INADDR_ANY);
