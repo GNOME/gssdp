@@ -12,6 +12,10 @@ AC_PROG_LIBTOOL
 
 PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 uuid)
 
+# glib-genmarshal
+GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
+AC_SUBST(GLIB_GENMARSHAL)
+
 # Debugging
 AC_ARG_ENABLE(debug,
 	[  --enable-debug          enable debugging],,

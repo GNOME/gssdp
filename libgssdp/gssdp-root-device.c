@@ -73,14 +73,13 @@ gssdp_root_device_init (GSSDPRootDevice *root_device)
                                          GSSDP_TYPE_ROOT_DEVICE,
                                          GSSDPRootDevicePrivate);
 
-        /* Generate default server ID XXX */
+        /* Generate default server ID */
         uname (&sysinfo);
         
-        root_device->priv->server_id =
-                g_strdup_printf ("%s/%s UPnP/1.0 GSSDP/%s",
-                                 sysinfo.sysname,
-                                 sysinfo.version,
-                                 VERSION);
+        root_device->priv->server_id = g_strdup_printf ("%s/%s GSSDP/%s",
+                                                        sysinfo.sysname,
+                                                        sysinfo.version,
+                                                        VERSION);
 }
 
 static void
