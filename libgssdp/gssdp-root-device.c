@@ -138,18 +138,29 @@ gssdp_root_device_init (GSSDPRootDevice *root_device)
                                                SOCK_DGRAM,
                                                IPPROTO_UDP);
         if (root_device->priv->socket_fd != -1) {
-                int on, res;
+                int boolean, res;
                 GSource *source;
                 SocketSource *socket_source;
 
                 /* Enable broadcasting */
-                on = 1;
+                boolean = TRUE;
                 
                 res = setsockopt (root_device->priv->socket_fd, 
                                   SOL_SOCKET,
                                   SO_BROADCAST,
-                                  &on,
-                                  sizeof (on));
+                                  &boolean,
+                                  sizeof (boolean));
+                if (res == -1)
+                        emit_error (root_device, errno);
+
+                /* Turn off loopback */
+                boolean = FALSE;
+                
+                res = setsockopt (root_device->priv->socket_fd, 
+                                  IPPROTO_IP,
+                                  IP_MULTICAST_LOOP,
+                                  &boolean,
+                                  sizeof (boolean));
                 if (res == -1)
                         emit_error (root_device, errno);
 
@@ -719,6 +730,7 @@ socket_source_dispatch (GSource    *source,
                 ssize_t bytes;
                 char buf[1024];
 
+                /* XXX parse */
                 bytes = recv (socket_source->poll_fd.fd,
                               buf,
                               1024,
