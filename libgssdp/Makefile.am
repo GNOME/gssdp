@@ -12,7 +12,8 @@ libgssdpinc_HEADERS = 	gssdp-device.h		 \
 
 libgssdp_1_0_la_SOURCES = gssdp-device.c	 \
 			  gssdp-device-private.h \
-			  gssdp-discoverable.c
+			  gssdp-discoverable.c	 \
+			  gssdp-service.c
 
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
 

@@ -24,7 +24,6 @@
 #include <config.h>
 #include <uuid/uuid.h>
 
-#include "gssdp-device.h"
 #include "gssdp-device-private.h"
 
 /* Hack around G_DEFINE_TYPE hardcoding the type function name */
