@@ -1,7 +1,7 @@
 AC_PREREQ(2.53)
 AC_INIT(gssdp, 0.1, http://projects.o-hand.com/gssdp)
 AM_INIT_AUTOMAKE()
-AC_CONFIG_SRCDIR(libgssdp/gssdp-discoverable.c)
+AC_CONFIG_SRCDIR(libgssdp/gssdp-client.c)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -10,7 +10,7 @@ AC_PROG_CC
 AC_STDC_HEADERS
 AC_PROG_LIBTOOL
 
-PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 uuid)
+PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0)
 
 # glib-genmarshal
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`

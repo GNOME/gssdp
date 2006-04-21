@@ -19,8 +19,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "gssdp-device.h"
-#include "gssdp-discoverable.h"
+#include "gssdp-client.h"
 #include "gssdp-error.h"
-#include "gssdp-root-device.h"
-#include "gssdp-service.h"
+#include "gssdp-service-browser.h"

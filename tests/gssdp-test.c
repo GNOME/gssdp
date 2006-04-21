@@ -1,5 +1,5 @@
 /* 
- * (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -22,30 +22,21 @@
 #include <libgssdp/gssdp.h>
 
 static void
-discoverable_available_cb (GSSDPRootDevice *root_device,
-                           const char      *target,
-                           const char      *usn,
-                           const char      *location)
+service_available_cb (GSSDPServiceBrowser *service_browser,
+                      const char          *usn,
+                      GList               *locations)
 {
-        g_print ("Discoverable available:\n"
-                 "\tTarget:\t%s\n"
-                 "\tUSN:\t%s\n"
-                 "\tLocation:\t%s\n",
-                 target,
-                 usn,
-                 location);
+        g_print ("service available:\n"
+                 "\tUSN:\t%s\n",
+                 usn);
 }
 
 static void
-discoverable_unavailable_cb (GSSDPRootDevice *root_device,
-                             const char      *target,
-                             const char      *usn,
-                             const char      *location)
+service_unavailable_cb (GSSDPServiceBrowser *service_browser,
+                        const char          *usn)
 {
-        g_print ("Discoverable unavailable:\n"
-                 "\tTarget:\t%s\n"
+        g_print ("service unavailable:\n"
                  "\tUSN:\t%s\n",
-                 target,
                  usn);
 }
 
@@ -53,36 +44,48 @@ int
 main (int    argc,
       char **argv)
 {
-        GSSDPRootDevice *root_device;
+        GSSDPClient *client;
+        GSSDPServiceBrowser *service_browser;
+        GError *error;
         GMainLoop *main_loop;
 
         g_type_init ();
 
-        root_device = gssdp_root_device_new
-                        ("schemas-upnp-org:device:InternetGatewayDevice",
-                         1,
-                         "http://localhost/");
+        error = NULL;
+        client = gssdp_client_new (NULL, &error);
+        if (!client) {
+                g_critical (error->message);
 
-        gssdp_discoverable_set_available (GSSDP_DISCOVERABLE (root_device),
-                                          TRUE);
+                g_error_free (error);
 
-        g_signal_connect (root_device,
-                          "discoverable-available",
-                          G_CALLBACK (discoverable_available_cb),
+                return 1;
+        }
+
+        service_browser = gssdp_service_browser_new (client,
+                                                     "upnp:rootdevice");
+
+        g_signal_connect (service_browser,
+                          "service-available",
+                          G_CALLBACK (service_available_cb),
                           NULL);
-        g_signal_connect (root_device,
-                          "discoverable-unavailable",
-                          G_CALLBACK (discoverable_unavailable_cb),
+        g_signal_connect (service_browser,
+                          "service-unavailable",
+                          G_CALLBACK (service_unavailable_cb),
                           NULL);
 
-        gssdp_root_device_discover (root_device,
-                                    "upnp:rootdevice");
+        error = NULL;
+        if (!gssdp_service_browser_start (service_browser, &error)) {
+                g_critical (error->message);
+
+                g_error_free (error);
+        }
 
         main_loop = g_main_loop_new (NULL, FALSE);
         g_main_loop_run (main_loop);
         g_main_loop_unref (main_loop);
 
-        g_object_unref (root_device);
+        g_object_unref (service_browser);
+        g_object_unref (client);
 
         return 0;
 }

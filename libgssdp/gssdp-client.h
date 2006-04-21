@@ -1,5 +1,5 @@
 /* 
- * (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -19,71 +19,69 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __GSSDP_CLIENT_H__
+#define __GSSDP_CLIENT_H__
+
 #include <glib-object.h>
-
-#include "gssdp-discoverable.h"
-
-#ifndef __GSSDP_DEVICE_H__
-#define __GSSDP_DEVICE_H__
 
 G_BEGIN_DECLS
 
 GType
-gssdp_device_type (void) G_GNUC_CONST;
+gssdp_client_get_type (void) G_GNUC_CONST;
 
-#define GSSDP_TYPE_DEVICE \
-                (gssdp_device_type ())
-#define GSSDP_DEVICE(obj) \
+#define GSSDP_TYPE_CLIENT \
+                (gssdp_client_get_type ())
+#define GSSDP_CLIENT(obj) \
                 (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-                 GSSDP_TYPE_DEVICE, \
-                 GSSDPDevice))
-#define GSSDP_DEVICE_CLASS(klass) \
+                 GSSDP_TYPE_CLIENT, \
+                 GSSDPClient))
+#define GSSDP_CLIENT_CLASS(klass) \
                 (G_TYPE_CHECK_CLASS_CAST ((klass), \
-                 GSSDP_TYPE_DEVICE, \
-                 GSSDPDeviceClass))
-#define GSSDP_IS_DEVICE(obj) \
+                 GSSDP_TYPE_CLIENT, \
+                 GSSDPClientClass))
+#define GSSDP_IS_CLIENT(obj) \
                 (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-                 GSSDP_TYPE_DEVICE))
-#define GSSDP_IS_DEVICE_CLASS(klass) \
+                 GSSDP_TYPE_CLIENT))
+#define GSSDP_IS_CLIENT_CLASS(klass) \
                 (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-                 GSSDP_TYPE_DEVICE))
-#define GSSDP_DEVICE_GET_CLASS(obj) \
+                 GSSDP_TYPE_CLIENT))
+#define GSSDP_CLIENT_GET_CLASS(obj) \
                 (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-                 GSSDP_TYPE_DEVICE, \
-                 GSSDPDeviceClass))
+                 GSSDP_TYPE_CLIENT, \
+                 GSSDPClientClass))
 
-typedef struct _GSSDPDevicePrivate GSSDPDevicePrivate;
-
-typedef struct {
-        GSSDPDiscoverable parent;
-
-        GSSDPDevicePrivate *priv;
-} GSSDPDevice;
+typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
 
 typedef struct {
-        GSSDPDiscoverableClass parent_class;
+        GObject parent;
+
+        GSSDPClientPrivate *priv;
+} GSSDPClient;
+
+typedef struct {
+        GObjectClass parent_class;
 
         /* future padding */
         void (* _gssdp_reserved1) (void);
         void (* _gssdp_reserved2) (void);
         void (* _gssdp_reserved3) (void);
         void (* _gssdp_reserved4) (void);
-} GSSDPDeviceClass;
+} GSSDPClientClass;
 
-#include "gssdp-root-device.h"
-#include "gssdp-service.h"
+GSSDPClient *
+gssdp_client_new              (GMainContext *context,
+                               GError      **error);
 
-GSSDPDevice *
-gssdp_device_new          (GSSDPRootDevice *parent,
-                           const char      *type,
-                           gushort          version);
+GMainContext *
+gssdp_client_get_main_context (GSSDPClient  *client);
+
+void
+gssdp_client_set_server_id    (GSSDPClient  *client,
+                               const char   *server_id);
 
 const char *
-gssdp_device_get_uuid     (GSSDPDevice     *device);
-
-const GList *
-gssdp_device_get_services (GSSDPDevice     *divice);
+gssdp_client_get_server_id    (GSSDPClient  *client);
 
 G_END_DECLS
 
-#endif /* __GSSDP_DEVICE_H__ */
+#endif /* __GSSDP_CLIENT_H__ */

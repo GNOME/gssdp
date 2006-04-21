@@ -19,22 +19,25 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef __GSSDP_PROTOCOL_H__
-#define __GSSDP_PROTOCOL_H__
+#ifndef __GSSDP_CLIENT_PRIVATE_H__
+#define __GSSDP_CLIENT_PRIVATE_H__
+
+#include "gssdp-client.h"
 
 G_BEGIN_DECLS
 
-#define SSDP_ADDR "239.255.255.250"
-#define SSDP_PORT 1900
-#define SSDP_PORT_STR "1900"
+typedef enum {
+        _GSSDP_DISCOVERY_REQUEST,
+        _GSSDP_DISCOVERY_REPLY,
+        _GSSDP_ANNOUNCEMENT
+} _GSSDPMessageType;
 
-#define SSDP_DISCOVERY_REQUEST                 \
-   "M-SEARCH * HTTP/1.1\r\n"                   \
-   "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
-   "Man: \"ssdp:discover\"\r\n"                \
-   "ST: %s\r\n"                                \
-   "MX: %d\r\n\r\n"
+gboolean
+_gssdp_client_send_message (GSSDPClient *client,
+                            const char  *dest_ip,
+                            const char  *message,
+                            GError     **error);
 
 G_END_DECLS
 
-#endif /* __GSSDP_PROTOCOL_H__ */
+#endif /* __GSSDP_CLIENT_PRIVATE_H__ */

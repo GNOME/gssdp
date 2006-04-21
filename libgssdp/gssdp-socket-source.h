@@ -1,5 +1,5 @@
 /* 
- * (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -19,21 +19,19 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "gssdp-root-device.h"
-
-#ifndef __GSSDP_ROOT_DEVICE_PRIVATE_H__
-#define __GSSDP_ROOT_DEVICE_PRIVATE_H__
+#ifndef __GSSDP_SOCKET_SOURCE_H__
+#define __GSSDP_SOCKET_SOURCE_H__
 
 G_BEGIN_DECLS
 
-void
-gssdp_root_device_add_device    (GSSDPRootDevice *root_device,
-                                 GSSDPDevice     *device);
+typedef struct _GSSDPSocketSource GSSDPSocketSource;
 
-void
-gssdp_root_device_remove_device (GSSDPRootDevice *root_device,
-                                 GSSDPDevice     *device);
+GSSDPSocketSource *
+gssdp_socket_source_new    (void);
+
+int
+gssdp_socket_source_get_fd (GSSDPSocketSource *socket_source);
 
 G_END_DECLS
 
-#endif /* __GSSDP_ROOT_DEVICE_PRIVATE_H__ */
+#endif /* __GSSDP_SOCKET_SOURCE_H__ */

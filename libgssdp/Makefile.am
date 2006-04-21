@@ -4,11 +4,9 @@ libgssdpincdir = $(includedir)/gssdp-1.0/libgssdp
 
 lib_LTLIBRARIES = libgssdp-1.0.la
 
-libgssdpinc_HEADERS = 	gssdp-device.h		 \
-			gssdp-discoverable.h	 \
+libgssdpinc_HEADERS = 	gssdp-client.h		 \
 			gssdp-error.h		 \
-			gssdp-root-device.h	 \
-			gssdp-service.h		 \
+			gssdp-service-browser.h  \
 			gssdp.h
 
 gssdp-marshal.c: gssdp-marshal.list
@@ -19,14 +17,13 @@ gssdp-marshal.h: gssdp-marshal.list
 
 BUILT_SOURCES = gssdp-marshal.c gssdp-marshal.h
 
-libgssdp_1_0_la_SOURCES = gssdp-device.c		\
-			  gssdp-device-private.h	\
-			  gssdp-discoverable.c		\
+libgssdp_1_0_la_SOURCES = gssdp-client.c		\
+			  gssdp-client-private.h	\
 			  gssdp-error.c			\
 			  gssdp-protocol.h		\
-			  gssdp-root-device.c		\
-			  gssdp-root-device-private.h	\
-			  gssdp-service.c		\
+			  gssdp-service-browser.c	\
+			  gssdp-socket-source.c		\
+			  gssdp-socket-source.h		\
 			  $(BUILT_SOURCES)
 
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
