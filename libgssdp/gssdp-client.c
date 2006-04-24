@@ -36,6 +36,7 @@
 #include "gssdp-socket-source.h"
 #include "gssdp-marshal.h"
 #include "gssdp-protocol.h"
+#include "gssdp-headers.h"
 
 /* Size of the buffer used for reading from the socket */
 #define BUF_SIZE 1024
@@ -352,7 +353,7 @@ _gssdp_client_send_message (GSSDPClient *client,
                             const char  *message,
                             GError     **error)
 {
-        struct sockaddr_in sin;
+        struct sockaddr_in addr;
         int socket_fd, res;
 
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), FALSE);
@@ -364,18 +365,18 @@ _gssdp_client_send_message (GSSDPClient *client,
 
         socket_fd = gssdp_socket_source_get_fd (client->priv->socket_source);
 
-        memset (&sin, 0, sizeof (sin));
+        memset (&addr, 0, sizeof (addr));
 
-        sin.sin_family      = AF_INET;
-        sin.sin_port        = htons (SSDP_PORT);
-        sin.sin_addr.s_addr = inet_addr (dest_ip);
+        addr.sin_family      = AF_INET;
+        addr.sin_port        = htons (SSDP_PORT);
+        addr.sin_addr.s_addr = inet_addr (dest_ip);
 
         res = sendto (socket_fd,
                       message,
                       strlen (message),
                       0,
-                      (struct sockaddr *) &sin,
-                      sizeof (struct sockaddr_in));
+                      (struct sockaddr *) &addr,
+                      sizeof (addr));
 
         if (res == -1) {
                 g_set_error (error,
@@ -406,16 +407,36 @@ make_server_id (void)
 }
 
 /**
+ * Free a GSList of strings
+ **/
+static void
+string_list_free (gpointer ptr)
+{
+        GSList *list;
+
+        list = ptr;
+
+        while (list) {
+                g_free (list->data);
+                list = g_slist_delete_link (list, list);
+        }
+}
+
+/**
  * Called when data can be read from the socket
  **/
 static gboolean
 socket_source_cb (gpointer user_data)
 {
         GSSDPClient *client;
-        int fd;
+        int fd, type;
         size_t bytes;
         char buf[BUF_SIZE];
-        //GSSDPMessageType type;
+        struct sockaddr_in addr;
+        socklen_t addr_size;
+        GHashTable *hash;
+        char *req_method;
+        guint status_code;
 
         client = GSSDP_CLIENT (user_data);
 
@@ -423,12 +444,16 @@ socket_source_cb (gpointer user_data)
         fd = gssdp_socket_source_get_fd (client->priv->socket_source);
 
         /* Read data */
-        bytes = recv (fd,
-                      buf,
-                      BUF_SIZE,
-                      MSG_TRUNC);
+        addr_size = sizeof (addr);
+        
+        bytes = recvfrom (fd,
+                          buf,
+                          BUF_SIZE - 1, /* Leave space for trailing \0 */
+                          MSG_TRUNC,
+                          (struct sockaddr *) &addr,
+                          &addr_size);
 
-        if (bytes > BUF_SIZE) {
+        if (bytes >= BUF_SIZE) {
                 g_warning ("Received packet of %d bytes, but the maximum "
                            "buffer size is %d. Packed dropped.",
                            bytes, BUF_SIZE);
@@ -436,25 +461,59 @@ socket_source_cb (gpointer user_data)
                 return TRUE;
         }
 
-#if 0
-        /* Parse "status line" */
+        /* Add trailing \0 */
+        buf[bytes] = '\0';
+        
+        /* Parse message */
+        type = -1;
 
-        /* Parse headers */
-        hash = g_hash_table_new (g_str_hash, g_str_equal);
+        hash = g_hash_table_new_full (g_str_hash,
+                                      g_str_equal,
+                                      g_free,
+                                      string_list_free);
 
-        /* XXX */
+        if (soup_headers_parse_request (buf,
+                                        bytes,
+                                        hash,
+                                        &req_method,
+                                        NULL,
+                                        NULL)) {
+                if (g_ascii_strncasecmp (req_method,
+                                         SSDP_SEARCH_METHOD,
+                                         strlen (SSDP_SEARCH_METHOD)) == 0)
+                        type = _GSSDP_DISCOVERY_REQUEST;
+                else if (g_ascii_strncasecmp (req_method,
+                                              GENA_NOTIFY_METHOD,
+                                              strlen (GENA_NOTIFY_METHOD)) == 0)
+                        type = _GSSDP_ANNOUNCEMENT;
+                else
+                        g_warning ("Unhandled method '%s'", req_method);
 
-        g_signal_emit (client,
-                       signals[MESSAGE_RECEIVED],
-                       0,
-                       type,
-                       from_ip,
-                       hash);
+                g_free (req_method);
+        } else if (soup_headers_parse_response (buf,
+                                                bytes,
+                                                hash,
+                                                NULL,
+                                                &status_code,
+                                                NULL)) {
+                if (status_code == 200)
+                        type = _GSSDP_DISCOVERY_RESPONSE;
+                else
+                        g_warning ("Unhandled status code '%d'", status_code);
+        } else
+                g_warning ("Unhandled message '%s'", buf);
+
+        /* Emit signal if parsing succeeded */
+        if (type >= 0) {
+                g_signal_emit (client,
+                               signals[MESSAGE_RECEIVED],
+                               0,
+                               inet_ntoa (addr.sin_addr),
+                               type,
+                               hash);
+        }
 
         g_hash_table_destroy (hash);
-#endif
 
-        g_print ("%s", buf);
-        
         return TRUE;
 }

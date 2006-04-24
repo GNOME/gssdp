@@ -26,17 +26,22 @@ service_available_cb (GSSDPServiceBrowser *service_browser,
                       const char          *usn,
                       GList               *locations)
 {
-        g_print ("service available:\n"
-                 "\tUSN:\t%s\n",
+        GList *l;
+
+        g_print ("service available\n"
+                 "  USN:      %s\n",
                  usn);
+        
+        for (l = locations; l; l = l->next)
+                g_print ("  Location: %s\n", (char *) l->data);
 }
 
 static void
 service_unavailable_cb (GSSDPServiceBrowser *service_browser,
                         const char          *usn)
 {
-        g_print ("service unavailable:\n"
-                 "\tUSN:\t%s\n",
+        g_print ("service unavailable\n"
+                 "  USN:      %s\n",
                  usn);
 }
 

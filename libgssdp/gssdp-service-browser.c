@@ -19,8 +19,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE
+#endif
+
 #include <config.h>
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
+#include <locale.h>
 
 #include "gssdp-service-browser.h"
 #include "gssdp-error.h"
@@ -41,6 +48,10 @@ struct _GSSDPServiceBrowserPrivate {
         char        *target;
 
         gushort      mx;
+
+        gulong       message_received_id;
+
+        GHashTable  *services;
 };
 
 enum {
@@ -58,6 +69,12 @@ enum {
 
 static guint signals[LAST_SIGNAL];
 
+typedef struct {
+        GSSDPServiceBrowser *service_browser;
+        char                *usn;
+        guint                timeout_id;
+} Service;
+
 /* Function prototypes */
 static void
 gssdp_service_browser_set_client (GSSDPServiceBrowser *service_browser,
@@ -65,6 +82,14 @@ gssdp_service_browser_set_client (GSSDPServiceBrowser *service_browser,
 static void
 gssdp_service_browser_set_target (GSSDPServiceBrowser *service_browser,
                                   const char          *target);
+static void
+message_received_cb              (GSSDPClient         *client,
+                                  const char          *from_ip,
+                                  _GSSDPMessageType    type,
+                                  GHashTable          *headers,
+                                  gpointer             user_data);
+static void
+service_free                     (gpointer             data);
 
 static void
 gssdp_service_browser_init (GSSDPServiceBrowser *service_browser)
@@ -75,6 +100,11 @@ gssdp_service_browser_init (GSSDPServiceBrowser *service_browser)
                                          GSSDPServiceBrowserPrivate);
 
         service_browser->priv->mx = DEFAULT_MX;
+
+        service_browser->priv->services = g_hash_table_new_full (g_str_hash,
+                                                                 g_str_equal,
+                                                                 NULL,
+                                                                 service_free);
 }
 
 static void
@@ -146,8 +176,21 @@ gssdp_service_browser_dispose (GObject *object)
         service_browser = GSSDP_SERVICE_BROWSER (object);
 
         if (service_browser->priv->client) {
+                if (g_signal_handler_is_connected
+                        (service_browser->priv->client,
+                         service_browser->priv->message_received_id)) {
+                        g_signal_handler_disconnect
+                                (service_browser->priv->client,
+                                 service_browser->priv->message_received_id);
+                }
+                                                   
                 g_object_unref (service_browser->priv->client);
                 service_browser->priv->client = NULL;
+        }
+
+        if (service_browser->priv->services) {
+                g_hash_table_destroy (service_browser->priv->services);
+                service_browser->priv->services = NULL;
         }
 }
 
@@ -269,6 +312,13 @@ gssdp_service_browser_set_client (GSSDPServiceBrowser *service_browser,
 
         service_browser->priv->client = g_object_ref (client);
 
+        service_browser->priv->message_received_id =
+                g_signal_connect_object (service_browser->priv->client,
+                                         "message-received",
+                                         G_CALLBACK (message_received_cb),
+                                         service_browser,
+                                         0);
+
         g_object_notify (G_OBJECT (service_browser), "client");
 }
 
@@ -384,4 +434,279 @@ gssdp_service_browser_start (GSSDPServiceBrowser *service_browser,
         g_free (message);
 
         return res;
+}
+
+/**
+ * Service expired: Remove
+ **/
+static gboolean
+service_expire (gpointer user_data)
+{
+        Service *service;
+
+        service = user_data;
+        
+        g_signal_emit (service->service_browser,
+                       signals[SERVICE_UNAVAILABLE],
+                       0,
+                       service->usn);
+
+        g_hash_table_remove (service->service_browser->priv->services,
+                             service->usn);
+
+        return FALSE;
+}
+
+static void
+service_available (GSSDPServiceBrowser *service_browser,
+                   GHashTable          *headers)
+{
+        GSList *list;
+        const char *usn;
+        Service *service;
+        gboolean was_cached;
+        guint timeout;
+        GList *locations;
+
+        list = g_hash_table_lookup (headers, "USN");
+        if (!list)
+                return; /* No USN specified */
+        usn = list->data;
+
+        /* Get from cache, if possible */
+        service = g_hash_table_lookup (service_browser->priv->services, usn);
+        if (service) {
+                /* Remove old timeout */
+                g_source_remove (service->timeout_id);
+
+                was_cached = TRUE;
+        } else {
+                service = g_slice_new (Service);
+
+                service->service_browser = service_browser;
+                service->usn             = g_strdup (usn);
+                
+                g_hash_table_insert (service_browser->priv->services,
+                                     service->usn,
+                                     service);
+                
+                was_cached = FALSE;
+        }
+
+        /* Calculate new timeout */
+        list = g_hash_table_lookup (headers, "Cache-Control");
+        if (list) {
+                if (sscanf (list->data,
+                            "max-age=%d",
+                            &timeout) < 1) {
+                        g_warning ("Invalid 'Cache-Control' header. Assuming "
+                                   "default max-age of 1800.\n"
+                                   "Header was:\n%s", (char *) list->data);
+
+                        timeout = 1800;
+                }
+        } else {
+                list = g_hash_table_lookup (headers, "Expires");
+                if (list) {
+                        char *lc_time, *res;
+                        struct tm expiration_date;
+
+                        /* Hack around the fact that strptime only supports
+                         * weekday names in the current locale */
+                        lc_time = setlocale (LC_TIME, "C");
+
+                        res = strptime (list->data,
+                                        "%a, %d %b %Y %H:%M:%S %z",
+                                        &expiration_date);
+
+                        setlocale (LC_TIME, lc_time);
+
+                        if (res == NULL) {
+                                time_t exp_time, cur_time;
+
+                                exp_time = mktime (&expiration_date);
+                                cur_time = time (NULL);
+
+                                if (exp_time > cur_time)
+                                        timeout = exp_time - cur_time;
+                                else
+                                        timeout = 0;
+                        } else {
+                                g_warning ("Invalid 'Expires' header. Assuming "
+                                           "default max-age of 1800.\n"
+                                           "Header was:\n%s",
+                                           (char *) list->data);
+
+                                timeout = 1800;
+                        }
+                } else {
+                        g_warning ("No 'Cache-Control' nor an 'Expires' header "
+                                   "was specified. Assuming default max-age "
+                                   "of 1800.");
+
+                        timeout = 1800;
+                }
+        }
+
+        service->timeout_id = g_timeout_add (timeout * 1000,
+                                             service_expire,
+                                             service);
+
+        /* Only continue with signal emission if this service was not
+         * cached already */
+        if (was_cached)
+                return;
+
+        /* Build list of locations */
+        locations = NULL;
+
+        list = g_hash_table_lookup (headers, "Location");
+        if (list)
+                locations = g_list_append (locations, g_strdup (list->data));
+
+        list = g_hash_table_lookup (headers, "AL");
+        if (list) {
+                char *start, *end, *uri;
+                
+                start = list->data;
+                while ((start = strchr (start, '<'))) {
+                        start += 1;
+                        if (!start || !*start)
+                                break;
+
+                        end = strchr (start, '>');
+                        if (!end || !*end)
+                                break;
+
+                        uri = g_strndup (start, end - start);
+                        locations = g_list_append (locations, uri);
+
+                        start = end;
+                }
+        }
+
+        /* Emit signal */
+        g_signal_emit (service_browser,
+                       signals[SERVICE_AVAILABLE],
+                       0,
+                       usn,
+                       locations);
+
+        /* Cleanup */
+        while (locations) {
+                g_free (locations->data);
+
+                locations = g_list_delete_link (locations, locations);
+        }
+}
+
+static void
+service_unavailable (GSSDPServiceBrowser *service_browser,
+                     GHashTable          *headers)
+{
+        GSList *list;
+        const char *usn;
+
+        list = g_hash_table_lookup (headers, "USN");
+        if (!list)
+                return; /* No USN specified */
+        usn = list->data;
+
+        /* Only process if we were cached */
+        if (!g_hash_table_lookup (service_browser->priv->services, usn))
+                return;
+
+        g_signal_emit (service_browser,
+                       signals[SERVICE_UNAVAILABLE],
+                       0,
+                       usn);
+
+        g_hash_table_remove (service_browser->priv->services, usn);
+}
+
+static void
+received_discovery_response (GSSDPServiceBrowser *service_browser,
+                             GHashTable          *headers)
+{
+        GSList *list;
+
+        list = g_hash_table_lookup (headers, "ST");
+        if (!list)
+                return; /* No target specified */
+
+        if (strcmp (service_browser->priv->target, list->data) != 0)
+                return; /* Target doesn't match */
+
+        service_available (service_browser, headers);
+}
+
+static void
+received_announcement (GSSDPServiceBrowser *service_browser,
+                       GHashTable          *headers)
+{
+        GSList *list;
+
+        list = g_hash_table_lookup (headers, "NT");
+        if (!list)
+                return; /* No target specified */
+
+        if (strcmp (service_browser->priv->target, list->data) != 0)
+                return; /* Target doesn't match */
+
+        list = g_hash_table_lookup (headers, "NTS");
+        if (!list)
+                return; /* No announcement type specified */
+
+        /* Check announcement type */
+        if      (strncmp (list->data,
+                          SSDP_ALIVE_NTS,
+                          strlen (SSDP_ALIVE_NTS)) == 0)
+                service_available (service_browser, headers);
+        else if (strncmp (list->data,
+                          SSDP_BYEBYE_NTS,
+                          strlen (SSDP_BYEBYE_NTS)) == 0)
+                service_unavailable (service_browser, headers);
+}
+
+/**
+ * Received a message
+ **/
+static void
+message_received_cb (GSSDPClient      *client,
+                     const char       *from_ip,
+                     _GSSDPMessageType type,
+                     GHashTable       *headers,
+                     gpointer          user_data)
+{
+        GSSDPServiceBrowser *service_browser;
+
+        service_browser = GSSDP_SERVICE_BROWSER (user_data);
+
+        switch (type) {
+        case _GSSDP_DISCOVERY_RESPONSE:
+                received_discovery_response (service_browser, headers);
+                break;
+        case _GSSDP_ANNOUNCEMENT:
+                received_announcement (service_browser, headers);
+                break;
+        default:
+                break;
+        }
+}
+
+/**
+ * Free a Service structure and its contained data
+ **/
+static void
+service_free (gpointer data)
+{
+        Service *service;
+
+        service = data;
+
+        g_free (service->usn);
+
+        g_source_remove (service->timeout_id);
+
+        g_slice_free (Service, service);
 }

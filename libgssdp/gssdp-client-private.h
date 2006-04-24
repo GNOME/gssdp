@@ -27,9 +27,9 @@
 G_BEGIN_DECLS
 
 typedef enum {
-        _GSSDP_DISCOVERY_REQUEST,
-        _GSSDP_DISCOVERY_REPLY,
-        _GSSDP_ANNOUNCEMENT
+        _GSSDP_DISCOVERY_REQUEST  = 0,
+        _GSSDP_DISCOVERY_RESPONSE = 1,
+        _GSSDP_ANNOUNCEMENT       = 2
 } _GSSDPMessageType;
 
 gboolean

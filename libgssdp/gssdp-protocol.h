@@ -28,12 +28,18 @@ G_BEGIN_DECLS
 #define SSDP_PORT 1900
 #define SSDP_PORT_STR "1900"
 
-#define SSDP_DISCOVERY_REQUEST                 \
-   "M-SEARCH * HTTP/1.1\r\n"                   \
-   "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
-   "Man: \"ssdp:discover\"\r\n"                \
-   "ST: %s\r\n"                                \
-   "MX: %d\r\n\r\n"
+#define SSDP_DISCOVERY_REQUEST                      \
+        "M-SEARCH * HTTP/1.1\r\n"                   \
+        "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
+        "Man: \"ssdp:discover\"\r\n"                \
+        "ST: %s\r\n"                                \
+        "MX: %d\r\n\r\n"
+
+#define SSDP_SEARCH_METHOD "M-SEARCH"
+#define GENA_NOTIFY_METHOD "NOTIFY"
+
+#define SSDP_ALIVE_NTS  "ssdp:alive"
+#define SSDP_BYEBYE_NTS "ssdp:byebye"
 
 G_END_DECLS
 
