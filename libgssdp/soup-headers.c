@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "gssdp-headers.h"
+#include "soup-headers.h"
 
 /**
  * soup_str_case_hash:

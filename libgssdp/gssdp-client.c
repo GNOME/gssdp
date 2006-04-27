@@ -36,7 +36,7 @@
 #include "gssdp-socket-source.h"
 #include "gssdp-marshal.h"
 #include "gssdp-protocol.h"
-#include "gssdp-headers.h"
+#include "soup-headers.h"
 
 /* Size of the buffer used for reading from the socket */
 #define BUF_SIZE 1024

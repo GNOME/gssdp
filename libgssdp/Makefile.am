@@ -20,12 +20,12 @@ BUILT_SOURCES = gssdp-marshal.c gssdp-marshal.h
 libgssdp_1_0_la_SOURCES = gssdp-client.c		\
 			  gssdp-client-private.h	\
 			  gssdp-error.c			\
-			  gssdp-headers.c		\
-			  gssdp-headers.h		\
 			  gssdp-protocol.h		\
 			  gssdp-service-browser.c	\
 			  gssdp-socket-source.c		\
 			  gssdp-socket-source.h		\
+			  soup-headers.c		\
+			  soup-headers.h		\
 			  $(BUILT_SOURCES)
 
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
