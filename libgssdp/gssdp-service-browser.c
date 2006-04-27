@@ -27,7 +27,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-#include <locale.h>
 
 #include "gssdp-service-browser.h"
 #include "gssdp-error.h"
@@ -49,6 +48,8 @@ struct _GSSDPServiceBrowserPrivate {
 
         gushort      mx;
 
+        gboolean     active;
+
         gulong       message_received_id;
 
         GHashTable  *services;
@@ -58,7 +59,8 @@ enum {
         PROP_0,
         PROP_CLIENT,
         PROP_TARGET,
-        PROP_MX
+        PROP_MX,
+        PROP_ACTIVE
 };
 
 enum {
@@ -80,9 +82,6 @@ static void
 gssdp_service_browser_set_client (GSSDPServiceBrowser *service_browser,
                                   GSSDPClient         *client);
 static void
-gssdp_service_browser_set_target (GSSDPServiceBrowser *service_browser,
-                                  const char          *target);
-static void
 message_received_cb              (GSSDPClient         *client,
                                   const char          *from_ip,
                                   _GSSDPMessageType    type,
@@ -90,6 +89,8 @@ message_received_cb              (GSSDPClient         *client,
                                   gpointer             user_data);
 static void
 service_free                     (gpointer             data);
+static void
+clear_cache                      (GSSDPServiceBrowser *service_browser);
 
 static void
 gssdp_service_browser_init (GSSDPServiceBrowser *service_browser)
@@ -133,6 +134,11 @@ gssdp_service_browser_get_property (GObject    *object,
                         (value,
                          gssdp_service_browser_get_mx (service_browser));
                 break;
+        case PROP_ACTIVE:
+                g_value_set_boolean
+                        (value,
+                         gssdp_service_browser_get_active (service_browser));
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -162,6 +168,11 @@ gssdp_service_browser_set_property (GObject      *object,
                 gssdp_service_browser_set_mx (service_browser,
                                               g_value_get_uint (value));
                 break;
+        case PROP_ACTIVE:
+                gssdp_service_browser_set_active (service_browser,
+                                                  g_value_get_boolean (value),
+                                                  NULL);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -188,10 +199,7 @@ gssdp_service_browser_dispose (GObject *object)
                 service_browser->priv->client = NULL;
         }
 
-        if (service_browser->priv->services) {
-                g_hash_table_destroy (service_browser->priv->services);
-                service_browser->priv->services = NULL;
-        }
+        clear_cache (service_browser);
 }
 
 static void
@@ -202,6 +210,8 @@ gssdp_service_browser_finalize (GObject *object)
         service_browser = GSSDP_SERVICE_BROWSER (object);
 
         g_free (service_browser->priv->target);
+
+        g_hash_table_destroy (service_browser->priv->services);
 }
 
 static void
@@ -238,7 +248,7 @@ gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
                           "Target",
                           "The browser target.",
                           NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
@@ -253,6 +263,18 @@ gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
                           1,
                           G_MAXUSHORT,
                           DEFAULT_MX,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
+
+        g_object_class_install_property
+                (object_class,
+                 PROP_ACTIVE,
+                 g_param_spec_boolean
+                         ("active",
+                          "Active",
+                          "TRUE if the service browser is active.",
+                          FALSE,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
@@ -339,17 +361,19 @@ gssdp_service_browser_get_client (GSSDPServiceBrowser *service_browser)
 /**
  * gssdp_service_browser_set_target
  * @service_browser: A #GSSDPServiceBrowser
- * @server_id: The server ID
+ * @target: The browser target
  *
  * Sets the browser target of @service_browser to @target.
  **/
-static void
+void
 gssdp_service_browser_set_target (GSSDPServiceBrowser *service_browser,
                                   const char          *target)
 {
         g_return_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser));
         g_return_if_fail (target != NULL);
+        g_return_if_fail (!service_browser->priv->active);
         
+        g_free (service_browser->priv->target);
         service_browser->priv->target = g_strdup (target);
 
         g_object_notify (G_OBJECT (service_browser), "target");
@@ -382,11 +406,12 @@ gssdp_service_browser_set_mx (GSSDPServiceBrowser *service_browser,
 {
         g_return_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser));
 
-        if (service_browser->priv->mx != mx) {
-                service_browser->priv->mx = mx;
-                
-                g_object_notify (G_OBJECT (service_browser), "mx");
-        }
+        if (service_browser->priv->mx == mx)
+                return;
+
+        service_browser->priv->mx = mx;
+        
+        g_object_notify (G_OBJECT (service_browser), "mx");
 }
 
 /**
@@ -404,36 +429,66 @@ gssdp_service_browser_get_mx (GSSDPServiceBrowser *service_browser)
 }
 
 /**
- * gssdp_service_browser_start
- * @service_browse: A #GSSDPServiceBrowser
- * @error:  A location to return an error of type #GSSDP_ERROR_QUARK
+ * gssdp_service_browser_set_active
+ * @service_browser: A #GSSDPServiceBrowser
+ * @active: TRUE to activate @service_browser
+ * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
- * Start service discovery.
+ * (De)activates @service_browser.
  *
- * Return value: TRUE if service discovery was started successfully.
+ * Return value: TRUE if the (de)activation succeeded.
  **/
 gboolean
-gssdp_service_browser_start (GSSDPServiceBrowser *service_browser,
-                             GError             **error)
+gssdp_service_browser_set_active (GSSDPServiceBrowser *service_browser,
+                                  gboolean             active,
+                                  GError             **error)
 {
-        char *message;
-        gboolean res;
-
         g_return_val_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser),
                               FALSE);
 
-        message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
-                                   service_browser->priv->target,
-                                   service_browser->priv->mx);
+        if (service_browser->priv->active == active)
+                return TRUE;
 
-        res = _gssdp_client_send_message (service_browser->priv->client,
-                                          NULL,
-                                          message,
-                                          error);
+        if (active) {
+                /* Emit discovery message */
+                char *message;
+                gboolean res;
 
-        g_free (message);
+                message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
+                                           service_browser->priv->target,
+                                           service_browser->priv->mx);
 
-        return res;
+                res = _gssdp_client_send_message (service_browser->priv->client,
+                                                  NULL,
+                                                  message,
+                                                  error);
+
+                g_free (message);
+
+                if (!res)
+                        return FALSE;
+        } else
+                clear_cache (service_browser);
+
+        service_browser->priv->active = active;
+        
+        g_object_notify (G_OBJECT (service_browser), "active");
+
+        return TRUE;
+}
+
+/**
+ * gssdp_service_browser_get_active
+ * @service_browser: A #GSSDPServiceBrowser
+ *
+ * Return value: TRUE if @service_browser is active.
+ **/
+gboolean
+gssdp_service_browser_get_active (GSSDPServiceBrowser *service_browser)
+{
+        g_return_val_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser), 0);
+
+        return service_browser->priv->active;
 }
 
 /**
@@ -501,10 +556,12 @@ service_available (GSSDPServiceBrowser *service_browser,
                             "max-age=%d",
                             &timeout) < 1) {
                         g_warning ("Invalid 'Cache-Control' header. Assuming "
-                                   "default max-age of 1800.\n"
-                                   "Header was:\n%s", (char *) list->data);
+                                   "default max-age of %d.\n"
+                                   "Header was:\n%s",
+                                   SSDP_MIN_MAX_AGE,
+                                   (char *) list->data);
 
-                        timeout = 1800;
+                        timeout = SSDP_MIN_MAX_AGE;
                 }
         } else {
                 list = g_hash_table_lookup (headers, "Expires");
@@ -525,18 +582,19 @@ service_available (GSSDPServiceBrowser *service_browser,
                                 timeout = exp_time - cur_time;
                         else {
                                 g_warning ("Invalid 'Expires' header. Assuming "
-                                           "default max-age of 1800.\n"
+                                           "default max-age of %d.\n"
                                            "Header was:\n%s",
+                                           SSDP_MIN_MAX_AGE,
                                            (char *) list->data);
 
-                                timeout = 1800;
+                                timeout = SSDP_MIN_MAX_AGE;
                         }
                 } else {
-                        g_warning ("No 'Cache-Control' nor an 'Expires' header "
-                                   "was specified. Assuming default max-age "
-                                   "of 1800.");
+                        g_warning ("No 'Cache-Control' nor any 'Expires' "
+                                   "header was specified. Assuming default "
+                                   "max-age of %d.", SSDP_MIN_MAX_AGE);
 
-                        timeout = 1800;
+                        timeout = SSDP_MIN_MAX_AGE;
                 }
         }
 
@@ -676,6 +734,9 @@ message_received_cb (GSSDPClient      *client,
 
         service_browser = GSSDP_SERVICE_BROWSER (user_data);
 
+        if (!service_browser->priv->active)
+                return;
+
         switch (type) {
         case _GSSDP_DISCOVERY_RESPONSE:
                 received_discovery_response (service_browser, headers);
@@ -703,4 +764,31 @@ service_free (gpointer data)
         g_source_remove (service->timeout_id);
 
         g_slice_free (Service, service);
+}
+
+static gboolean
+clear_cache_helper (gpointer key, gpointer value, gpointer data)
+{
+        Service *service;
+
+        service = value;
+
+        g_signal_emit (service->service_browser,
+                       signals[SERVICE_UNAVAILABLE],
+                       0,
+                       service->usn);
+
+        return TRUE;
+}
+
+/**
+ * Clears the cached services hash
+ **/
+static void
+clear_cache (GSSDPServiceBrowser *service_browser)
+{
+        /* Clear cache */
+        g_hash_table_foreach_remove (service_browser->priv->services,
+                                     clear_cache_helper,
+                                     NULL);
 }

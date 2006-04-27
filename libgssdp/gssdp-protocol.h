@@ -41,6 +41,8 @@ G_BEGIN_DECLS
 #define SSDP_ALIVE_NTS  "ssdp:alive"
 #define SSDP_BYEBYE_NTS "ssdp:byebye"
 
+#define SSDP_MIN_MAX_AGE 1800
+
 G_END_DECLS
 
 #endif /* __GSSDP_PROTOCOL_H__ */

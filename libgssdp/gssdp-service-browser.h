@@ -83,6 +83,10 @@ gssdp_service_browser_new        (GSSDPClient         *client,
 GSSDPClient *
 gssdp_service_browser_get_client (GSSDPServiceBrowser *service_browser);
 
+void
+gssdp_service_browser_set_target (GSSDPServiceBrowser *service_browser,
+                                  const char          *target);
+
 const char *
 gssdp_service_browser_get_target (GSSDPServiceBrowser *service_browser);
 
@@ -94,8 +98,12 @@ gushort
 gssdp_service_browser_get_mx     (GSSDPServiceBrowser *service_browser);
 
 gboolean
-gssdp_service_browser_start      (GSSDPServiceBrowser *service_browser,
+gssdp_service_browser_set_active (GSSDPServiceBrowser *service_browser,
+                                  gboolean             active,
                                   GError             **error);
+
+gboolean
+gssdp_service_browser_get_active (GSSDPServiceBrowser *service_browser);
 
 G_END_DECLS
 
