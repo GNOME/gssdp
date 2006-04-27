@@ -481,6 +481,7 @@ service_available (GSSDPServiceBrowser *service_browser,
 
                 was_cached = TRUE;
         } else {
+                /* Create new Service data structure */
                 service = g_slice_new (Service);
 
                 service->service_browser = service_browser;
@@ -508,30 +509,21 @@ service_available (GSSDPServiceBrowser *service_browser,
         } else {
                 list = g_hash_table_lookup (headers, "Expires");
                 if (list) {
-                        char *lc_time, *res;
                         struct tm expiration_date;
+                        time_t exp_time, cur_time;
 
-                        /* Hack around the fact that strptime only supports
-                         * weekday names in the current locale */
-                        lc_time = setlocale (LC_TIME, "C");
+                        /* GNU strptime parses both local and international
+                         * weekdays and months */
+                        strptime (list->data,
+                                  "%a, %d %b %Y %T %z",
+                                  &expiration_date);
 
-                        res = strptime (list->data,
-                                        "%a, %d %b %Y %H:%M:%S %z",
-                                        &expiration_date);
+                        exp_time = mktime (&expiration_date);
+                        cur_time = time (NULL);
 
-                        setlocale (LC_TIME, lc_time);
-
-                        if (res == NULL) {
-                                time_t exp_time, cur_time;
-
-                                exp_time = mktime (&expiration_date);
-                                cur_time = time (NULL);
-
-                                if (exp_time > cur_time)
-                                        timeout = exp_time - cur_time;
-                                else
-                                        timeout = 0;
-                        } else {
+                        if (exp_time > cur_time)
+                                timeout = exp_time - cur_time;
+                        else {
                                 g_warning ("Invalid 'Expires' header. Assuming "
                                            "default max-age of 1800.\n"
                                            "Header was:\n%s",
@@ -566,6 +558,8 @@ service_available (GSSDPServiceBrowser *service_browser,
 
         list = g_hash_table_lookup (headers, "AL");
         if (list) {
+                /* Parse AL header. The format is:
+                 * <uri1><uri2>... */
                 char *start, *end, *uri;
                 
                 start = list->data;
