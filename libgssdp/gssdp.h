@@ -1,5 +1,5 @@
 /* 
- * (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -22,3 +22,4 @@
 #include "gssdp-client.h"
 #include "gssdp-error.h"
 #include "gssdp-service-browser.h"
+#include "gssdp-service-group.h"

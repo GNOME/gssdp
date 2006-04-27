@@ -34,9 +34,6 @@
 #include "gssdp-protocol.h"
 #include "gssdp-marshal.h"
 
-/* An MX of 3 seconds by default */
-#define DEFAULT_MX 3
-
 G_DEFINE_TYPE (GSSDPServiceBrowser,
                gssdp_service_browser,
                G_TYPE_OBJECT);
@@ -100,7 +97,7 @@ gssdp_service_browser_init (GSSDPServiceBrowser *service_browser)
                                          GSSDP_TYPE_SERVICE_BROWSER,
                                          GSSDPServiceBrowserPrivate);
 
-        service_browser->priv->mx = DEFAULT_MX;
+        service_browser->priv->mx = SSDP_DEFAULT_MX;
 
         service_browser->priv->services = g_hash_table_new_full (g_str_hash,
                                                                  g_str_equal,
@@ -262,7 +259,7 @@ gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
                           "other parties to respond.",
                           1,
                           G_MAXUSHORT,
-                          DEFAULT_MX,
+                          SSDP_DEFAULT_MX,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
@@ -307,7 +304,7 @@ gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
 
 /**
  * gssdp_service_browser_new
- * @main_context: The #GMainContext to associate with
+ * @client: The #GSSDPClient to associate with
  * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
  * Return value: A new #GSSDPServiceBrowser object.

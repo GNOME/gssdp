@@ -7,6 +7,7 @@ lib_LTLIBRARIES = libgssdp-1.0.la
 libgssdpinc_HEADERS = 	gssdp-client.h		 \
 			gssdp-error.h		 \
 			gssdp-service-browser.h  \
+			gssdp-service-group.h	 \
 			gssdp.h
 
 gssdp-marshal.c: gssdp-marshal.list
@@ -22,6 +23,7 @@ libgssdp_1_0_la_SOURCES = gssdp-client.c		\
 			  gssdp-error.c			\
 			  gssdp-protocol.h		\
 			  gssdp-service-browser.c	\
+			  gssdp-service-group.c		\
 			  gssdp-socket-source.c		\
 			  gssdp-socket-source.h		\
 			  soup-headers.c		\

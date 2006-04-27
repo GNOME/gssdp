@@ -35,6 +35,16 @@ G_BEGIN_DECLS
         "ST: %s\r\n"                                \
         "MX: %d\r\n\r\n"
 
+#define SSDP_DISCOVERY_RESPONSE                     \
+        "HTTP/1.1 200 OK\r\n"                       \
+        "Location: %s\r\n"                          \
+        "Ext:\r\n"                                  \
+        "USN: %s\r\n"                               \
+        "Server: %s\r\n"                            \
+        "Cache-Control: max-age=%d\r\n"             \
+        "ST: %s\r\n"                                \
+        "Content-Length: 0\r\n\r\n"
+
 #define SSDP_SEARCH_METHOD "M-SEARCH"
 #define GENA_NOTIFY_METHOD "NOTIFY"
 
@@ -42,6 +52,8 @@ G_BEGIN_DECLS
 #define SSDP_BYEBYE_NTS "ssdp:byebye"
 
 #define SSDP_MIN_MAX_AGE 1800
+
+#define SSDP_DEFAULT_MX 3
 
 G_END_DECLS
 
