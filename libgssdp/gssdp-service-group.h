@@ -81,10 +81,9 @@ gssdp_service_group_set_max_age        (GSSDPServiceGroup *service_group,
 guint
 gssdp_service_group_get_max_age        (GSSDPServiceGroup *service_group);
 
-gboolean
+void
 gssdp_service_group_set_available      (GSSDPServiceGroup *service_group,
-                                        gboolean           available,
-                                        GError           **error);
+                                        gboolean           available);
 
 gboolean
 gssdp_service_group_get_available      (GSSDPServiceGroup *service_group);

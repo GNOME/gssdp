@@ -54,29 +54,46 @@ enum {
 };
 
 typedef struct {
-        char  *target;
-        char  *usn;
-        GList *locations;
+        GSSDPServiceGroup *service_group;
 
-        guint  id;
+        char              *target;
+        char              *usn;
+        GList             *locations;
+
+        guint              timeout_id;
+
+        GList             *responses;
+
+        guint              id;
 } Service;
+
+typedef struct {
+        char    *dest_ip;
+        Service *service;
+
+        guint    timeout_id;
+} DiscoveryResponse;
 
 /* Function prototypes */
 static void
 gssdp_service_group_set_client (GSSDPServiceGroup *service_group,
-                                GSSDPClient         *client);
+                                GSSDPClient       *client);
 static void
-message_received_cb            (GSSDPClient         *client,
-                                const char          *from_ip,
-                                _GSSDPMessageType    type,
-                                GHashTable          *headers,
-                                gpointer             user_data);
+message_received_cb            (GSSDPClient       *client,
+                                const char        *from_ip,
+                                _GSSDPMessageType  type,
+                                GHashTable        *headers,
+                                gpointer           user_data);
+static gboolean
+service_alive                  (Service           *service);
 static void
-service_free                   (Service             *service);
+service_byebye                 (Service           *service);
 static void
-send_discovery_response        (GSSDPServiceGroup   *service_group,
-                                const char          *dest_ip,
-                                Service             *service);
+service_free                   (Service           *service);
+static gboolean
+discovery_response_timeout     (gpointer           user_data);
+static void
+discovery_response_free        (DiscoveryResponse *response);
 
 static void
 gssdp_service_group_init (GSSDPServiceGroup *service_group)
@@ -86,7 +103,7 @@ gssdp_service_group_init (GSSDPServiceGroup *service_group)
                                          GSSDP_TYPE_SERVICE_GROUP,
                                          GSSDPServiceGroupPrivate);
 
-        service_group->priv->max_age = SSDP_MIN_MAX_AGE;
+        service_group->priv->max_age = SSDP_DEFAULT_MAX_AGE;
 }
 
 static void
@@ -142,8 +159,7 @@ gssdp_service_group_set_property (GObject      *object,
                 break;
         case PROP_AVAILABLE:
                 gssdp_service_group_set_available (service_group,
-                                                   g_value_get_boolean (value),
-                                                   NULL);
+                                                   g_value_get_boolean (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -170,15 +186,7 @@ gssdp_service_group_dispose (GObject *object)
                 g_object_unref (service_group->priv->client);
                 service_group->priv->client = NULL;
         }
-}
-
-static void
-gssdp_service_group_finalize (GObject *object)
-{
-        GSSDPServiceGroup *service_group;
-
-        service_group = GSSDP_SERVICE_GROUP (object);
-
+        
         while (service_group->priv->services) {
                 service_free (service_group->priv->services->data);
                 service_group->priv->services =
@@ -197,7 +205,6 @@ gssdp_service_group_class_init (GSSDPServiceGroupClass *klass)
 	object_class->set_property = gssdp_service_group_set_property;
 	object_class->get_property = gssdp_service_group_get_property;
 	object_class->dispose      = gssdp_service_group_dispose;
-	object_class->finalize     = gssdp_service_group_finalize;
 
         g_type_class_add_private (klass, sizeof (GSSDPServiceGroupPrivate));
 
@@ -220,9 +227,9 @@ gssdp_service_group_class_init (GSSDPServiceGroupClass *klass)
                          ("max-age",
                           "Max age",
                           "The number of seconds advertisements are valid.",
-                          SSDP_MIN_MAX_AGE,
+                          0,
                           G_MAXUINT,
-                          SSDP_MIN_MAX_AGE,
+                          SSDP_DEFAULT_MAX_AGE,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
@@ -330,31 +337,33 @@ gssdp_service_group_get_max_age (GSSDPServiceGroup *service_group)
  * gssdp_service_group_set_available
  * @service_group: A #GSSDPServiceGroup
  * @available: TRUE if @service_group should be available (advertised)
- * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
  * Sets @service_group<!-- -->s availability to @available.
- *
- * Return value: TRUE if the call succeeded.
  **/
-gboolean
+void
 gssdp_service_group_set_available (GSSDPServiceGroup *service_group,
-                                   gboolean           available,
-                                   GError           **error)
+                                   gboolean           available)
 {
-        g_return_val_if_fail (GSSDP_IS_SERVICE_GROUP (service_group), FALSE);
+        GList *l;
+
+        g_return_if_fail (GSSDP_IS_SERVICE_GROUP (service_group));
 
         if (service_group->priv->available == available)
-                return TRUE;
-
-        /* XXX */
-        if (available) {
-        }
+                return;
 
         service_group->priv->available = available;
+
+        if (available) {
+                /* Try to announce all services */
+                for (l = service_group->priv->services; l; l = l->next)
+                        service_alive (l->data);
+        } else {
+                /* Try to unannounce all services */
+                for (l = service_group->priv->services; l; l = l->next)
+                        service_byebye (l->data);
+        }
         
         g_object_notify (G_OBJECT (service_group), "available");
-
-        return TRUE;
 }
 
 /**
@@ -396,9 +405,10 @@ gssdp_service_group_add_service (GSSDPServiceGroup *service_group,
         g_return_val_if_fail (target != NULL, 0);
         g_return_val_if_fail (usn != NULL, 0);
         g_return_val_if_fail (locations != NULL, 0);
-        g_return_val_if_fail (!service_group->priv->available, 0);
 
         service = g_slice_new0 (Service);
+
+        service->service_group = service_group;
 
         service->target = g_strdup (target);
         service->usn    = g_strdup (usn);
@@ -412,6 +422,9 @@ gssdp_service_group_add_service (GSSDPServiceGroup *service_group,
                 g_list_prepend (service_group->priv->services, service);
 
         service->id = ++service_group->priv->last_service_id;
+
+        if (service_group->priv->available)
+                service_alive (service);
 
         return service->id;
 }
@@ -440,9 +453,10 @@ gssdp_service_group_add_service_simple (GSSDPServiceGroup *service_group,
         g_return_val_if_fail (target != NULL, 0);
         g_return_val_if_fail (usn != NULL, 0);
         g_return_val_if_fail (location != NULL, 0);
-        g_return_val_if_fail (!service_group->priv->available, 0);
 
         service = g_slice_new0 (Service);
+
+        service->service_group = service_group;
 
         service->target = g_strdup (target);
         service->usn    = g_strdup (usn);
@@ -454,6 +468,9 @@ gssdp_service_group_add_service_simple (GSSDPServiceGroup *service_group,
                 g_list_prepend (service_group->priv->services, service);
 
         service->id = ++service_group->priv->last_service_id;
+
+        if (service_group->priv->available)
+                service_alive (service);
 
         return service->id;
 }
@@ -473,7 +490,6 @@ gssdp_service_group_remove_service (GSSDPServiceGroup *service_group,
 
         g_return_if_fail (GSSDP_IS_SERVICE_GROUP (service_group));
         g_return_if_fail (service_id > 0);
-        g_return_if_fail (!service_group->priv->available);
 
         for (l = service_group->priv->services; l; l = l->next) {
                 Service *service;
@@ -484,6 +500,8 @@ gssdp_service_group_remove_service (GSSDPServiceGroup *service_group,
                         service_group->priv->services = 
                                 g_list_remove (service_group->priv->services,
                                                service);
+                        
+                        service_free (service);
 
                         return;
                 }
@@ -535,6 +553,7 @@ message_received_cb (GSSDPClient      *client,
                         /* Match. Extract MX */
                         int mx;
                         guint timeout;
+                        DiscoveryResponse *response;
 
                         list = g_hash_table_lookup (headers, "MX");
                         if (list)
@@ -545,10 +564,21 @@ message_received_cb (GSSDPClient      *client,
                         /* Get a random timeout within the [0..mx] interval */
                         timeout = g_random_int_range (0, mx * 1000);
 
-                        /* XXX run in timeout */
-                        send_discovery_response (service_group,
-                                                 from_ip,
-                                                 service);
+                        /* Prepare response */
+                        response = g_slice_new (DiscoveryResponse);
+                        
+                        response->dest_ip = g_strdup (from_ip);
+                        response->service = service;
+
+                        /* Add timeout */
+                        response->timeout_id =
+                                g_timeout_add (timeout,
+                                               discovery_response_timeout,
+                                               response);
+                        
+                        /* Add to service */
+                        service->responses =
+                                g_list_prepend (service->responses, response);
 
                         return;
                 }
@@ -556,29 +586,164 @@ message_received_cb (GSSDPClient      *client,
 }
 
 /**
- * Send a discovery response to @dest_ip containing @service
+ * Construct the AL header for @service
  **/
-static void
-send_discovery_response (GSSDPServiceGroup *service_group,
-                         const char        *dest_ip,
-                         Service           *service)
+static char *
+construct_al (Service *service)
 {
-        char *message;
+       if (service->locations->next) {
+                GString *al_string;
+                GList *l;
 
-        /* XXX */
+                al_string = g_string_new ("AL: ");
+
+                for (l = service->locations->next; l; l = l->next) {
+                        g_string_append_c (al_string, '<');
+                        g_string_append (al_string, l->data);
+                        g_string_append_c (al_string, '>');
+                }
+
+                g_string_append (al_string, "\r\n");
+
+                return g_string_free (al_string, FALSE);
+        } else
+                return NULL; 
+}
+
+/**
+ * Send a discovery response
+ **/
+static gboolean
+discovery_response_timeout (gpointer user_data)
+{
+        DiscoveryResponse *response;
+        GSSDPClient *client;
+        char *al, *message;
+        guint max_age;
+
+        response = user_data;
+
+        /* Send message */
+        client = response->service->service_group->priv->client;
+
+        max_age = response->service->service_group->priv->max_age;
+
+        al = construct_al (response->service);
+
         message = g_strdup_printf (SSDP_DISCOVERY_RESPONSE,
-                                   (char *) service->locations->data,
-                                   service->usn,
-                                   "HOER",
-                                   service_group->priv->max_age,
-                                   service->target);
+                                   (char *) response->service->locations->data,
+                                   al ? al : "",
+                                   response->service->usn,
+                                   gssdp_client_get_server_id (client),
+                                   max_age,
+                                   response->service->target);
 
-        _gssdp_client_send_message (service_group->priv->client,
-                                    dest_ip,
+        _gssdp_client_send_message (client,
+                                    response->dest_ip,
                                     message,
                                     NULL);
 
         g_free (message);
+        g_free (al);
+
+        discovery_response_free (response);
+
+        return FALSE;
+}
+
+/**
+ * Free a DiscoveryResponse structure and its contained data
+ **/
+static void
+discovery_response_free (DiscoveryResponse *response)
+{
+        response->service->responses =
+                g_list_remove (response->service->responses, response);
+
+        g_source_remove (response->timeout_id);
+        
+        g_free (response->dest_ip);
+
+        g_slice_free (DiscoveryResponse, response);
+}
+
+/**
+ * Send ssdp:alive message for @service
+ **/
+static gboolean
+service_alive (Service *service)
+{
+        GSSDPClient *client;
+        guint max_age;
+        char *al, *message;
+
+        max_age = service->service_group->priv->max_age;
+
+        /* Add timeout */
+        if (service->timeout_id == 0) {
+                guint timeout;
+
+                timeout = max_age * 1000;
+
+                service->timeout_id =
+                        g_timeout_add (timeout,
+                                       (GSourceFunc) service_alive,
+                                       service);
+        }
+
+        /* Send message */
+        client = service->service_group->priv->client;
+
+        al = construct_al (service);
+
+        message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
+                                   max_age,
+                                   (char *) service->locations->data,
+                                   al ? al : "",
+                                   gssdp_client_get_server_id (client),
+                                   service->target,
+                                   service->usn);
+
+        _gssdp_client_send_message (client,
+                                    NULL,
+                                    message,
+                                    NULL);
+
+        g_free (message);
+        g_free (al);
+
+        return TRUE;
+}
+
+/**
+ * Send ssdp:byebye message for @service
+ **/
+static void
+service_byebye (Service *service)
+{
+        GSSDPClient *client;
+        char *message;
+
+        if (service->timeout_id == 0)
+                return; /* Aleady dead */
+        
+        /* Send message */
+        client = service->service_group->priv->client;
+
+        message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
+                                   service->target,
+                                   service->usn);
+        
+        _gssdp_client_send_message (client,
+                                    NULL,
+                                    message,
+                                    NULL);
+
+        g_free (message);
+
+        /* Remove timeout */
+        g_source_remove (service->timeout_id);
+        service->timeout_id = 0;
 }
 
 /**
@@ -587,6 +752,12 @@ send_discovery_response (GSSDPServiceGroup *service_group,
 static void
 service_free (Service *service)
 {
+        while (service->responses)
+                discovery_response_free (service->responses->data);
+
+        if (service->service_group->priv->available)
+                service_byebye (service);
+
         g_free (service->usn);
         g_free (service->target);
 

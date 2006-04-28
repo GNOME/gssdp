@@ -549,16 +549,27 @@ service_available (GSSDPServiceBrowser *service_browser,
         /* Calculate new timeout */
         list = g_hash_table_lookup (headers, "Cache-Control");
         if (list) {
-                if (sscanf (list->data,
-                            "max-age=%d",
-                            &timeout) < 1) {
+                GSList *l;
+                int res;
+
+                res = 0;
+
+                for (l = list; l; l = l->next) {
+                        res = sscanf (l->data,
+                                      "max-age=%d",
+                                      &timeout);
+                        if (res == 1)
+                                break;
+                }
+
+                if (res != 1) {
                         g_warning ("Invalid 'Cache-Control' header. Assuming "
                                    "default max-age of %d.\n"
                                    "Header was:\n%s",
-                                   SSDP_MIN_MAX_AGE,
+                                   SSDP_DEFAULT_MAX_AGE,
                                    (char *) list->data);
 
-                        timeout = SSDP_MIN_MAX_AGE;
+                        timeout = SSDP_DEFAULT_MAX_AGE;
                 }
         } else {
                 list = g_hash_table_lookup (headers, "Expires");
@@ -581,17 +592,17 @@ service_available (GSSDPServiceBrowser *service_browser,
                                 g_warning ("Invalid 'Expires' header. Assuming "
                                            "default max-age of %d.\n"
                                            "Header was:\n%s",
-                                           SSDP_MIN_MAX_AGE,
+                                           SSDP_DEFAULT_MAX_AGE,
                                            (char *) list->data);
 
-                                timeout = SSDP_MIN_MAX_AGE;
+                                timeout = SSDP_DEFAULT_MAX_AGE;
                         }
                 } else {
                         g_warning ("No 'Cache-Control' nor any 'Expires' "
                                    "header was specified. Assuming default "
-                                   "max-age of %d.", SSDP_MIN_MAX_AGE);
+                                   "max-age of %d.", SSDP_DEFAULT_MAX_AGE);
 
-                        timeout = SSDP_MIN_MAX_AGE;
+                        timeout = SSDP_DEFAULT_MAX_AGE;
                 }
         }
 
