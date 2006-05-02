@@ -43,6 +43,8 @@ struct _GSSDPServiceGroupPrivate {
 
         gulong       message_received_id;
 
+        guint        timeout_id;
+
         guint        last_service_id;
 };
 
@@ -60,8 +62,6 @@ typedef struct {
         char              *usn;
         GList             *locations;
 
-        guint              timeout_id;
-
         GList             *responses;
 
         guint              id;
@@ -78,13 +78,15 @@ typedef struct {
 static void
 gssdp_service_group_set_client (GSSDPServiceGroup *service_group,
                                 GSSDPClient       *client);
+static gboolean
+service_group_timeout          (gpointer           user_data);
 static void
 message_received_cb            (GSSDPClient       *client,
                                 const char        *from_ip,
                                 _GSSDPMessageType  type,
                                 GHashTable        *headers,
                                 gpointer           user_data);
-static gboolean
+static void
 service_alive                  (Service           *service);
 static void
 service_byebye                 (Service           *service);
@@ -192,6 +194,11 @@ gssdp_service_group_dispose (GObject *object)
                 service_group->priv->services =
                         g_list_delete_link (service_group->priv->services,
                                             service_group->priv->services);
+        }
+
+        if (service_group->priv->timeout_id > 0) {
+                g_source_remove (service_group->priv->timeout_id);
+                service_group->priv->timeout_id = 0;
         }
 }
 
@@ -354,13 +361,23 @@ gssdp_service_group_set_available (GSSDPServiceGroup *service_group,
         service_group->priv->available = available;
 
         if (available) {
-                /* Try to announce all services */
+                /* Add re-announcement timer */
+                service_group->priv->timeout_id =
+                        g_timeout_add (service_group->priv->max_age * 1000,
+                                       service_group_timeout,
+                                       service_group);
+
+                /* Announce all services */
                 for (l = service_group->priv->services; l; l = l->next)
                         service_alive (l->data);
         } else {
-                /* Try to unannounce all services */
+                /* Unannounce all services */
                 for (l = service_group->priv->services; l; l = l->next)
                         service_byebye (l->data);
+
+                /* Remove re-announcement timer */
+                g_source_remove (service_group->priv->timeout_id);
+                service_group->priv->timeout_id = 0;
         }
         
         g_object_notify (G_OBJECT (service_group), "available");
@@ -506,6 +523,24 @@ gssdp_service_group_remove_service (GSSDPServiceGroup *service_group,
                         return;
                 }
         }
+}
+
+/**
+ * Called every max-age seconds to re-announce all services
+ **/
+static gboolean
+service_group_timeout (gpointer user_data)
+{
+        GSSDPServiceGroup *service_group;
+        GList *l;
+
+        service_group = GSSDP_SERVICE_GROUP (user_data);
+
+        /* Re-announce all services */
+        for (l = service_group->priv->services; l; l = l->next)
+                service_alive (l->data);
+
+        return TRUE;
 }
 
 /**
@@ -670,29 +705,17 @@ discovery_response_free (DiscoveryResponse *response)
 /**
  * Send ssdp:alive message for @service
  **/
-static gboolean
+static void
 service_alive (Service *service)
 {
         GSSDPClient *client;
         guint max_age;
         char *al, *message;
 
-        max_age = service->service_group->priv->max_age;
-
-        /* Add timeout */
-        if (service->timeout_id == 0) {
-                guint timeout;
-
-                timeout = max_age * 1000;
-
-                service->timeout_id =
-                        g_timeout_add (timeout,
-                                       (GSourceFunc) service_alive,
-                                       service);
-        }
-
         /* Send message */
         client = service->service_group->priv->client;
+
+        max_age = service->service_group->priv->max_age;
 
         al = construct_al (service);
 
@@ -711,8 +734,6 @@ service_alive (Service *service)
 
         g_free (message);
         g_free (al);
-
-        return TRUE;
 }
 
 /**
@@ -724,9 +745,6 @@ service_byebye (Service *service)
         GSSDPClient *client;
         char *message;
 
-        if (service->timeout_id == 0)
-                return; /* Aleady dead */
-        
         /* Send message */
         client = service->service_group->priv->client;
 
@@ -740,10 +758,6 @@ service_byebye (Service *service)
                                     NULL);
 
         g_free (message);
-
-        /* Remove timeout */
-        g_source_remove (service->timeout_id);
-        service->timeout_id = 0;
 }
 
 /**
