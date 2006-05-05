@@ -341,23 +341,19 @@ gssdp_client_get_server_id (GSSDPClient *client)
  * @client: A #GSSDPClient
  * @dest_ip: The destination IP address, or NULL to broadcast
  * @message: The message to send
- * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
  * Sends @message to @dest_ip.
- *
- * Return value: TRUE on success.
  **/
-gboolean
+void
 _gssdp_client_send_message (GSSDPClient *client,
                             const char  *dest_ip,
-                            const char  *message,
-                            GError     **error)
+                            const char  *message)
 {
         struct sockaddr_in addr;
         int socket_fd, res;
 
-        g_return_val_if_fail (GSSDP_IS_CLIENT (client), FALSE);
-        g_return_val_if_fail (message != NULL, FALSE);
+        g_return_if_fail (GSSDP_IS_CLIENT (client));
+        g_return_if_fail (message != NULL);
 
         /* Broadcast if @dest_ip is NULL */
         if (dest_ip == NULL)
@@ -379,15 +375,9 @@ _gssdp_client_send_message (GSSDPClient *client,
                       sizeof (addr));
 
         if (res == -1) {
-                g_set_error (error,
-                             GSSDP_ERROR_QUARK,
-                             errno,
-                             strerror (errno));
-
-                return FALSE;
+                g_warning ("sendto: Error %d sending message: %s",
+                           errno, strerror (errno));
         }
-
-        return TRUE;
 }
 
 /**

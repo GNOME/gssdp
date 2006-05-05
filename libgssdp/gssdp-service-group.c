@@ -675,8 +675,7 @@ discovery_response_timeout (gpointer user_data)
 
         _gssdp_client_send_message (client,
                                     response->dest_ip,
-                                    message,
-                                    NULL);
+                                    message);
 
         g_free (message);
         g_free (al);
@@ -729,8 +728,7 @@ service_alive (Service *service)
 
         _gssdp_client_send_message (client,
                                     NULL,
-                                    message,
-                                    NULL);
+                                    message);
 
         g_free (message);
         g_free (al);
@@ -754,8 +752,7 @@ service_byebye (Service *service)
         
         _gssdp_client_send_message (client,
                                     NULL,
-                                    message,
-                                    NULL);
+                                    message);
 
         g_free (message);
 }

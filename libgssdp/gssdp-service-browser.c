@@ -167,8 +167,7 @@ gssdp_service_browser_set_property (GObject      *object,
                 break;
         case PROP_ACTIVE:
                 gssdp_service_browser_set_active (service_browser,
-                                                  g_value_get_boolean (value),
-                                                  NULL);
+                                                  g_value_get_boolean (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -429,49 +428,37 @@ gssdp_service_browser_get_mx (GSSDPServiceBrowser *service_browser)
  * gssdp_service_browser_set_active
  * @service_browser: A #GSSDPServiceBrowser
  * @active: TRUE to activate @service_browser
- * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
  * (De)activates @service_browser.
- *
- * Return value: TRUE if the (de)activation succeeded.
  **/
-gboolean
+void
 gssdp_service_browser_set_active (GSSDPServiceBrowser *service_browser,
-                                  gboolean             active,
-                                  GError             **error)
+                                  gboolean             active)
 {
-        g_return_val_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser),
-                              FALSE);
+        g_return_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser));
 
         if (service_browser->priv->active == active)
-                return TRUE;
+                return;
+
+        service_browser->priv->active = active;
 
         if (active) {
                 /* Emit discovery message */
                 char *message;
-                gboolean res;
 
                 message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
                                            service_browser->priv->target,
                                            service_browser->priv->mx);
 
-                res = _gssdp_client_send_message (service_browser->priv->client,
-                                                  NULL,
-                                                  message,
-                                                  error);
+                _gssdp_client_send_message (service_browser->priv->client,
+                                            NULL,
+                                            message);
 
                 g_free (message);
-
-                if (!res)
-                        return FALSE;
         } else
                 clear_cache (service_browser);
-
-        service_browser->priv->active = active;
         
         g_object_notify (G_OBJECT (service_browser), "active");
-
-        return TRUE;
 }
 
 /**

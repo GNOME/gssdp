@@ -97,10 +97,9 @@ gssdp_service_browser_set_mx     (GSSDPServiceBrowser *service_browser,
 gushort
 gssdp_service_browser_get_mx     (GSSDPServiceBrowser *service_browser);
 
-gboolean
+void
 gssdp_service_browser_set_active (GSSDPServiceBrowser *service_browser,
-                                  gboolean             active,
-                                  GError             **error);
+                                  gboolean             active);
 
 gboolean
 gssdp_service_browser_get_active (GSSDPServiceBrowser *service_browser);
