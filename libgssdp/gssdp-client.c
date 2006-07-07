@@ -56,7 +56,8 @@ struct _GSSDPClientPrivate {
 enum {
         PROP_0,
         PROP_MAIN_CONTEXT,
-        PROP_SERVER_ID
+        PROP_SERVER_ID,
+        PROP_ERROR
 };
 
 enum {
@@ -143,6 +144,19 @@ gssdp_client_set_property (GObject      *object,
                 gssdp_client_set_main_context (client,
                                                g_value_get_pointer (value));
                 break;
+        case PROP_ERROR:
+                if (!client->priv->socket_source) {
+                        GError **error;
+
+                        error = g_value_get_pointer (value);
+
+                        g_set_error (error,
+                                     GSSDP_ERROR_QUARK,
+                                     errno,
+                                     strerror (errno));
+                }
+
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -216,6 +230,18 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        g_object_class_install_property
+                (object_class,
+                 PROP_ERROR,
+                 g_param_spec_pointer
+                         ("error",
+                          "Error",
+                          "Location where to store the constructor GError, "
+                          "if any.",
+                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
+
         signals[MESSAGE_RECEIVED] =
                 g_signal_new ("message-received",
                               GSSDP_TYPE_CLIENT,
@@ -241,24 +267,10 @@ GSSDPClient *
 gssdp_client_new (GMainContext *main_context,
                   GError      **error)
 {
-        GSSDPClient *client;
-        
-        client = g_object_new (GSSDP_TYPE_CLIENT,
-                               "main-context", main_context,
-                               NULL);
-
-        if (client->priv->socket_source == NULL) {
-                g_set_error (error,
-                             GSSDP_ERROR_QUARK,
-                             errno,
-                             strerror (errno));
-
-                g_object_unref (client);
-
-                return NULL;
-        }
-
-        return client;
+        return g_object_new (GSSDP_TYPE_CLIENT,
+                             "main-context", main_context,
+                             "error", error,
+                             NULL);
 }
 
 /**

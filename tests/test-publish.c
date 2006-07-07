@@ -34,7 +34,7 @@ main (int    argc,
 
         error = NULL;
         client = gssdp_client_new (NULL, &error);
-        if (!client) {
+        if (error) {
                 g_critical (error->message);
 
                 g_error_free (error);
