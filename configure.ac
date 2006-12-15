@@ -10,7 +10,7 @@ AC_PROG_CC
 AC_STDC_HEADERS
 AC_PROG_LIBTOOL
 
-PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 >= 2.9.1)
+PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 >= 2.9.1 libsoup-2.2 >= 2.2.97)
 
 # glib-genmarshal
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`

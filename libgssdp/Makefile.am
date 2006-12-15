@@ -26,8 +26,6 @@ libgssdp_1_0_la_SOURCES = gssdp-client.c		\
 			  gssdp-service-group.c		\
 			  gssdp-socket-source.c		\
 			  gssdp-socket-source.h		\
-			  soup-headers.c		\
-			  soup-headers.h		\
 			  $(BUILT_SOURCES)
 
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)

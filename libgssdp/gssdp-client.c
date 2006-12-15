@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <libsoup/soup-headers.h>
 
 #include "gssdp-client.h"
 #include "gssdp-client-private.h"
@@ -36,7 +37,6 @@
 #include "gssdp-socket-source.h"
 #include "gssdp-marshal.h"
 #include "gssdp-protocol.h"
-#include "soup-headers.h"
 
 /* Size of the buffer used for reading from the socket */
 #define BUF_SIZE 1024
@@ -431,9 +431,9 @@ static gboolean
 socket_source_cb (gpointer user_data)
 {
         GSSDPClient *client;
-        int fd, type;
+        int fd, type, len;
         size_t bytes;
-        char buf[BUF_SIZE];
+        char buf[BUF_SIZE], *end;
         struct sockaddr_in addr;
         socklen_t addr_size;
         GHashTable *hash;
@@ -465,6 +465,17 @@ socket_source_cb (gpointer user_data)
 
         /* Add trailing \0 */
         buf[bytes] = '\0';
+
+        /* Find length */
+        end = strstr (buf, "\r\n\r\n");
+        if (!end) {
+                g_warning ("Received packet lacks \"\\r\\n\\r\\n\" sequence. "
+                           "Packed dropped.");
+
+                return TRUE;
+        }
+
+        len = end - buf;
         
         /* Parse message */
         type = -1;
@@ -475,7 +486,7 @@ socket_source_cb (gpointer user_data)
                                       string_list_free);
 
         if (soup_headers_parse_request (buf,
-                                        bytes,
+                                        len,
                                         hash,
                                         &req_method,
                                         NULL,
@@ -493,7 +504,7 @@ socket_source_cb (gpointer user_data)
 
                 g_free (req_method);
         } else if (soup_headers_parse_response (buf,
-                                                bytes,
+                                                len,
                                                 hash,
                                                 NULL,
                                                 &status_code,
