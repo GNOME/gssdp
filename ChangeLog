@@ -1,3 +1,9 @@
+2007-04-16  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-client.c: (socket_source_cb):
+
+	Calculate message length correctly.
+
 2007-04-16  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* libgssdp/gssdp-socket-source.c: (gssdp_socket_source_new):

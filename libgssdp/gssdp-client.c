@@ -475,7 +475,7 @@ socket_source_cb (gpointer user_data)
                 return TRUE;
         }
 
-        len = end - buf;
+        len = end - buf + 2;
         
         /* Parse message */
         type = -1;
