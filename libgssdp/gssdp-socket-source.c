@@ -70,7 +70,7 @@ gssdp_socket_source_new (void)
         GSSDPSocketSource *socket_source;
         struct sockaddr_in addr;
         struct ip_mreq mreq;
-        gboolean boolean;
+        gboolean boolean = TRUE;
         int res;
 
         /* Create source */
@@ -89,7 +89,16 @@ gssdp_socket_source_new (void)
         socket_source->poll_fd.events = G_IO_IN | G_IO_ERR;
 
         g_source_add_poll (source, &socket_source->poll_fd);
-        
+       
+        /* Allow multiple sockets to use the same PORT number */
+        res = setsockopt (socket_source->poll_fd.fd,
+                          SOL_SOCKET,
+                          SO_REUSEADDR,
+                          &boolean,
+                          sizeof (boolean));
+        if (res == -1)
+                goto error;
+
         /* Bind to SSDP port */
         memset (&addr, 0, sizeof (addr));
                 
@@ -104,8 +113,6 @@ gssdp_socket_source_new (void)
                 goto error;
 
         /* Enable broadcasting */
-        boolean = TRUE;
-                
         res = setsockopt (socket_source->poll_fd.fd, 
                           SOL_SOCKET,
                           SO_BROADCAST,

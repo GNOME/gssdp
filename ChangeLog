@@ -1,0 +1,5 @@
+2007-04-16  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* libgssdp/gssdp-socket-source.c: (gssdp_socket_source_new):
+
+	Allow multiple gssdp clients to exist on the same machine.
