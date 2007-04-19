@@ -425,8 +425,33 @@ string_list_free (gpointer ptr)
 }
 
 /**
+ * HTTP/1.1 headers needs to be case-insensitive and so should be our
+ * hash-table of HTTP headers.
+ **/
+
+/**
+ * Calculates the hash for our case-insensitive Hashtable.
+ **/
+static guint 
+header_hash (const char *header)
+{
+        return g_ascii_toupper (header[0]);
+}
+
+/**
+ * Compares keys for our case-insensitive Hashtable.
+ **/
+static gboolean
+header_equal (const gchar *header1,
+              const gchar *header2)
+{
+        return (g_ascii_strcasecmp (header1, header2) == 0);
+}
+
+/**
  * Called when data can be read from the socket
  **/
+
 static gboolean
 socket_source_cb (gpointer user_data)
 {
@@ -480,8 +505,8 @@ socket_source_cb (gpointer user_data)
         /* Parse message */
         type = -1;
 
-        hash = g_hash_table_new_full (g_str_hash,
-                                      g_str_equal,
+        hash = g_hash_table_new_full ((GHashFunc) header_hash,
+                                      (GEqualFunc) header_equal,
                                       g_free,
                                       string_list_free);
 
@@ -515,7 +540,7 @@ socket_source_cb (gpointer user_data)
                         g_warning ("Unhandled status code '%d'", status_code);
         } else
                 g_warning ("Unhandled message '%s'", buf);
-
+        
         /* Emit signal if parsing succeeded */
         if (type >= 0) {
                 g_signal_emit (client,

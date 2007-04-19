@@ -1,3 +1,9 @@
+2007-04-19  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* libgssdp/gssdp-client.c: (header_hash), (check_header_equality),
+	(socket_source_cb): HTTP/1.1 headers needs to be case-insensitive and
+	so should be our hash-table of HTTP headers.
+
 2007-04-16  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-client.c: (socket_source_cb):
