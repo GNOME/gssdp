@@ -696,7 +696,7 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
 {
         GSList *list;
 
-        list = g_hash_table_lookup (headers, "ST");
+        list = g_hash_table_lookup (headers, "NT");
         if (!list)
                 return; /* No target specified */
 

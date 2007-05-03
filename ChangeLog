@@ -1,5 +1,12 @@
 2007-05-03  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-protocol.h:
+	* libgssdp/gssdp-resource-browser.c: (received_announcement):
+	Actually, target field is NT for notifications, and ST
+	for searches ...
+
+2007-05-03  Jorn Baayen  <jorn@openedhand.com>
+
 	* libgssdp/gssdp-resource-browser.c: (received_announcement):
 	Target field is ST, not NT.
 
