@@ -22,13 +22,13 @@
 #include <libgssdp/gssdp.h>
 
 static void
-service_available_cb (GSSDPServiceBrowser *service_browser,
-                      const char          *usn,
-                      GList               *locations)
+resource_available_cb (GSSDPResourceBrowser *resource_browser,
+                       const char           *usn,
+                       GList                *locations)
 {
         GList *l;
 
-        g_print ("service available\n"
+        g_print ("resource available\n"
                  "  USN:      %s\n",
                  usn);
         
@@ -37,10 +37,10 @@ service_available_cb (GSSDPServiceBrowser *service_browser,
 }
 
 static void
-service_unavailable_cb (GSSDPServiceBrowser *service_browser,
-                        const char          *usn)
+resource_unavailable_cb (GSSDPResourceBrowser *resource_browser,
+                         const char           *usn)
 {
-        g_print ("service unavailable\n"
+        g_print ("resource unavailable\n"
                  "  USN:      %s\n",
                  usn);
 }
@@ -50,7 +50,7 @@ main (int    argc,
       char **argv)
 {
         GSSDPClient *client;
-        GSSDPServiceBrowser *service_browser;
+        GSSDPResourceBrowser *resource_browser;
         GError *error;
         GMainLoop *main_loop;
 
@@ -66,25 +66,25 @@ main (int    argc,
                 return 1;
         }
 
-        service_browser = gssdp_service_browser_new (client,
-                                                     "upnp:rootdevice");
+        resource_browser = gssdp_resource_browser_new (client,
+                                                       "upnp:rootdevice");
 
-        g_signal_connect (service_browser,
-                          "service-available",
-                          G_CALLBACK (service_available_cb),
+        g_signal_connect (resource_browser,
+                          "resource-available",
+                          G_CALLBACK (resource_available_cb),
                           NULL);
-        g_signal_connect (service_browser,
-                          "service-unavailable",
-                          G_CALLBACK (service_unavailable_cb),
+        g_signal_connect (resource_browser,
+                          "resource-unavailable",
+                          G_CALLBACK (resource_unavailable_cb),
                           NULL);
 
-        gssdp_service_browser_set_active (service_browser, TRUE);
+        gssdp_resource_browser_set_active (resource_browser, TRUE);
 
         main_loop = g_main_loop_new (NULL, FALSE);
         g_main_loop_run (main_loop);
         g_main_loop_unref (main_loop);
 
-        g_object_unref (service_browser);
+        g_object_unref (resource_browser);
         g_object_unref (client);
 
         return 0;

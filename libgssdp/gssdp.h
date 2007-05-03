@@ -21,5 +21,5 @@
 
 #include "gssdp-client.h"
 #include "gssdp-error.h"
-#include "gssdp-service-browser.h"
-#include "gssdp-service-group.h"
+#include "gssdp-resource-browser.h"
+#include "gssdp-resource-group.h"

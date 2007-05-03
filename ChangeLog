@@ -1,3 +1,33 @@
+2007-05-03  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/Makefile.am:
+	* libgssdp/gssdp-client.c:
+	* libgssdp/gssdp-resource-browser.c:
+	(gssdp_resource_browser_get_property),
+	(gssdp_resource_browser_set_property),
+	(gssdp_resource_browser_class_init), (resource_available),
+	(resource_unavailable), (received_discovery_response),
+	(received_announcement), (message_received_cb):
+	* libgssdp/gssdp-resource-browser.h:
+	* libgssdp/gssdp-resource-group.c:
+	(gssdp_resource_group_get_property),
+	(gssdp_resource_group_set_property),
+	(gssdp_resource_group_class_init),
+	(gssdp_resource_group_remove_resource), (message_received_cb),
+	(discovery_response_timeout), (discovery_response_free),
+	(resource_alive), (resource_byebye):
+	* libgssdp/gssdp-resource-group.h:
+	* libgssdp/gssdp-service-browser.c:
+	* libgssdp/gssdp-service-browser.h:
+	* libgssdp/gssdp-service-group.c:
+	* libgssdp/gssdp-service-group.h:
+	* libgssdp/gssdp.h:
+	* tests/test-browser.c: (resource_available_cb), (main):
+	* tests/test-publish.c: (main):
+
+	Rename ServiceBrowser and ServiceGroup to ResourceBrowser
+	and ServiceGroup as to be consistent with the UPnP book.
+
 2007-04-19  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* libgssdp/gssdp-client.c: (header_hash), (check_header_equality),

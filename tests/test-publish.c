@@ -26,7 +26,7 @@ main (int    argc,
       char **argv)
 {
         GSSDPClient *client;
-        GSSDPServiceGroup *service_group;
+        GSSDPResourceGroup *resource_group;
         GError *error;
         GMainLoop *main_loop;
 
@@ -42,21 +42,21 @@ main (int    argc,
                 return 1;
         }
 
-        service_group = gssdp_service_group_new (client);
+        resource_group = gssdp_resource_group_new (client);
 
-        gssdp_service_group_add_service_simple
-                (service_group,
+        gssdp_resource_group_add_resource_simple
+                (resource_group,
                  "upnp:rootdevice",
                  "uuid:1234abcd-12ab-12ab-12ab-1234567abc12::upnp:rootdevice",
                  "http://192.168.1.100/");
 
-        gssdp_service_group_set_available (service_group, TRUE);
+        gssdp_resource_group_set_available (resource_group, TRUE);
 
         main_loop = g_main_loop_new (NULL, FALSE);
         g_main_loop_run (main_loop);
         g_main_loop_unref (main_loop);
 
-        g_object_unref (service_group);
+        g_object_unref (resource_group);
         g_object_unref (client);
 
         return 0;

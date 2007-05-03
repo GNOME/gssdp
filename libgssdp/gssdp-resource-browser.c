@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -28,17 +28,17 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "gssdp-service-browser.h"
+#include "gssdp-resource-browser.h"
 #include "gssdp-error.h"
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
 #include "gssdp-marshal.h"
 
-G_DEFINE_TYPE (GSSDPServiceBrowser,
-               gssdp_service_browser,
+G_DEFINE_TYPE (GSSDPResourceBrowser,
+               gssdp_resource_browser,
                G_TYPE_OBJECT);
 
-struct _GSSDPServiceBrowserPrivate {
+struct _GSSDPResourceBrowserPrivate {
         GSSDPClient *client;
 
         char        *target;
@@ -49,7 +49,7 @@ struct _GSSDPServiceBrowserPrivate {
 
         gulong       message_received_id;
 
-        GHashTable  *services;
+        GHashTable  *resources;
 };
 
 enum {
@@ -61,80 +61,81 @@ enum {
 };
 
 enum {
-        SERVICE_AVAILABLE,
-        SERVICE_UNAVAILABLE,
+        RESOURCE_AVAILABLE,
+        RESOURCE_UNAVAILABLE,
         LAST_SIGNAL
 };
 
 static guint signals[LAST_SIGNAL];
 
 typedef struct {
-        GSSDPServiceBrowser *service_browser;
-        char                *usn;
-        guint                timeout_id;
-} Service;
+        GSSDPResourceBrowser *resource_browser;
+        char                 *usn;
+        guint                 timeout_id;
+} Resource;
 
 /* Function prototypes */
 static void
-gssdp_service_browser_set_client (GSSDPServiceBrowser *service_browser,
-                                  GSSDPClient         *client);
+gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
+                                   GSSDPClient          *client);
 static void
-message_received_cb              (GSSDPClient         *client,
-                                  const char          *from_ip,
-                                  _GSSDPMessageType    type,
-                                  GHashTable          *headers,
-                                  gpointer             user_data);
+message_received_cb              (GSSDPClient          *client,
+                                  const char           *from_ip,
+                                  _GSSDPMessageType     type,
+                                  GHashTable           *headers,
+                                  gpointer              user_data);
 static void
-service_free                     (gpointer             data);
+resource_free                    (gpointer              data);
 static void
-clear_cache                      (GSSDPServiceBrowser *service_browser);
+clear_cache                      (GSSDPResourceBrowser *resource_browser);
 
 static void
-gssdp_service_browser_init (GSSDPServiceBrowser *service_browser)
+gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
 {
-        service_browser->priv = G_TYPE_INSTANCE_GET_PRIVATE
-                                        (service_browser,
-                                         GSSDP_TYPE_SERVICE_BROWSER,
-                                         GSSDPServiceBrowserPrivate);
+        resource_browser->priv = G_TYPE_INSTANCE_GET_PRIVATE
+                                        (resource_browser,
+                                         GSSDP_TYPE_RESOURCE_BROWSER,
+                                         GSSDPResourceBrowserPrivate);
 
-        service_browser->priv->mx = SSDP_DEFAULT_MX;
+        resource_browser->priv->mx = SSDP_DEFAULT_MX;
 
-        service_browser->priv->services = g_hash_table_new_full (g_str_hash,
-                                                                 g_str_equal,
-                                                                 NULL,
-                                                                 service_free);
+        resource_browser->priv->resources =
+                g_hash_table_new_full (g_str_hash,
+                                       g_str_equal,
+                                       NULL,
+                                       resource_free);
 }
 
 static void
-gssdp_service_browser_get_property (GObject    *object,
-                                    guint       property_id,
-                                    GValue     *value,
-                                    GParamSpec *pspec)
+gssdp_resource_browser_get_property (GObject    *object,
+                                     guint       property_id,
+                                     GValue     *value,
+                                     GParamSpec *pspec)
 {
-        GSSDPServiceBrowser *service_browser;
+        GSSDPResourceBrowser *resource_browser;
 
-        service_browser = GSSDP_SERVICE_BROWSER (object);
+        resource_browser = GSSDP_RESOURCE_BROWSER (object);
 
         switch (property_id) {
         case PROP_CLIENT:
                 g_value_set_object
                         (value,
-                         gssdp_service_browser_get_client (service_browser));
+                         gssdp_resource_browser_get_client (resource_browser));
                 break;
         case PROP_TARGET:
                 g_value_set_string
                         (value,
-                         gssdp_service_browser_get_target (service_browser));
+                         gssdp_resource_browser_get_target (resource_browser));
                 break;
         case PROP_MX:
                 g_value_set_uint
                         (value,
-                         gssdp_service_browser_get_mx (service_browser));
+                         gssdp_resource_browser_get_mx (resource_browser));
                 break;
         case PROP_ACTIVE:
                 g_value_set_boolean
                         (value,
-                         gssdp_service_browser_get_active (service_browser));
+                         gssdp_resource_browser_get_active (resource_browser));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -143,31 +144,31 @@ gssdp_service_browser_get_property (GObject    *object,
 }
 
 static void
-gssdp_service_browser_set_property (GObject      *object,
-                                    guint         property_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec)
+gssdp_resource_browser_set_property (GObject      *object,
+                                     guint         property_id,
+                                     const GValue *value,
+                                     GParamSpec   *pspec)
 {
-        GSSDPServiceBrowser *service_browser;
+        GSSDPResourceBrowser *resource_browser;
 
-        service_browser = GSSDP_SERVICE_BROWSER (object);
+        resource_browser = GSSDP_RESOURCE_BROWSER (object);
 
         switch (property_id) {
         case PROP_CLIENT:
-                gssdp_service_browser_set_client (service_browser,
-                                                  g_value_get_object (value));
+                gssdp_resource_browser_set_client (resource_browser,
+                                                   g_value_get_object (value));
                 break;
         case PROP_TARGET:
-                gssdp_service_browser_set_target (service_browser,
-                                                  g_value_get_string (value));
+                gssdp_resource_browser_set_target (resource_browser,
+                                                   g_value_get_string (value));
                 break;
         case PROP_MX:
-                gssdp_service_browser_set_mx (service_browser,
-                                              g_value_get_uint (value));
+                gssdp_resource_browser_set_mx (resource_browser,
+                                               g_value_get_uint (value));
                 break;
         case PROP_ACTIVE:
-                gssdp_service_browser_set_active (service_browser,
-                                                  g_value_get_boolean (value));
+                gssdp_resource_browser_set_active (resource_browser,
+                                                   g_value_get_boolean (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -176,53 +177,53 @@ gssdp_service_browser_set_property (GObject      *object,
 }
 
 static void
-gssdp_service_browser_dispose (GObject *object)
+gssdp_resource_browser_dispose (GObject *object)
 {
-        GSSDPServiceBrowser *service_browser;
+        GSSDPResourceBrowser *resource_browser;
 
-        service_browser = GSSDP_SERVICE_BROWSER (object);
+        resource_browser = GSSDP_RESOURCE_BROWSER (object);
 
-        if (service_browser->priv->client) {
+        if (resource_browser->priv->client) {
                 if (g_signal_handler_is_connected
-                        (service_browser->priv->client,
-                         service_browser->priv->message_received_id)) {
+                        (resource_browser->priv->client,
+                         resource_browser->priv->message_received_id)) {
                         g_signal_handler_disconnect
-                                (service_browser->priv->client,
-                                 service_browser->priv->message_received_id);
+                                (resource_browser->priv->client,
+                                 resource_browser->priv->message_received_id);
                 }
                                                    
-                g_object_unref (service_browser->priv->client);
-                service_browser->priv->client = NULL;
+                g_object_unref (resource_browser->priv->client);
+                resource_browser->priv->client = NULL;
         }
 
-        clear_cache (service_browser);
+        clear_cache (resource_browser);
 }
 
 static void
-gssdp_service_browser_finalize (GObject *object)
+gssdp_resource_browser_finalize (GObject *object)
 {
-        GSSDPServiceBrowser *service_browser;
+        GSSDPResourceBrowser *resource_browser;
 
-        service_browser = GSSDP_SERVICE_BROWSER (object);
+        resource_browser = GSSDP_RESOURCE_BROWSER (object);
 
-        g_free (service_browser->priv->target);
+        g_free (resource_browser->priv->target);
 
-        g_hash_table_destroy (service_browser->priv->services);
+        g_hash_table_destroy (resource_browser->priv->resources);
 }
 
 static void
-gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
+gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
 {
         GObjectClass *object_class;
 
 	object_class = G_OBJECT_CLASS (klass);
 
-	object_class->set_property = gssdp_service_browser_set_property;
-	object_class->get_property = gssdp_service_browser_get_property;
-	object_class->dispose      = gssdp_service_browser_dispose;
-	object_class->finalize     = gssdp_service_browser_finalize;
+	object_class->set_property = gssdp_resource_browser_set_property;
+	object_class->get_property = gssdp_resource_browser_get_property;
+	object_class->dispose      = gssdp_resource_browser_dispose;
+	object_class->finalize     = gssdp_resource_browser_finalize;
 
-        g_type_class_add_private (klass, sizeof (GSSDPServiceBrowserPrivate));
+        g_type_class_add_private (klass, sizeof (GSSDPResourceBrowserPrivate));
 
         g_object_class_install_property
                 (object_class,
@@ -269,18 +270,18 @@ gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
                  g_param_spec_boolean
                          ("active",
                           "Active",
-                          "TRUE if the service browser is active.",
+                          "TRUE if the resource browser is active.",
                           FALSE,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
-        signals[SERVICE_AVAILABLE] =
-                g_signal_new ("service-available",
-                              GSSDP_TYPE_SERVICE_BROWSER,
+        signals[RESOURCE_AVAILABLE] =
+                g_signal_new ("resource-available",
+                              GSSDP_TYPE_RESOURCE_BROWSER,
                               G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (GSSDPServiceBrowserClass,
-                                               service_available),
+                              G_STRUCT_OFFSET (GSSDPResourceBrowserClass,
+                                               resource_available),
                               NULL, NULL,
                               gssdp_marshal_VOID__STRING_POINTER,
                               G_TYPE_NONE,
@@ -288,12 +289,12 @@ gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
                               G_TYPE_STRING,
                               G_TYPE_POINTER);
 
-        signals[SERVICE_UNAVAILABLE] =
-                g_signal_new ("service-unavailable",
-                              GSSDP_TYPE_SERVICE_BROWSER,
+        signals[RESOURCE_UNAVAILABLE] =
+                g_signal_new ("resource-unavailable",
+                              GSSDP_TYPE_RESOURCE_BROWSER,
                               G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (GSSDPServiceBrowserClass,
-                                               service_unavailable),
+                              G_STRUCT_OFFSET (GSSDPResourceBrowserClass,
+                                               resource_unavailable),
                               NULL, NULL,
                               gssdp_marshal_VOID__STRING,
                               G_TYPE_NONE,
@@ -302,207 +303,209 @@ gssdp_service_browser_class_init (GSSDPServiceBrowserClass *klass)
 }
 
 /**
- * gssdp_service_browser_new
+ * gssdp_resource_browser_new
  * @client: The #GSSDPClient to associate with
  * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
- * Return value: A new #GSSDPServiceBrowser object.
+ * Return value: A new #GSSDPResourceBrowser object.
  **/
-GSSDPServiceBrowser *
-gssdp_service_browser_new (GSSDPClient *client,
-                           const char  *target)
+GSSDPResourceBrowser *
+gssdp_resource_browser_new (GSSDPClient *client,
+                            const char  *target)
 {
-        return g_object_new (GSSDP_TYPE_SERVICE_BROWSER,
+        return g_object_new (GSSDP_TYPE_RESOURCE_BROWSER,
                              "client", client,
                              "target", target,
                              NULL);
 }
 
 /**
- * Sets the #GSSDPClient @service_browser is associated with to @client
+ * Sets the #GSSDPClient @resource_browser is associated with to @client
  **/
 static void
-gssdp_service_browser_set_client (GSSDPServiceBrowser *service_browser,
-                                  GSSDPClient         *client)
+gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
+                                   GSSDPClient          *client)
 {
-        g_return_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser));
+        g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
         g_return_if_fail (GSSDP_IS_CLIENT (client));
 
-        service_browser->priv->client = g_object_ref (client);
+        resource_browser->priv->client = g_object_ref (client);
 
-        service_browser->priv->message_received_id =
-                g_signal_connect_object (service_browser->priv->client,
+        resource_browser->priv->message_received_id =
+                g_signal_connect_object (resource_browser->priv->client,
                                          "message-received",
                                          G_CALLBACK (message_received_cb),
-                                         service_browser,
+                                         resource_browser,
                                          0);
 
-        g_object_notify (G_OBJECT (service_browser), "client");
+        g_object_notify (G_OBJECT (resource_browser), "client");
 }
 
 /**
- * gssdp_service_browser_get_client
- * @service_browser: A #GSSDPServiceBrowser
+ * gssdp_resource_browser_get_client
+ * @resource_browser: A #GSSDPResourceBrowser
  *
- * Return value: The #GSSDPClient @service_browser is associated with.
+ * Return value: The #GSSDPClient @resource_browser is associated with.
  **/
 GSSDPClient *
-gssdp_service_browser_get_client (GSSDPServiceBrowser *service_browser)
+gssdp_resource_browser_get_client (GSSDPResourceBrowser *resource_browser)
 {
-        g_return_val_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser), NULL);
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser),
+                              NULL);
 
-        return service_browser->priv->client;
+        return resource_browser->priv->client;
 }
 
 /**
- * gssdp_service_browser_set_target
- * @service_browser: A #GSSDPServiceBrowser
+ * gssdp_resource_browser_set_target
+ * @resource_browser: A #GSSDPResourceBrowser
  * @target: The browser target
  *
- * Sets the browser target of @service_browser to @target.
+ * Sets the browser target of @resource_browser to @target.
  **/
 void
-gssdp_service_browser_set_target (GSSDPServiceBrowser *service_browser,
-                                  const char          *target)
+gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
+                                   const char           *target)
 {
-        g_return_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser));
+        g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
         g_return_if_fail (target != NULL);
-        g_return_if_fail (!service_browser->priv->active);
+        g_return_if_fail (!resource_browser->priv->active);
         
-        g_free (service_browser->priv->target);
-        service_browser->priv->target = g_strdup (target);
+        g_free (resource_browser->priv->target);
+        resource_browser->priv->target = g_strdup (target);
 
-        g_object_notify (G_OBJECT (service_browser), "target");
+        g_object_notify (G_OBJECT (resource_browser), "target");
 }
 
 /**
- * gssdp_service_browser_get_target
- * @service_browser: A #GSSDPServiceBrowser
+ * gssdp_resource_browser_get_target
+ * @resource_browser: A #GSSDPResourceBrowser
  *
  * Return value: The browser target.
  **/
 const char *
-gssdp_service_browser_get_target (GSSDPServiceBrowser *service_browser)
+gssdp_resource_browser_get_target (GSSDPResourceBrowser *resource_browser)
 {
-        g_return_val_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser), NULL);
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser),
+                              NULL);
 
-        return service_browser->priv->target;
+        return resource_browser->priv->target;
 }
 
 /**
- * gssdp_service_browser_set_mx
- * @service_browser: A #GSSDPServiceBrowser
+ * gssdp_resource_browser_set_mx
+ * @resource_browser: A #GSSDPResourceBrowser
  * @mx: The to be used MX value
  *
- * Sets the used MX value of @service_browser to @mx.
+ * Sets the used MX value of @resource_browser to @mx.
  **/
 void
-gssdp_service_browser_set_mx (GSSDPServiceBrowser *service_browser,
-                              gushort              mx)
+gssdp_resource_browser_set_mx (GSSDPResourceBrowser *resource_browser,
+                               gushort               mx)
 {
-        g_return_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser));
+        g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
 
-        if (service_browser->priv->mx == mx)
+        if (resource_browser->priv->mx == mx)
                 return;
 
-        service_browser->priv->mx = mx;
+        resource_browser->priv->mx = mx;
         
-        g_object_notify (G_OBJECT (service_browser), "mx");
+        g_object_notify (G_OBJECT (resource_browser), "mx");
 }
 
 /**
- * gssdp_service_browser_get_mx
- * @service_browser: A #GSSDPServiceBrowser
+ * gssdp_resource_browser_get_mx
+ * @resource_browser: A #GSSDPResourceBrowser
  *
  * Return value: The used MX value.
  **/
 gushort
-gssdp_service_browser_get_mx (GSSDPServiceBrowser *service_browser)
+gssdp_resource_browser_get_mx (GSSDPResourceBrowser *resource_browser)
 {
-        g_return_val_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser), 0);
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser), 0);
 
-        return service_browser->priv->mx;
+        return resource_browser->priv->mx;
 }
 
 /**
- * gssdp_service_browser_set_active
- * @service_browser: A #GSSDPServiceBrowser
- * @active: TRUE to activate @service_browser
+ * gssdp_resource_browser_set_active
+ * @resource_browser: A #GSSDPResourceBrowser
+ * @active: TRUE to activate @resource_browser
  *
- * (De)activates @service_browser.
+ * (De)activates @resource_browser.
  **/
 void
-gssdp_service_browser_set_active (GSSDPServiceBrowser *service_browser,
-                                  gboolean             active)
+gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
+                                   gboolean              active)
 {
-        g_return_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser));
+        g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
 
-        if (service_browser->priv->active == active)
+        if (resource_browser->priv->active == active)
                 return;
 
-        service_browser->priv->active = active;
+        resource_browser->priv->active = active;
 
         if (active) {
                 /* Emit discovery message */
                 char *message;
 
                 message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
-                                           service_browser->priv->target,
-                                           service_browser->priv->mx);
+                                           resource_browser->priv->target,
+                                           resource_browser->priv->mx);
 
-                _gssdp_client_send_message (service_browser->priv->client,
+                _gssdp_client_send_message (resource_browser->priv->client,
                                             NULL,
                                             message);
 
                 g_free (message);
         } else
-                clear_cache (service_browser);
+                clear_cache (resource_browser);
         
-        g_object_notify (G_OBJECT (service_browser), "active");
+        g_object_notify (G_OBJECT (resource_browser), "active");
 }
 
 /**
- * gssdp_service_browser_get_active
- * @service_browser: A #GSSDPServiceBrowser
+ * gssdp_resource_browser_get_active
+ * @resource_browser: A #GSSDPResourceBrowser
  *
- * Return value: TRUE if @service_browser is active.
+ * Return value: TRUE if @resource_browser is active.
  **/
 gboolean
-gssdp_service_browser_get_active (GSSDPServiceBrowser *service_browser)
+gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser)
 {
-        g_return_val_if_fail (GSSDP_IS_SERVICE_BROWSER (service_browser), 0);
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser), 0);
 
-        return service_browser->priv->active;
+        return resource_browser->priv->active;
 }
 
 /**
- * Service expired: Remove
+ * Resource expired: Remove
  **/
 static gboolean
-service_expire (gpointer user_data)
+resource_expire (gpointer user_data)
 {
-        Service *service;
+        Resource *resource;
 
-        service = user_data;
+        resource = user_data;
         
-        g_signal_emit (service->service_browser,
-                       signals[SERVICE_UNAVAILABLE],
+        g_signal_emit (resource->resource_browser,
+                       signals[RESOURCE_UNAVAILABLE],
                        0,
-                       service->usn);
+                       resource->usn);
 
-        g_hash_table_remove (service->service_browser->priv->services,
-                             service->usn);
+        g_hash_table_remove (resource->resource_browser->priv->resources,
+                             resource->usn);
 
         return FALSE;
 }
 
 static void
-service_available (GSSDPServiceBrowser *service_browser,
-                   GHashTable          *headers)
+resource_available (GSSDPResourceBrowser *resource_browser,
+                    GHashTable           *headers)
 {
         GSList *list;
         const char *usn;
-        Service *service;
+        Resource *resource;
         gboolean was_cached;
         guint timeout;
         GList *locations;
@@ -513,22 +516,22 @@ service_available (GSSDPServiceBrowser *service_browser,
         usn = list->data;
 
         /* Get from cache, if possible */
-        service = g_hash_table_lookup (service_browser->priv->services, usn);
-        if (service) {
+        resource = g_hash_table_lookup (resource_browser->priv->resources, usn);
+        if (resource) {
                 /* Remove old timeout */
-                g_source_remove (service->timeout_id);
+                g_source_remove (resource->timeout_id);
 
                 was_cached = TRUE;
         } else {
-                /* Create new Service data structure */
-                service = g_slice_new (Service);
+                /* Create new Resource data structure */
+                resource = g_slice_new (Resource);
 
-                service->service_browser = service_browser;
-                service->usn             = g_strdup (usn);
+                resource->resource_browser = resource_browser;
+                resource->usn              = g_strdup (usn);
                 
-                g_hash_table_insert (service_browser->priv->services,
-                                     service->usn,
-                                     service);
+                g_hash_table_insert (resource_browser->priv->resources,
+                                     resource->usn,
+                                     resource);
                 
                 was_cached = FALSE;
         }
@@ -593,11 +596,11 @@ service_available (GSSDPServiceBrowser *service_browser,
                 }
         }
 
-        service->timeout_id = g_timeout_add (timeout * 1000,
-                                             service_expire,
-                                             service);
+        resource->timeout_id = g_timeout_add (timeout * 1000,
+                                              resource_expire,
+                                              resource);
 
-        /* Only continue with signal emission if this service was not
+        /* Only continue with signal emission if this resource was not
          * cached already */
         if (was_cached)
                 return;
@@ -633,8 +636,8 @@ service_available (GSSDPServiceBrowser *service_browser,
         }
 
         /* Emit signal */
-        g_signal_emit (service_browser,
-                       signals[SERVICE_AVAILABLE],
+        g_signal_emit (resource_browser,
+                       signals[RESOURCE_AVAILABLE],
                        0,
                        usn,
                        locations);
@@ -648,8 +651,8 @@ service_available (GSSDPServiceBrowser *service_browser,
 }
 
 static void
-service_unavailable (GSSDPServiceBrowser *service_browser,
-                     GHashTable          *headers)
+resource_unavailable (GSSDPResourceBrowser *resource_browser,
+                      GHashTable           *headers)
 {
         GSList *list;
         const char *usn;
@@ -660,20 +663,20 @@ service_unavailable (GSSDPServiceBrowser *service_browser,
         usn = list->data;
 
         /* Only process if we were cached */
-        if (!g_hash_table_lookup (service_browser->priv->services, usn))
+        if (!g_hash_table_lookup (resource_browser->priv->resources, usn))
                 return;
 
-        g_signal_emit (service_browser,
-                       signals[SERVICE_UNAVAILABLE],
+        g_signal_emit (resource_browser,
+                       signals[RESOURCE_UNAVAILABLE],
                        0,
                        usn);
 
-        g_hash_table_remove (service_browser->priv->services, usn);
+        g_hash_table_remove (resource_browser->priv->resources, usn);
 }
 
 static void
-received_discovery_response (GSSDPServiceBrowser *service_browser,
-                             GHashTable          *headers)
+received_discovery_response (GSSDPResourceBrowser *resource_browser,
+                             GHashTable           *headers)
 {
         GSList *list;
 
@@ -681,15 +684,15 @@ received_discovery_response (GSSDPServiceBrowser *service_browser,
         if (!list)
                 return; /* No target specified */
 
-        if (strcmp (service_browser->priv->target, list->data) != 0)
+        if (strcmp (resource_browser->priv->target, list->data) != 0)
                 return; /* Target doesn't match */
 
-        service_available (service_browser, headers);
+        resource_available (resource_browser, headers);
 }
 
 static void
-received_announcement (GSSDPServiceBrowser *service_browser,
-                       GHashTable          *headers)
+received_announcement (GSSDPResourceBrowser *resource_browser,
+                       GHashTable           *headers)
 {
         GSList *list;
 
@@ -697,7 +700,7 @@ received_announcement (GSSDPServiceBrowser *service_browser,
         if (!list)
                 return; /* No target specified */
 
-        if (strcmp (service_browser->priv->target, list->data) != 0)
+        if (strcmp (resource_browser->priv->target, list->data) != 0)
                 return; /* Target doesn't match */
 
         list = g_hash_table_lookup (headers, "NTS");
@@ -708,11 +711,11 @@ received_announcement (GSSDPServiceBrowser *service_browser,
         if      (strncmp (list->data,
                           SSDP_ALIVE_NTS,
                           strlen (SSDP_ALIVE_NTS)) == 0)
-                service_available (service_browser, headers);
+                resource_available (resource_browser, headers);
         else if (strncmp (list->data,
                           SSDP_BYEBYE_NTS,
                           strlen (SSDP_BYEBYE_NTS)) == 0)
-                service_unavailable (service_browser, headers);
+                resource_unavailable (resource_browser, headers);
 }
 
 /**
@@ -725,19 +728,19 @@ message_received_cb (GSSDPClient      *client,
                      GHashTable       *headers,
                      gpointer          user_data)
 {
-        GSSDPServiceBrowser *service_browser;
+        GSSDPResourceBrowser *resource_browser;
 
-        service_browser = GSSDP_SERVICE_BROWSER (user_data);
+        resource_browser = GSSDP_RESOURCE_BROWSER (user_data);
 
-        if (!service_browser->priv->active)
+        if (!resource_browser->priv->active)
                 return;
 
         switch (type) {
         case _GSSDP_DISCOVERY_RESPONSE:
-                received_discovery_response (service_browser, headers);
+                received_discovery_response (resource_browser, headers);
                 break;
         case _GSSDP_ANNOUNCEMENT:
-                received_announcement (service_browser, headers);
+                received_announcement (resource_browser, headers);
                 break;
         default:
                 break;
@@ -745,45 +748,45 @@ message_received_cb (GSSDPClient      *client,
 }
 
 /**
- * Free a Service structure and its contained data
+ * Free a Resource structure and its contained data
  **/
 static void
-service_free (gpointer data)
+resource_free (gpointer data)
 {
-        Service *service;
+        Resource *resource;
 
-        service = data;
+        resource = data;
 
-        g_free (service->usn);
+        g_free (resource->usn);
 
-        g_source_remove (service->timeout_id);
+        g_source_remove (resource->timeout_id);
 
-        g_slice_free (Service, service);
+        g_slice_free (Resource, resource);
 }
 
 static gboolean
 clear_cache_helper (gpointer key, gpointer value, gpointer data)
 {
-        Service *service;
+        Resource *resource;
 
-        service = value;
+        resource = value;
 
-        g_signal_emit (service->service_browser,
-                       signals[SERVICE_UNAVAILABLE],
+        g_signal_emit (resource->resource_browser,
+                       signals[RESOURCE_UNAVAILABLE],
                        0,
-                       service->usn);
+                       resource->usn);
 
         return TRUE;
 }
 
 /**
- * Clears the cached services hash
+ * Clears the cached resources hash
  **/
 static void
-clear_cache (GSSDPServiceBrowser *service_browser)
+clear_cache (GSSDPResourceBrowser *resource_browser)
 {
         /* Clear cache */
-        g_hash_table_foreach_remove (service_browser->priv->services,
+        g_hash_table_foreach_remove (resource_browser->priv->resources,
                                      clear_cache_helper,
                                      NULL);
 }

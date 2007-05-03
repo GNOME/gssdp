@@ -315,7 +315,7 @@ gssdp_client_get_main_context (GSSDPClient *client)
  * @client: A #GSSDPClient
  * @server_id: The server ID
  *
- * Sets the server ID of @client to @service_id.
+ * Sets the server ID of @client to @server_id.
  **/
 void
 gssdp_client_set_server_id (GSSDPClient *client,
