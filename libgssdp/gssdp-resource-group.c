@@ -621,7 +621,7 @@ message_received_cb (GSSDPClient      *client,
 }
 
 /**
- * Construct the AL header for @resource
+ * Construct the AL (Alternative Locations) header for @resource
  **/
 static char *
 construct_al (Resource *resource)
