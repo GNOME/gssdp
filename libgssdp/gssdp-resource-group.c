@@ -69,6 +69,7 @@ typedef struct {
 
 typedef struct {
         char     *dest_ip;
+        char     *target;
         Resource *resource;
 
         guint     timeout_id;
@@ -607,7 +608,8 @@ message_received_cb (GSSDPClient      *client,
                         /* Prepare response */
                         response = g_slice_new (DiscoveryResponse);
                         
-                        response->dest_ip = g_strdup (from_ip);
+                        response->dest_ip  = g_strdup (from_ip);
+                        response->target   = g_strdup (target);
                         response->resource = resource;
 
                         /* Add timeout */
@@ -674,7 +676,7 @@ discovery_response_timeout (gpointer user_data)
                                    response->resource->usn,
                                    gssdp_client_get_server_id (client),
                                    max_age,
-                                   response->resource->target);
+                                   response->target);
 
         _gssdp_client_send_message (client,
                                     response->dest_ip,
@@ -700,6 +702,7 @@ discovery_response_free (DiscoveryResponse *response)
         g_source_remove (response->timeout_id);
         
         g_free (response->dest_ip);
+        g_free (response->target);
 
         g_slice_free (DiscoveryResponse, response);
 }
