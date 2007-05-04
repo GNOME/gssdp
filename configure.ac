@@ -12,6 +12,39 @@ AC_PROG_LIBTOOL
 
 PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 >= 2.9.1 libsoup-2.2 >= 2.2.97)
 
+LIBGLADE_REQUIRED=2.6.0
+
+AC_ARG_ENABLE( libglade,
+  AC_HELP_STRING([--disable-libglade],[compile without libglade support]),
+  try_libglade=$enableval, try_libglade=yes )
+
+HAVE_LIBGLADE=no
+if test x$try_libglade = xyes ; then
+    dnl check for libglade
+    PKG_CHECK_MODULES(LIBGLADE, libglade-2.0 >= $LIBGLADE_REQUIRED ,
+      [
+        HAVE_LIBGLADE=yes
+        AC_SUBST(LIBGLADE_CFLAGS)
+        AC_SUBST(LIBGLADE_LIBS)
+      ],
+      [ 
+        HAVE_LIBGLADE=no
+        AC_MSG_WARN([libglade $LIBGLADE_REQUIRED or greater not found, some tools will not build.])
+      ])
+else
+    AC_MSG_NOTICE([libglade usage disabled, some tools may not build.])
+fi
+
+if test x$HAVE_LIBGLADE = xno; then
+  USE_LIBGLADE=no
+else
+  USE_LIBGLADE=yes
+  AC_DEFINE(HAVE_LIBGLADE, , [Use libglade])
+fi
+
+AC_SUBST(HAVE_LIBGLADE)
+AM_CONDITIONAL(USE_LIBGLADE, test x$USE_LIBGLADE = xyes)
+
 # glib-genmarshal
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
 AC_SUBST(GLIB_GENMARSHAL)
@@ -39,9 +72,11 @@ GTK_DOC_CHECK([1.0])
 AC_OUTPUT([
 Makefile
 libgssdp/Makefile
+tools/Makefile
 tests/Makefile
 po/Makefile.in
 po/Makefile
 doc/Makefile
 gssdp-1.0.pc
+gssdp-1.0-uninstalled.pc
 ])

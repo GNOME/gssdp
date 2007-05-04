@@ -556,6 +556,8 @@ message_received_cb (GSSDPClient      *client,
         GSSDPResourceGroup *resource_group;
         GSList *list;
         const char *target;
+        gboolean want_all;
+        int mx;
         GList *l;
 
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
@@ -578,23 +580,26 @@ message_received_cb (GSSDPClient      *client,
 
         target = list->data;
 
+        /* Is this the "ssdp:all" target? */
+        want_all = (strcmp (target, SSDP_ALL_RESOURCES) == 0);
+
+        /* Extract MX */
+        list = g_hash_table_lookup (headers, "MX");
+        if (list)
+                mx = atoi (list->data);
+        else
+                mx = SSDP_DEFAULT_MX;
+
         /* Find matching resource */
         for (l = resource_group->priv->resources; l; l = l->next) {
                 Resource *resource;
 
                 resource = l->data;
 
-                if (strcmp (resource->target, target) == 0) {
-                        /* Match. Extract MX */
-                        int mx;
+                if (want_all || strcmp (resource->target, target) == 0) {
+                        /* Match. */
                         guint timeout;
                         DiscoveryResponse *response;
-
-                        list = g_hash_table_lookup (headers, "MX");
-                        if (list)
-                                mx = atoi (list->data);
-                        else
-                                mx = SSDP_DEFAULT_MX;
 
                         /* Get a random timeout from the interval [0, mx] */
                         timeout = g_random_int_range (0, mx * 1000);
@@ -614,8 +619,6 @@ message_received_cb (GSSDPClient      *client,
                         /* Add to resource */
                         resource->responses =
                                 g_list_prepend (resource->responses, response);
-
-                        return;
                 }
         }
 }

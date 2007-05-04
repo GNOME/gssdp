@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -72,6 +72,8 @@ G_BEGIN_DECLS
 
 #define SSDP_DEFAULT_MAX_AGE 1800
 #define SSDP_DEFAULT_MX      3
+
+#define SSDP_ALL_RESOURCES "ssdp:all"
 
 G_END_DECLS
 

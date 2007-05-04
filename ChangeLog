@@ -1,3 +1,39 @@
+2007-05-04  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-protocol.h:
+	* libgssdp/gssdp-resource-group.c: (message_received_cb):
+	* tests/test-browser.c: (main):
+
+	Handle "ssdp:all" correctly.
+
+2007-05-04  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* Makefile.am:
+	* configure.ac:
+	* tools/Makefile.am:
+	* tools/gssdp-device-sniffer.c: (on_av_media_servers_1_0_activate),
+	(on_av_renderers_1_0_activate),
+	(on_enable_packet_capture_activate),
+	(on_search_all_devices_activate),
+	(on_clear_packet_capture1_activate), (on_details_activate),
+	(on_filter_menuitem_activate), (on_address_filter_activate),
+	(on_search_root_devices_activate),
+	(on_show_device_tracking_activate),
+	(on_internet_gateways_1_0_activate), (append_packet),
+	(on_gssdp_message), (on_custom_search_dialog_response),
+	(create_model), (setup_treeview), (setup_treeviews),
+	(on_delete_event), (init_ui), (deinit_ui), (init_upnp),
+	(deinit_upnp), (main):
+	* tools/gssdp-device-sniffer.glade:
+	Add a basic version of gssdp-device-sniffer.
+
+2007-05-04  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* Makefile.am:
+	* configure.ac:
+	* gssdp-1.0-uninstalled.pc.in: Enable the users to build/link against
+	uninstalled gssdp.
+
 2007-05-03  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-protocol.h:
