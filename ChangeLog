@@ -1,5 +1,16 @@
 2007-05-04  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-protocol.h:
+	* libgssdp/gssdp-resource-browser.c: (received_announcement):
+	* libgssdp/gssdp-resource-browser.h:
+	* libgssdp/gssdp-resource-group.c: (message_received_cb):
+	* tests/test-browser.c: (main):
+	* tools/gssdp-device-sniffer.c: (init_upnp):
+
+	Define GSSDP_ALL_RESOURCES in gupnp-resource-browser.h.
+
+2007-05-04  Jorn Baayen  <jorn@openedhand.com>
+
 	* libgssdp/gssdp-resource-browser.c: (received_announcement):
 	* libgssdp/gssdp-resource-group.c: (message_received_cb),
 	(discovery_response_timeout), (discovery_response_free):

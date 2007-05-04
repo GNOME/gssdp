@@ -66,7 +66,8 @@ main (int    argc,
                 return 1;
         }
 
-        resource_browser = gssdp_resource_browser_new (client, "ssdp:all");
+        resource_browser = gssdp_resource_browser_new (client,
+                                                       GSSDP_ALL_RESOURCES);
 
         g_signal_connect (resource_browser,
                           "resource-available",

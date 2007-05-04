@@ -73,8 +73,6 @@ G_BEGIN_DECLS
 #define SSDP_DEFAULT_MAX_AGE 1800
 #define SSDP_DEFAULT_MX      3
 
-#define SSDP_ALL_RESOURCES "ssdp:all"
-
 G_END_DECLS
 
 #endif /* __GSSDP_PROTOCOL_H__ */

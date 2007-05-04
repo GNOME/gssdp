@@ -700,7 +700,7 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
         if (!list)
                 return; /* No target specified */
 
-        if (strcmp (resource_browser->priv->target, SSDP_ALL_RESOURCES) != 0 &&
+        if (strcmp (resource_browser->priv->target, GSSDP_ALL_RESOURCES) != 0 &&
             strcmp (resource_browser->priv->target, list->data) != 0)
                 return; /* Target doesn't match */
 

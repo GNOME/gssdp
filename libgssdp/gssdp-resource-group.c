@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include "gssdp-resource-group.h"
+#include "gssdp-resource-browser.h"
 #include "gssdp-error.h"
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
@@ -582,7 +583,7 @@ message_received_cb (GSSDPClient      *client,
         target = list->data;
 
         /* Is this the "ssdp:all" target? */
-        want_all = (strcmp (target, SSDP_ALL_RESOURCES) == 0);
+        want_all = (strcmp (target, GSSDP_ALL_RESOURCES) == 0);
 
         /* Extract MX */
         list = g_hash_table_lookup (headers, "MX");

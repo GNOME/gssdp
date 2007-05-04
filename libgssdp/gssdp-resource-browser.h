@@ -76,6 +76,8 @@ typedef struct {
         void (* _gssdp_reserved4) (void);
 } GSSDPResourceBrowserClass;
 
+#define GSSDP_ALL_RESOURCES "ssdp:all"
+
 GSSDPResourceBrowser *
 gssdp_resource_browser_new        (GSSDPClient          *client,
                                    const char           *target);
