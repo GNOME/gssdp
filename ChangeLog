@@ -1,5 +1,12 @@
 2007-05-07  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-resource-browser.c: (received_discovery_response):
+
+	Handle standard-uncompliant replies to "ssdp:all" discovery requests 
+	gracefully.
+
+2007-05-07  Jorn Baayen  <jorn@openedhand.com>
+
 	* libgssdp/gssdp-resource-browser.c: (resource_available):
 
 	Allow spaces when parsing Cache-Control.

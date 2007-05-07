@@ -684,7 +684,8 @@ received_discovery_response (GSSDPResourceBrowser *resource_browser,
         if (!list)
                 return; /* No target specified */
 
-        if (strcmp (resource_browser->priv->target, list->data) != 0)
+        if (strcmp (resource_browser->priv->target, GSSDP_ALL_RESOURCES) != 0 &&
+            strcmp (resource_browser->priv->target, list->data) != 0)
                 return; /* Target doesn't match */
 
         resource_available (resource_browser, headers);
