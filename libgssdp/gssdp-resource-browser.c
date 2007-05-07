@@ -546,7 +546,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
                 for (l = list; l; l = l->next) {
                         res = sscanf (l->data,
-                                      "max-age=%d",
+                                      "max-age = %d",
                                       &timeout);
                         if (res == 1)
                                 break;

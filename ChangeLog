@@ -1,3 +1,9 @@
+2007-05-07  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-resource-browser.c: (resource_available):
+
+	Allow spaces when parsing Cache-Control.
+
 2007-05-04  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-protocol.h:
