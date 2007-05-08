@@ -1,3 +1,28 @@
+2007-05-08  Zeeshan Ali  <zeenix@gstreamer.net>
+ 
+ 	* tools/gssdp-device-sniffer.c: (clear_packet_treeview),
+ 	(packet_header_to_string), (clear_textbuffer),
+ 	(update_packet_details), (display_packet), (on_packet_selected),
+ 	(on_clear_packet_capture_activate), (packet_to_treeview_data),
+ 	(append_packet), (on_ssdp_message), (create_model),
+ 	(setup_treeviews), (init_upnp):
+ 	
+ 	- Implement packet details viewing.
+ 	- Browsing passively.
+ 	- Rename on_gssdp_message to on_ssdp_message
+ 	- Implement clearing of packet info treeview and textview.
+ 	- Rename clear_packet_capture1 to clear_packet_capture
+ 
+ 	* tools/gssdp-device-sniffer.glade:
+ 	
+ 	Rename clear_packet_capture1 to clear_packet_capture
+ 
+2007-05-08  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* libgssdp/gssdp-client.c: (socket_source_cb):
+
+	Unref the table instead of destroying it.
+
 2007-05-07  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-resource-browser.c: (received_discovery_response):

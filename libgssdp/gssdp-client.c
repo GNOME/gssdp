@@ -551,7 +551,7 @@ socket_source_cb (gpointer user_data)
                                hash);
         }
 
-        g_hash_table_destroy (hash);
+        g_hash_table_unref (hash);
 
         return TRUE;
 }

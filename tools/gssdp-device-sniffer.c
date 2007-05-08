@@ -30,9 +30,27 @@ on_search_all_devices_activate (GtkMenuItem *menuitem, gpointer user_data)
 {
 }
 
-void
-on_clear_packet_capture1_activate (GtkMenuItem *menuitem, gpointer user_data)
+static void
+clear_packet_treeview ()
 {
+        GtkWidget *treeview;
+        GtkTreeModel *model;
+        GtkTreeIter iter;
+        gboolean more;
+        time_t *arrival_time;
+
+        treeview = glade_xml_get_widget (glade_xml, "packet-treeview");
+        g_assert (treeview != NULL);
+        model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
+        more = gtk_tree_model_get_iter_first (model, &iter);
+
+        while (more) {
+                gtk_tree_model_get (model,
+                                &iter, 
+                                5, &arrival_time, -1);
+                g_free (arrival_time);
+                more = gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
+        }
 }
 
 void
@@ -70,48 +88,106 @@ on_internet_gateways_1_0_activate (GtkMenuItem *menuitem, gpointer user_data)
 }
 
 static void
-append_packet (char **packet_data)
+packet_header_to_string (char *header_name,
+                GSList *header_val,
+                GString **text)
 {
-        GtkWidget *treeview;
-        GtkListStore *liststore;
+        GSList *node;
+
+        g_string_append_printf (*text, "%s: %s",
+                        header_name,
+                        (char *) header_val->data);
+
+        for (node = header_val->next; node; node = node->next) {
+                g_string_append_printf (*text, "; %s", (char *) node->data);
+        }
+        g_string_append (*text, "\n");
+}
+
+static void
+clear_textbuffer (GtkTextBuffer *textbuffer)
+{
+        GtkTextIter start, end;
+
+        gtk_text_buffer_get_bounds (textbuffer, &start, &end);
+        gtk_text_buffer_delete (textbuffer, &start, &end);
+}
+
+static void
+update_packet_details (char *text, unsigned int len)
+{
+        GtkWidget *textview;
+        GtkTextBuffer *textbuffer;
+        
+        textview = glade_xml_get_widget (glade_xml, "packet-details-textview");
+        g_assert (textview != NULL);
+        textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
+        
+        clear_textbuffer (textbuffer);
+        gtk_text_buffer_insert_at_cursor (textbuffer, text, len);
+}
+
+static void
+display_packet (time_t arrival_time, GHashTable *packet_headers)
+{
+        GString *text;
+       
+        text = g_string_new ("");
+        g_string_printf (text, "Received on: %s\nHeaders:\n\n",
+                        ctime (&arrival_time));
+        
+        g_hash_table_foreach (packet_headers,
+                        (GHFunc) packet_header_to_string,
+                        &text);
+
+        update_packet_details (text->str, text->len);
+        g_string_free (text, TRUE);
+}
+
+static void
+on_packet_selected (GtkTreeSelection *selection, gpointer user_data)
+{
+        GtkTreeModel *model;
         GtkTreeIter iter;
-        
-        treeview = glade_xml_get_widget (glade_xml, "packet-treeview");
-        g_assert (treeview != NULL);
-        liststore = GTK_LIST_STORE (
-                        gtk_tree_view_get_model (GTK_TREE_VIEW (treeview)));
-        g_assert (liststore != NULL);
-        
-        gtk_list_store_prepend (liststore, &iter);
-        gtk_list_store_set (liststore, &iter, 
-                        0, packet_data[0],
-                        1, packet_data[1],
-                        2, packet_data[2],
-                        3, packet_data[3],
-                        -1); 
+        time_t *arrival_time;
+
+        if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
+                GHashTable *packet_headers;
+
+                gtk_tree_model_get (model,
+                                &iter, 
+                                4, &packet_headers,
+                                5, &arrival_time, -1);
+                display_packet (*arrival_time, packet_headers);
+                g_boxed_free (G_TYPE_HASH_TABLE, packet_headers);
+        }
+
+        else
+                update_packet_details ("", 0);
+}
+
+void
+on_clear_packet_capture_activate (GtkMenuItem *menuitem, gpointer user_data)
+{
+        clear_packet_treeview ();
 }
 
 static char *message_types[] = {"M-SEARCH", "RESPONSE", "NOTIFY"};
 
-static void
-on_gssdp_message (GSSDPClient *client,
-                const gchar *from_ip,
+static char **
+packet_to_treeview_data (const gchar *from_ip,
+                time_t arrival_time,
                 _GSSDPMessageType type,
-                GHashTable *headers,
-                gpointer user_data)
+                GHashTable *headers)
 {
         char **packet_data;
-        time_t current_time;
         struct tm *tm;
         GSList *node;
 
-        if (type == _GSSDP_DISCOVERY_RESPONSE)
-                return;
-
         packet_data = g_malloc (sizeof (char *) * 5);
+
         /* Set the Time */
-        current_time = time (NULL);
-        tm = localtime (&current_time);
+        tm = localtime (&arrival_time);
         packet_data[0] = g_strdup_printf ("%02d:%02d", tm->tm_hour, tm->tm_min);
 
         /* Now the Source Address */
@@ -130,8 +206,53 @@ on_gssdp_message (GSSDPClient *client,
                 packet_data[3] = g_strdup (node->data);
         packet_data[4] = NULL;
 
-        append_packet (packet_data);
+        return packet_data;
+}
+
+static void
+append_packet (const gchar *from_ip,
+               time_t arrival_time,
+               _GSSDPMessageType type,
+               GHashTable *headers)
+{
+        GtkWidget *treeview;
+        GtkListStore *liststore;
+        GtkTreeIter iter;
+        char **packet_data;
+        
+        treeview = glade_xml_get_widget (glade_xml, "packet-treeview");
+        g_assert (treeview != NULL);
+        liststore = GTK_LIST_STORE (
+                        gtk_tree_view_get_model (GTK_TREE_VIEW (treeview)));
+        g_assert (liststore != NULL);
+       
+        packet_data = packet_to_treeview_data (from_ip,
+                        arrival_time,
+                        type,
+                        headers);
+        gtk_list_store_insert_with_values (liststore, &iter, 0,
+                        0, packet_data[0],
+                        1, packet_data[1],
+                        2, packet_data[2],
+                        3, packet_data[3],
+                        4, headers,
+                        5, g_memdup (&arrival_time, sizeof (time_t)),
+                        -1);
         g_strfreev (packet_data);
+}
+
+static void
+on_ssdp_message (GSSDPClient *client,
+                const gchar *from_ip,
+                _GSSDPMessageType type,
+                GHashTable *headers,
+                gpointer user_data)
+{
+        time_t arrival_time;
+        
+        arrival_time = time (NULL);
+        if (type != _GSSDP_DISCOVERY_RESPONSE)
+                append_packet (from_ip, arrival_time, type, headers);
 }
 
 void
@@ -156,11 +277,13 @@ create_model (void)
 {
         GtkListStore *store;
 
-        store = gtk_list_store_new (4,
+        store = gtk_list_store_new (6,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
-                        G_TYPE_STRING);
+                        G_TYPE_STRING,
+                        G_TYPE_HASH_TABLE,
+                        G_TYPE_POINTER);
 
         return GTK_TREE_MODEL (store);
 }
@@ -202,6 +325,7 @@ setup_treeviews ()
                 "Device Type",
                 "Unique Identifier",
                 NULL } }; 
+        GtkTreeSelection *selection;
         int i;
 
         treeviews[0] = glade_xml_get_widget (glade_xml,
@@ -213,6 +337,13 @@ setup_treeviews ()
 
         for (i=0; i<2; i++)
                 setup_treeview (treeviews[i], headers[i]);
+        
+        selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (treeviews[0]));
+        g_assert (selection != NULL);
+        g_signal_connect (selection,
+                        "changed",
+                        G_CALLBACK (on_packet_selected),
+                        (gpointer *) treeviews[0]);
 }
 
 gboolean
@@ -279,11 +410,9 @@ init_upnp (void)
         
         g_signal_connect (client,
                           "message-received",
-                          G_CALLBACK (on_gssdp_message),
+                          G_CALLBACK (on_ssdp_message),
                           NULL);
 
-        gssdp_resource_browser_set_active (resource_browser, TRUE);
-        
         return TRUE;
 }
 

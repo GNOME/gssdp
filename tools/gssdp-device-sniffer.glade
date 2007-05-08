@@ -45,11 +45,11 @@
 		<widget class="GtkMenu" id="file_menuitem_menu">
 
 		  <child>
-		    <widget class="GtkMenuItem" id="clear_packet_capture1">
+		    <widget class="GtkMenuItem" id="clear_packet_capture">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Clear Packet Capture</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_clear_packet_capture1_activate" last_modification_time="Fri, 20 Apr 2007 14:59:37 GMT"/>
+		      <signal name="activate" handler="on_clear_packet_capture_activate" last_modification_time="Tue, 08 May 2007 08:41:08 GMT"/>
 		    </widget>
 		  </child>
 
