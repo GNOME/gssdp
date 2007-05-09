@@ -1,3 +1,10 @@
+2007-05-09  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-resource-browser.c: (resource_available):
+
+	Disable support for Expires header for now as correct RFC 1123 parsing
+	is a pain.
+
 2007-05-08  Zeeshan Ali  <zeenix@gstreamer.net>
  
  	* tools/gssdp-device-sniffer.c: (clear_packet_treeview),

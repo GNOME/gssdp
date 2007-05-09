@@ -564,6 +564,10 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         } else {
                 list = g_hash_table_lookup (headers, "Expires");
                 if (list) {
+                        /* XXX Expires header unsupported for now as getting
+                         * a correct local time out of an RFC 1123 time is the
+                         * pest */
+#if 0
                         struct tm expiration_date;
                         time_t exp_time, cur_time;
 
@@ -587,6 +591,12 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
                                 timeout = SSDP_DEFAULT_MAX_AGE;
                         }
+#endif
+                        g_warning ("The 'Expires' header is not supported."
+                                   "header was specified. Assuming default "
+                                   "max-age of %d.", SSDP_DEFAULT_MAX_AGE);
+
+                        timeout = SSDP_DEFAULT_MAX_AGE;
                 } else {
                         g_warning ("No 'Cache-Control' nor any 'Expires' "
                                    "header was specified. Assuming default "
