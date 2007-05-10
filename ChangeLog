@@ -1,5 +1,12 @@
 2007-05-10  Jorn Baayen  <jorn@openedhand.com>
 
+	* NEWS:
+	* README:
+
+	Added some text.
+
+2007-05-10  Jorn Baayen  <jorn@openedhand.com>
+
 	* Makefile.am:
 
 	Do not install uninstalled PC file.

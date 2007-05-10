@@ -1,0 +1,4 @@
+GSSDP
+=====
+
+A GObject-based API for doing SSDP transparently
