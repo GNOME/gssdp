@@ -1,3 +1,9 @@
+2007-05-10  Jorn Baayen  <jorn@openedhand.com>
+
+	* Makefile.am:
+
+	Do not install uninstalled PC file.
+
 2007-05-09  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-resource-browser.c: (resource_available):
