@@ -1,3 +1,17 @@
+2007-05-11  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* tools/gssdp-device-sniffer.c: (append_device), (find_device),
+	(update_device), (resource_available_cb), (remove_device),
+	(resource_unavailable_cb), (create_packet_treemodel),
+	(create_device_treemodel), (setup_treeview), (setup_treeviews),
+	(init_upnp), (main):
+	* tools/gssdp-device-sniffer.glade:
+	
+	- Remove unimplementable menu items and the associated callbacks.
+	- Implement device view.
+	- Deinit gssdp objects first rather than the UI.
+	- Some minor fixes.
+
 2007-05-10  Jorn Baayen  <jorn@openedhand.com>
 
 	* NEWS:
