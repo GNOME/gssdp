@@ -1,14 +1,36 @@
+/* 
+ * Copyright (C) 2007 Zeeshan Ali <zeenix@gstreamer.net>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
 #include <libgssdp/gssdp.h>
 #include <libgssdp/gssdp-client-private.h>
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define GLADE_FILE "gssdp-device-sniffer.glade"
+#define MAX_IP_LEN 16
 
 GladeXML *glade_xml;
 GSSDPResourceBrowser *resource_browser;
 GSSDPClient *client;
+char *ip_filter = NULL;
 
 void
 on_enable_packet_capture_activate (GtkMenuItem *menuitem, gpointer user_data)
@@ -209,9 +231,14 @@ on_ssdp_message (GSSDPClient *client,
                 gpointer user_data)
 {
         time_t arrival_time;
+        gboolean allowed = TRUE;
         
         arrival_time = time (NULL);
-        if (type != _GSSDP_DISCOVERY_RESPONSE)
+     
+        if (ip_filter != NULL && strcmp (ip_filter, from_ip) != 0)
+                allowed = FALSE;
+
+        if (type != _GSSDP_DISCOVERY_RESPONSE && allowed)
                 append_packet (from_ip, arrival_time, type, headers);
 }
 
@@ -371,20 +398,66 @@ resource_unavailable_cb (GSSDPResourceBrowser *resource_browser,
 }
 
 void
-on_custom_search_dialog_response (GtkDialog *dialog,
+on_use_filter_radiobutton_toggled (GtkToggleButton *togglebutton,
+                gpointer         user_data)
+{
+        GtkWidget *filter_hbox;
+        gboolean use_filter;
+
+        filter_hbox = glade_xml_get_widget (glade_xml, "address-filter-hbox");
+        g_assert (filter_hbox != NULL);
+        
+        use_filter = gtk_toggle_button_get_active (togglebutton);
+        gtk_widget_set_sensitive (filter_hbox, use_filter);
+}
+
+static char *
+get_ip_filter ()
+{
+        int i;
+        char *ip;
+        guint8 quad[4];
+
+        ip = g_malloc (MAX_IP_LEN);
+        for (i=0; i<4; i++) {
+                GtkWidget *entry;
+                char entry_name[16];
+                gint val;
+
+                sprintf (entry_name, "address-entry%d", i);
+                entry = glade_xml_get_widget (glade_xml, entry_name);
+                g_assert (entry != NULL);
+
+                val = atoi (gtk_entry_get_text (GTK_ENTRY (entry)));
+                quad[i] = CLAMP (val, 0, 255);
+        }
+        sprintf (ip, "%u.%u.%u.%u", quad[0], quad[1], quad[2], quad[3]);
+        
+        return ip;
+}
+
+void
+on_address_filter_dialog_response (GtkDialog *dialog,
                 gint       response,
                 gpointer   user_data)
 {
-        GtkWidget *entry;
+        GtkWidget *use_filter_radio;
 
-        entry = glade_xml_get_widget (glade_xml, "search-target-entry");
-        g_assert (entry != NULL);
         gtk_widget_hide (GTK_WIDGET (dialog));
-        if (response == GTK_RESPONSE_OK) {
-                g_print ("search target: %s\n",
-                                gtk_entry_get_text (GTK_ENTRY (entry)));
+        
+        use_filter_radio = glade_xml_get_widget (glade_xml, "use-filter-radiobutton");
+        g_assert (use_filter_radio != NULL);
+        
+        if (response != GTK_RESPONSE_OK)
+                return;
+        
+        g_free (ip_filter);
+        if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (use_filter_radio))) {
+                ip_filter = get_ip_filter ();
         }
-        gtk_entry_set_text (GTK_ENTRY (entry), "");
+       
+        else
+                ip_filter = NULL;
 }
 
 static GtkTreeModel *
@@ -494,6 +567,7 @@ static gboolean
 init_ui (gint *argc, gchar **argv[])
 {
         GtkWidget *main_window;
+        gint window_width, window_height;
         
         gtk_init (argc, argv);
         glade_init ();
@@ -511,6 +585,13 @@ init_ui (gint *argc, gchar **argv[])
 
         main_window = glade_xml_get_widget (glade_xml, "main-window");
         g_assert (main_window != NULL);
+
+        /* 80% of the screen but don't get bigger than 1000x800 */
+        window_width = CLAMP ((gdk_screen_width () * 80 / 100), 10, 1000);
+        window_height = CLAMP ((gdk_screen_height () * 80 / 100), 10, 800);
+        gtk_window_set_default_size (GTK_WINDOW (main_window),
+                                     window_width,
+                                     window_height);
 
         glade_xml_signal_autoconnect (glade_xml);
         setup_treeviews ();
@@ -556,6 +637,8 @@ init_upnp (void)
                           G_CALLBACK (resource_unavailable_cb),
                           NULL);
 
+        gssdp_resource_browser_set_active (resource_browser, TRUE);
+
         return TRUE;
 }
 
@@ -578,7 +661,7 @@ main (gint argc, gchar *argv[])
         }
         
         gtk_main ();
-        
+       
         deinit_upnp ();
         deinit_ui ();
         

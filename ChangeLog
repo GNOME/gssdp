@@ -1,3 +1,20 @@
+2007-05-11  Jorn Baayen  <jorn@openedhand.com>
+
+	* AUTHORS: Added Zeeshan.
+
+2007-05-11  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* tools/gssdp-device-sniffer.c: (on_ssdp_message),
+	(on_use_filter_radiobutton_toggled), (get_ip_filter),
+	(on_address_filter_dialog_response), (init_ui), (init_upnp):
+	* tools/gssdp-device-sniffer.glade:
+
+	- Correctly handle delete-event.
+	- Fix initial size of the window. 
+	- Add support for IP-filtering of packets.
+	- Do active the resource-browser.
+	- Add copyright header.
+
 2007-05-11  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* tools/gssdp-device-sniffer.c: (append_device), (find_device),
