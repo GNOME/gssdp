@@ -4,7 +4,7 @@
 <glade-interface>
 
 <widget class="GtkWindow" id="main-window">
-  <property name="border_width">4</property>
+  <property name="border_width">6</property>
   <property name="title" translatable="yes">GSSDP Device Sniffer</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
@@ -27,121 +27,135 @@
       <property name="spacing">6</property>
 
       <child>
-	<widget class="GtkMenuBar" id="menubar">
+	<widget class="GtkAlignment" id="alignment2">
 	  <property name="visible">True</property>
-	  <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
-	  <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
+	  <property name="xalign">0.5</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xscale">1</property>
+	  <property name="yscale">1</property>
+	  <property name="top_padding">0</property>
+	  <property name="bottom_padding">10</property>
+	  <property name="left_padding">0</property>
+	  <property name="right_padding">0</property>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="file_menuitem">
+	    <widget class="GtkMenuBar" id="menubar">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">_File</property>
-	      <property name="use_underline">True</property>
+	      <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
+	      <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
 
 	      <child>
-		<widget class="GtkMenu" id="file_menuitem_menu">
+		<widget class="GtkMenuItem" id="file_menuitem">
+		  <property name="visible">True</property>
+		  <property name="label" translatable="yes">_File</property>
+		  <property name="use_underline">True</property>
 
 		  <child>
-		    <widget class="GtkMenuItem" id="clear_packet_capture">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Clear Packet Capture</property>
-		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_clear_packet_capture_activate" last_modification_time="Tue, 08 May 2007 08:41:08 GMT"/>
-		    </widget>
-		  </child>
+		    <widget class="GtkMenu" id="file_menuitem_menu">
 
-		  <child>
-		    <widget class="GtkSeparatorMenuItem" id="separator2">
-		      <property name="visible">True</property>
-		    </widget>
-		  </child>
+		      <child>
+			<widget class="GtkMenuItem" id="clear_packet_capture">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Clear Packet Capture</property>
+			  <property name="use_underline">True</property>
+			  <signal name="activate" handler="on_clear_packet_capture_activate" last_modification_time="Tue, 08 May 2007 08:41:08 GMT"/>
+			</widget>
+		      </child>
 
-		  <child>
-		    <widget class="GtkCheckMenuItem" id="show_packet_details">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Show Packet Details</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">True</property>
-		      <signal name="activate" handler="on_details_activate" object="packet-details-scrolledwindow" last_modification_time="Mon, 23 Apr 2007 21:27:46 GMT"/>
-		    </widget>
-		  </child>
+		      <child>
+			<widget class="GtkSeparatorMenuItem" id="separator2">
+			  <property name="visible">True</property>
+			</widget>
+		      </child>
 
-		  <child>
-		    <widget class="GtkCheckMenuItem" id="show_device_tracking">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Show Device Tracking</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">True</property>
-		      <signal name="activate" handler="on_details_activate" object="device-details-scrolledwindow" last_modification_time="Mon, 23 Apr 2007 21:30:07 GMT"/>
-		    </widget>
-		  </child>
+		      <child>
+			<widget class="GtkCheckMenuItem" id="show_packet_details">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Show Packet Details</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">True</property>
+			  <signal name="activate" handler="on_details_activate" object="packet-details-scrolledwindow" last_modification_time="Mon, 23 Apr 2007 21:27:46 GMT"/>
+			</widget>
+		      </child>
 
-		  <child>
-		    <widget class="GtkSeparatorMenuItem" id="separator3">
-		      <property name="visible">True</property>
-		    </widget>
-		  </child>
+		      <child>
+			<widget class="GtkCheckMenuItem" id="show_device_tracking">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Show Device Tracking</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">True</property>
+			  <signal name="activate" handler="on_details_activate" object="device-details-scrolledwindow" last_modification_time="Mon, 23 Apr 2007 21:30:07 GMT"/>
+			</widget>
+		      </child>
 
-		  <child>
-		    <widget class="GtkImageMenuItem" id="quit">
-		      <property name="visible">True</property>
-		      <property name="label">gtk-quit</property>
-		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="gtk_main_quit" last_modification_time="Sat, 21 Apr 2007 14:46:54 GMT"/>
+		      <child>
+			<widget class="GtkSeparatorMenuItem" id="separator3">
+			  <property name="visible">True</property>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkImageMenuItem" id="quit">
+			  <property name="visible">True</property>
+			  <property name="label">gtk-quit</property>
+			  <property name="use_stock">True</property>
+			  <signal name="activate" handler="gtk_main_quit" last_modification_time="Sat, 21 Apr 2007 14:46:54 GMT"/>
+			</widget>
+		      </child>
 		    </widget>
 		  </child>
 		</widget>
 	      </child>
-	    </widget>
-	  </child>
-
-	  <child>
-	    <widget class="GtkMenuItem" id="filter_menuitem">
-	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Filter</property>
-	      <property name="use_underline">True</property>
 
 	      <child>
-		<widget class="GtkMenu" id="filter_menuitem_menu">
+		<widget class="GtkMenuItem" id="filter_menuitem">
+		  <property name="visible">True</property>
+		  <property name="label" translatable="yes">Filter</property>
+		  <property name="use_underline">True</property>
 
 		  <child>
-		    <widget class="GtkCheckMenuItem" id="enable_packet_capture">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Enable Packet Capture</property>
-		      <property name="use_underline">True</property>
-		      <property name="active">False</property>
-		      <signal name="activate" handler="on_enable_packet_capture_activate" last_modification_time="Fri, 20 Apr 2007 14:59:37 GMT"/>
-		    </widget>
-		  </child>
+		    <widget class="GtkMenu" id="filter_menuitem_menu">
 
-		  <child>
-		    <widget class="GtkMenuItem" id="address_filter">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Address Filter</property>
-		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="gtk_widget_show" object="address-filter-dialog" last_modification_time="Fri, 11 May 2007 10:58:14 GMT"/>
+		      <child>
+			<widget class="GtkCheckMenuItem" id="enable_packet_capture">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Enable Packet Capture</property>
+			  <property name="use_underline">True</property>
+			  <property name="active">True</property>
+			  <signal name="activate" handler="on_enable_packet_capture_activate" last_modification_time="Fri, 20 Apr 2007 14:59:37 GMT"/>
+			</widget>
+		      </child>
+
+		      <child>
+			<widget class="GtkMenuItem" id="address_filter">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Address Filter</property>
+			  <property name="use_underline">True</property>
+			  <signal name="activate" handler="gtk_widget_show" object="address-filter-dialog" last_modification_time="Fri, 11 May 2007 10:58:14 GMT"/>
+			</widget>
+		      </child>
 		    </widget>
 		  </child>
 		</widget>
 	      </child>
-	    </widget>
-	  </child>
-
-	  <child>
-	    <widget class="GtkMenuItem" id="help_menuitem">
-	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">_Help</property>
-	      <property name="use_underline">True</property>
 
 	      <child>
-		<widget class="GtkMenu" id="help_menuitem_menu">
+		<widget class="GtkMenuItem" id="help_menuitem">
+		  <property name="visible">True</property>
+		  <property name="label" translatable="yes">_Help</property>
+		  <property name="use_underline">True</property>
 
 		  <child>
-		    <widget class="GtkMenuItem" id="about">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_About</property>
-		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="gtk_widget_show" last_modification_time="Sat, 21 Apr 2007 15:23:48 GMT"/>
+		    <widget class="GtkMenu" id="help_menuitem_menu">
+
+		      <child>
+			<widget class="GtkMenuItem" id="about">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">_About</property>
+			  <property name="use_underline">True</property>
+			  <signal name="activate" handler="gtk_widget_show" object="about-dialog" last_modification_time="Sat, 21 Apr 2007 15:23:48 GMT"/>
+			</widget>
+		      </child>
 		    </widget>
 		  </child>
 		</widget>
@@ -268,6 +282,7 @@ Inspired by Intel Tools for UPnP.</property>
 </widget>
 
 <widget class="GtkDialog" id="address-filter-dialog">
+  <property name="border_width">4</property>
   <property name="title" translatable="yes">Address Filter</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
@@ -288,7 +303,7 @@ Inspired by Intel Tools for UPnP.</property>
     <widget class="GtkVBox" id="dialog-vbox1">
       <property name="visible">True</property>
       <property name="homogeneous">False</property>
-      <property name="spacing">0</property>
+      <property name="spacing">8</property>
 
       <child internal-child="action_area">
 	<widget class="GtkHButtonBox" id="dialog-action_area1">
@@ -333,7 +348,7 @@ Inspired by Intel Tools for UPnP.</property>
 	<widget class="GtkVBox" id="vbox1">
 	  <property name="visible">True</property>
 	  <property name="homogeneous">False</property>
-	  <property name="spacing">0</property>
+	  <property name="spacing">4</property>
 
 	  <child>
 	    <widget class="GtkRadioButton" id="dont-use-filter-radiobutton">

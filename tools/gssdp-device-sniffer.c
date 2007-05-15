@@ -31,10 +31,12 @@ GladeXML *glade_xml;
 GSSDPResourceBrowser *resource_browser;
 GSSDPClient *client;
 char *ip_filter = NULL;
+gboolean capture_packets = TRUE;
 
 void
-on_enable_packet_capture_activate (GtkMenuItem *menuitem, gpointer user_data)
+on_enable_packet_capture_activate (GtkCheckMenuItem *menuitem, gpointer user_data)
 {
+        capture_packets = gtk_check_menu_item_get_active (menuitem);
 }
 
 static void
@@ -179,7 +181,7 @@ packet_to_treeview_data (const gchar *from_ip,
         packet_data[2] = g_strdup (message_types[type]);
         
         /* Now the Packet Information */
-        if (type == _GSSDP_DISCOVERY_REQUEST)
+        if (type == _GSSDP_DISCOVERY_RESPONSE)
                 node = g_hash_table_lookup (headers, "ST");
         else
                 node = g_hash_table_lookup (headers, "NT");
@@ -231,15 +233,17 @@ on_ssdp_message (GSSDPClient *client,
                 gpointer user_data)
 {
         time_t arrival_time;
-        gboolean allowed = TRUE;
         
         arrival_time = time (NULL);
      
+        if (type == _GSSDP_DISCOVERY_REQUEST)
+                return;
         if (ip_filter != NULL && strcmp (ip_filter, from_ip) != 0)
-                allowed = FALSE;
+                return;
+        if (!capture_packets) 
+                return;
 
-        if (type != _GSSDP_DISCOVERY_RESPONSE && allowed)
-                append_packet (from_ip, arrival_time, type, headers);
+        append_packet (from_ip, arrival_time, type, headers);
 }
 
 static void
