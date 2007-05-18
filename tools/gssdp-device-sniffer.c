@@ -246,31 +246,6 @@ on_ssdp_message (GSSDPClient *client,
         append_packet (from_ip, arrival_time, type, headers);
 }
 
-static void
-append_device (const char *uuid,
-               const char *last_notify,
-               const char *device_type,
-               const char *location)
-{
-        GtkWidget *treeview;
-        GtkListStore *liststore;
-        GtkTreeIter iter;
-       
-        treeview = glade_xml_get_widget (glade_xml, "device-details-treeview");
-        g_assert (treeview != NULL);
-        liststore = GTK_LIST_STORE (
-                        gtk_tree_view_get_model (GTK_TREE_VIEW (treeview)));
-        g_assert (liststore != NULL);
-       
-        gtk_list_store_insert_with_values (liststore, &iter, 0,
-                        0, uuid,
-                        1, (guint64) 1,
-                        2, last_notify,
-                        3, device_type,
-                        4, location,
-                        -1);
-}
-
 static gboolean 
 find_device (GtkTreeModel *model, const char *uuid, GtkTreeIter *iter)
 {
@@ -296,8 +271,10 @@ find_device (GtkTreeModel *model, const char *uuid, GtkTreeIter *iter)
 }
 
 static void
-update_device (const char *uuid,
-               const char *last_notify)
+append_device (const char *uuid,
+               const char *last_notify,
+               const char *device_type,
+               const char *location)
 {
         GtkWidget *treeview;
         GtkTreeModel *model;
@@ -307,15 +284,27 @@ update_device (const char *uuid,
         g_assert (treeview != NULL);
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
         g_assert (model != NULL);
-      
+       
         if (find_device (model, uuid, &iter)) {
+                /* Only update the device row if it's already been added */
                 gint64 notify;
 
                 gtk_tree_model_get (model, &iter, 1, (gint64 *) &notify, -1);
                 gtk_list_store_set (GTK_LIST_STORE (model), &iter,
                                 1, (gint64) notify+1,
+                                2, last_notify, -1);
+        } else {
+                gtk_list_store_insert_with_values (GTK_LIST_STORE (model),
+                                &iter, 0,
+                                0, uuid,
+                                1, (guint64) 1,
                                 2, last_notify,
-                                -1);
+                                4, location, -1);
+        }
+                
+        if (device_type) {
+                gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+                                3, device_type, -1);
         }
 }
 
@@ -327,6 +316,15 @@ resource_available_cb (GSSDPResourceBrowser *resource_browser,
 
         char **usn_tokens;
         char *uuid;
+        char *device_type = NULL;
+        time_t current_time;
+        struct tm *tm;
+        char *last_notify;
+                
+        current_time = time (NULL);
+        tm = localtime (&current_time);
+        last_notify = g_strdup_printf ("%02d:%02d",
+        tm->tm_hour, tm->tm_min);
 
         usn_tokens = g_strsplit (usn, "::", -1);
         g_assert (usn_tokens != NULL && usn_tokens[0] != NULL);
@@ -335,36 +333,23 @@ resource_available_cb (GSSDPResourceBrowser *resource_browser,
 
         if (usn_tokens[1]) {
                 char **urn_tokens;
-                time_t current_time;
-                struct tm *tm;
-                char *last_notify;
 
                 urn_tokens = g_strsplit (usn_tokens[1], ":device:", -1);
                         
-                current_time = time (NULL);
-                tm = localtime (&current_time);
-                last_notify = g_strdup_printf ("%02d:%02d",
-                                tm->tm_hour, tm->tm_min);
-
-                if (urn_tokens[1]) {
-                        /* Device Announcement */
-                        append_device (uuid,
-                                       last_notify,
-                                       urn_tokens[1],
-                                       (char *) locations->data);
-                }
-                
-                else {
-                        /* FIXME: not all notifications are getting
-                         * counted using this logic
-                         */
-                        update_device (uuid, last_notify);
-                }
-
-                g_free (last_notify);
+                if (urn_tokens[1])
+                        device_type = g_strdup (urn_tokens[1]);
                 g_strfreev (urn_tokens);
         }
-                
+
+        /* Device Announcement */
+        append_device (uuid,
+                       last_notify,
+                       device_type,
+                       (char *) locations->data);
+        
+        if (device_type)
+                g_free (device_type);
+        g_free (last_notify);
         g_strfreev (usn_tokens);
 }
 

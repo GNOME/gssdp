@@ -1,10 +1,27 @@
-2007-05-15  Jorn Baayen  <jorn@openedhand.com>
+2007-05-16  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* tools/gssdp-device-sniffer.c: (append_device),
+	(resource_available_cb):
+
+	Append the device to the device treeview even when all details are not
+	yet known.
+	
+	* tools/gssdp-device-sniffer.glade:
+
+	Fix the closing of dialog.
+
+2007-05-15  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	reviewed by: Jorn Baayen  <jorn@openedhand.com>
 
 	* tools/gssdp-device-sniffer.c: (packet_to_treeview_data),
+	(on_enable_packet_capture_activate), (packet_to_treeview_data),
 	(on_ssdp_message):
 	* tools/gssdp-device-sniffer.glade:
 
-	Updates by Zeeshan.
+	- Implement start/stop of packet capturing.
+	- Ignore discovery request packets rather than response packets.
+	- Minor UI fixes.
 
 2007-05-11  Jorn Baayen  <jorn@openedhand.com>
 
