@@ -1,3 +1,16 @@
+2007-05-19  Jorn Baayen  <jorn@openedhand.com>
+
+	* tools/gssdp-device-sniffer.glade:
+
+	Fix about box closing.
+
+2007-05-19  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* tools/gssdp-device-sniffer.c: (init_ui):
+
+	device-sniffer should test of the existance of the glade file itself,
+	to avoid warning messages from libglade.
+
 2007-05-16  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* tools/gssdp-device-sniffer.c: (append_device),

@@ -279,7 +279,7 @@ Inspired by Intel Tools for UPnP.</property>
   <property name="wrap_license">False</property>
   <property name="authors">Zeeshan Ali &lt;zeenix@gstreamer.net&gt;</property>
   <property name="translator_credits" translatable="yes" comments="TRANSLATORS: Replace this string with your names, one name per line.">translator-credits</property>
-  <signal name="close" handler="gtk_widget_hide" object="about-dialog" last_modification_time="Tue, 15 May 2007 21:16:34 GMT"/>
+  <signal name="response" handler="gtk_widget_hide" object="about-dialog" last_modification_time="Sat, 19 May 2007 20:52:15 GMT"/>
   <signal name="delete_event" handler="gtk_widget_hide" object="about-dialog" last_modification_time="Tue, 15 May 2007 21:17:51 GMT"/>
 </widget>
 
