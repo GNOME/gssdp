@@ -272,7 +272,7 @@ find_device (GtkTreeModel *model, const char *uuid, GtkTreeIter *iter)
 
 static void
 append_device (const char *uuid,
-               const char *last_notify,
+               const char *first_notify,
                const char *device_type,
                const char *location)
 {
@@ -285,26 +285,17 @@ append_device (const char *uuid,
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
         g_assert (model != NULL);
        
-        if (find_device (model, uuid, &iter)) {
-                /* Only update the device row if it's already been added */
-                gint64 notify;
-
-                gtk_tree_model_get (model, &iter, 1, (gint64 *) &notify, -1);
-                gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                                1, (gint64) notify+1,
-                                2, last_notify, -1);
-        } else {
+        if (!find_device (model, uuid, &iter)) {
                 gtk_list_store_insert_with_values (GTK_LIST_STORE (model),
                                 &iter, 0,
                                 0, uuid,
-                                1, (guint64) 1,
-                                2, last_notify,
-                                4, location, -1);
+                                1, first_notify,
+                                3, location, -1);
         }
                 
         if (device_type) {
                 gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                                3, device_type, -1);
+                                2, device_type, -1);
         }
 }
 
@@ -319,11 +310,11 @@ resource_available_cb (GSSDPResourceBrowser *resource_browser,
         char *device_type = NULL;
         time_t current_time;
         struct tm *tm;
-        char *last_notify;
+        char *first_notify;
                 
         current_time = time (NULL);
         tm = localtime (&current_time);
-        last_notify = g_strdup_printf ("%02d:%02d",
+        first_notify = g_strdup_printf ("%02d:%02d",
         tm->tm_hour, tm->tm_min);
 
         usn_tokens = g_strsplit (usn, "::", -1);
@@ -343,13 +334,13 @@ resource_available_cb (GSSDPResourceBrowser *resource_browser,
 
         /* Device Announcement */
         append_device (uuid,
-                       last_notify,
+                       first_notify,
                        device_type,
                        (char *) locations->data);
         
         if (device_type)
                 g_free (device_type);
-        g_free (last_notify);
+        g_free (first_notify);
         g_strfreev (usn_tokens);
 }
 
@@ -472,7 +463,6 @@ create_device_treemodel (void)
 
         store = gtk_list_store_new (5,
                         G_TYPE_STRING,
-                        G_TYPE_INT64,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
                         G_TYPE_STRING);
@@ -515,8 +505,7 @@ setup_treeviews ()
                 "Packet Type",
                 "Packet Information",
                 NULL }, {"Unique Identifier",
-                "Notify",
-                "Last Notify",
+                "First Notify",
                 "Device Type",
                 "Location",
                 NULL } }; 
