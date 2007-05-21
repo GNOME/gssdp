@@ -1,3 +1,9 @@
+2007-05-21  Jorn Baayen  <jorn@openedhand.com>
+
+	* tools/gssdp-device-sniffer.glade:
+
+	Some UI cleanup.
+
 2007-05-20  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* tools/gssdp-device-sniffer.c: (append_device),
