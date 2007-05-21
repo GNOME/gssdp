@@ -217,6 +217,11 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
 
         g_type_class_add_private (klass, sizeof (GSSDPResourceGroupPrivate));
 
+        /**
+         * GSSDPResourceGroup:client
+         *
+         * The #GSSDPClient to use.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_CLIENT,
@@ -229,6 +234,11 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPResourceGroup:max-age
+         *
+         * The number of seconds our advertisements are valid.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_MAX_AGE,
@@ -243,13 +253,19 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPResourceGroup:available
+         *
+         * Whether this group of resources is available or not.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_AVAILABLE,
                  g_param_spec_boolean
                          ("available",
                           "Available",
-                          "TRUE if the resources are available (advertised).",
+                          "Whether this group of resources is available or "
+                          "not.",
                           FALSE,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
@@ -347,7 +363,9 @@ gssdp_resource_group_get_max_age (GSSDPResourceGroup *resource_group)
  * @resource_group: A #GSSDPResourceGroup
  * @available: TRUE if @resource_group should be available (advertised)
  *
- * Sets @resource_group<!-- -->s availability to @available.
+ * Sets @resource_group<!-- -->s availability to @available. Changing
+ * @resource_group<!-- -->s availability causes it to announce its new state
+ * to listening SSDP clients.
  **/
 void
 gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,

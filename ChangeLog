@@ -1,5 +1,20 @@
 2007-05-21  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-client.c: (gssdp_client_class_init):
+	* libgssdp/gssdp-client.h:
+	* libgssdp/gssdp-error.c:
+	* libgssdp/gssdp-resource-browser.c:
+	(gssdp_resource_browser_class_init):
+	* libgssdp/gssdp-resource-browser.h:
+	* libgssdp/gssdp-resource-group.c:
+	(gssdp_resource_group_class_init),
+	(gssdp_resource_group_get_max_age):
+	* libgssdp/gssdp-resource-group.h:
+
+	Doc coverage to 100%.
+
+2007-05-21  Jorn Baayen  <jorn@openedhand.com>
+
 	* doc/Makefile.am:
 	
 	Exclude private bits.

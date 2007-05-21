@@ -52,6 +52,13 @@ gssdp_resource_group_get_type (void) G_GNUC_CONST;
 
 typedef struct _GSSDPResourceGroupPrivate GSSDPResourceGroupPrivate;
 
+/**
+ * GSSDPResourceGroup
+ *
+ * A resource group is a group of SSDP resources whose availability can
+ * be controlled as one. This is useful when one needs to announce a single
+ * service as multiple SSDP resources (UPnP does this for example).
+ **/
 typedef struct {
         GObject parent;
 

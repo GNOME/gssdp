@@ -52,6 +52,12 @@ gssdp_client_get_type (void) G_GNUC_CONST;
 
 typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
 
+/**
+ * GSSDPClient
+ *
+ * #GSSDPClient wraps the SSDP "bus" as used by both #GSSDPResourceBrowser
+ * and #GSSDPResourceGroup.
+ **/
 typedef struct {
         GObject parent;
 

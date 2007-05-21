@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -21,6 +21,11 @@
 
 #include "gssdp-error.h"
 
+/**
+ * gssdp_error_quark
+ *
+ * Returns a #GQuark uniquely used by GSSDP's errors.
+ **/
 GQuark
 gssdp_error_quark (void)
 {

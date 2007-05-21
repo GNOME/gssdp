@@ -207,18 +207,28 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 
         g_type_class_add_private (klass, sizeof (GSSDPClientPrivate));
 
+        /**
+         * GSSDPClient:server-id
+         *
+         * The SSDP server's identifier.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_SERVER_ID,
                  g_param_spec_string
                          ("server-id",
                           "Server ID",
-                          "The server identifier.",
+                          "The SSDP server's identifier.",
                           NULL,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPClient:main-context
+         *
+         * The #GMainContext to use. Set to NULL to use the default.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_MAIN_CONTEXT,
@@ -230,6 +240,13 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPClient:error
+         *
+         * Internal property.
+         *
+         * Stability: Private
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_ERROR,
@@ -248,7 +265,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * Internal signal.
          *
          * Stability: Private
-         */
+         **/
         signals[MESSAGE_RECEIVED] =
                 g_signal_new ("message-received",
                               GSSDP_TYPE_CLIENT,

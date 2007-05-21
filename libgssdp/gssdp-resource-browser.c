@@ -225,6 +225,11 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
 
         g_type_class_add_private (klass, sizeof (GSSDPResourceBrowserPrivate));
 
+        /**
+         * GSSDPResourceBrowser:client
+         *
+         * The #GSSDPClient to use.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_CLIENT,
@@ -237,25 +242,36 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPResourceBrowser:target
+         *
+         * The discovery target.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_TARGET,
                  g_param_spec_string
                          ("target",
                           "Target",
-                          "The browser target.",
+                          "The discovery target.",
                           NULL,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPResourceBrowser:mx
+         *
+         * The maximum number of seconds in which to request other parties
+         * to respond.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_MX,
                  g_param_spec_uint
                          ("mx",
                           "MX",
-                          "Maximum number of seconds in which to request "
+                          "The maximum number of seconds in which to request "
                           "other parties to respond.",
                           1,
                           G_MAXUSHORT,
@@ -264,6 +280,11 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPResourceBrowser:active
+         *
+         * Whether this browser is active or not.
+         **/
         g_object_class_install_property
                 (object_class,
                  PROP_ACTIVE,
@@ -276,6 +297,17 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPResourceBrowser::resource-available
+         * @resource_browser: The #GSSDPResourceBrowser that received the
+         * signal
+         * @usn: The USN of the discovered resource
+         * @locations: A #GList of strings describing the locations of the
+         * discovered resource.
+         *
+         * The ::resource-available signal is emitted whenever a new resource
+         * is available.
+         **/
         signals[RESOURCE_AVAILABLE] =
                 g_signal_new ("resource-available",
                               GSSDP_TYPE_RESOURCE_BROWSER,
@@ -289,6 +321,15 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                               G_TYPE_STRING,
                               G_TYPE_POINTER);
 
+        /**
+         * GSSDPResourceBrowser::resource-unavailable
+         * @resource_browser: The #GSSDPResourceBrowser that received the
+         * signal
+         * @usn: The USN of the resource
+         *
+         * The ::resource-unavailable signal is emitted whenever a resource
+         * is not available any more.
+         **/
         signals[RESOURCE_UNAVAILABLE] =
                 g_signal_new ("resource-unavailable",
                               GSSDP_TYPE_RESOURCE_BROWSER,
