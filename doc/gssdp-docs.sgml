@@ -9,8 +9,8 @@
   <chapter>
     <title>GSSDP</title>
     <xi:include href="xml/gssdp-client.xml"/>
-    <xi:include href="xml/gssdp-resource-group.xml"/>
     <xi:include href="xml/gssdp-resource-browser.xml"/>
+    <xi:include href="xml/gssdp-resource-group.xml"/>
     <xi:include href="xml/gssdp-error.xml"/>
   </chapter>
 </book>
