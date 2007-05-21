@@ -47,7 +47,10 @@ CFILE_GLOB=$(top_srcdir)/libgssdp/*.c
 
 # Header files to ignore when scanning.
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES=
+IGNORE_HFILES=gssdp-protocol.h		\
+	      gssdp-client-private.h	\
+	      gssdp-socket-source.h	\
+	      gssdp-marshal.h
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png

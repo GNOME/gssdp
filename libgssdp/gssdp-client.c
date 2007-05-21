@@ -242,6 +242,13 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
+        /**
+         * GSSDPClient::message-received
+         *
+         * Internal signal.
+         *
+         * Stability: Private
+         */
         signals[MESSAGE_RECEIVED] =
                 g_signal_new ("message-received",
                               GSSDP_TYPE_CLIENT,

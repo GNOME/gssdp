@@ -1,5 +1,19 @@
 2007-05-21  Jorn Baayen  <jorn@openedhand.com>
 
+	* doc/Makefile.am:
+	
+	Exclude private bits.
+
+	* doc/gssdp-docs.sgml:
+
+	Add title.
+
+	* libgssdp/gssdp-client.c: (gssdp_client_class_init):
+
+	Mark 'message-received' as private.
+
+2007-05-21  Jorn Baayen  <jorn@openedhand.com>
+
 	* configure.ac:
 
 	Point to gupnp.org.
