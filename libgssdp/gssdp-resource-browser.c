@@ -306,7 +306,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
          * discovered resource.
          *
          * The ::resource-available signal is emitted whenever a new resource
-         * is available.
+         * has become available.
          **/
         signals[RESOURCE_AVAILABLE] =
                 g_signal_new ("resource-available",
