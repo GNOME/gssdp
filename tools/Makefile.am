@@ -1,5 +1,5 @@
 uidir = $(datadir)/gssdp
-ui_DATA = gssdp-device-sniffer.glade
+ui_DATA = $(srcdir)/gssdp-device-sniffer.glade
 
 AM_CFLAGS = $(LIBGUPNP_CFLAGS) $(LIBGLADE_CFLAGS) -I$(top_srcdir) -DUI_DIR='"$(uidir)"'
 

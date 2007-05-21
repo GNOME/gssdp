@@ -1,5 +1,19 @@
 2007-05-21  Jorn Baayen  <jorn@openedhand.com>
 
+	* configure.ac:
+
+	Point to gupnp.org.
+
+	* tools/Makefile.am:
+
+	Include path to glade file.
+
+	* po/*: 
+
+	Added missing files.
+
+2007-05-21  Jorn Baayen  <jorn@openedhand.com>
+
 	* tools/gssdp-device-sniffer.glade:
 
 	Some UI cleanup.
