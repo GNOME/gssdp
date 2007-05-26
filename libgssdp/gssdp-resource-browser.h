@@ -52,15 +52,6 @@ gssdp_resource_browser_get_type (void) G_GNUC_CONST;
 
 typedef struct _GSSDPResourceBrowserPrivate GSSDPResourceBrowserPrivate;
 
-/**
- * GSSDPResourceBrowser
- *
- * A resource browser abstracts resource discovery. After creating a browser
- * and activating it, the ::resource-available and ::resource-unavailable
- * signals will be emitted whenever the availability of a resource matching the
- * specified discovery target changes. A discovery request is sent out
- * automatically when activating the browser.
- **/
 typedef struct {
         GObject parent;
 

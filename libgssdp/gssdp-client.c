@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -17,6 +17,14 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
+ */
+
+/**
+ * SECTION:gssdp-client
+ * @short_description: SSDP "bus" wrapper.
+ *
+ * #GSSDPClient wraps the SSDP "bus" as used by both #GSSDPResourceBrowser
+ * and #GSSDPResourceGroup.
  */
 
 #include <config.h>

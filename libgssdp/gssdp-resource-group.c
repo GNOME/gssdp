@@ -19,6 +19,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/**
+ * SECTION:gssdp-resource-group
+ * @short_description: Class for controlling resource announcement.
+ *
+ * A #GSSDPResourceGroup is a group of SSDP resources whose availability can
+ * be controlled as one. This is useful when one needs to announce a single
+ * service as multiple SSDP resources (UPnP does this for example).
+ */
+
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>

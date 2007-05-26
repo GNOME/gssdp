@@ -1,5 +1,17 @@
 2007-05-26  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-client.c:
+	* libgssdp/gssdp-client.h:
+	* libgssdp/gssdp-error.c:
+	* libgssdp/gssdp-resource-browser.c:
+	* libgssdp/gssdp-resource-browser.h:
+	* libgssdp/gssdp-resource-group.c:
+	* libgssdp/gssdp-resource-group.h:
+
+	gtkdoc-fu.
+
+2007-05-26  Jorn Baayen  <jorn@openedhand.com>
+
 	* configure.ac:
 	* doc/Makefile.am:
 	* doc/gssdp-docs.sgml:

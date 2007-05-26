@@ -19,6 +19,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/**
+ * SECTION:gssdp-error
+ * @short_description: Error information.
+ */
+
 #include "gssdp-error.h"
 
 /**

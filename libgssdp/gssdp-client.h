@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -52,12 +52,6 @@ gssdp_client_get_type (void) G_GNUC_CONST;
 
 typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
 
-/**
- * GSSDPClient
- *
- * #GSSDPClient wraps the SSDP "bus" as used by both #GSSDPResourceBrowser
- * and #GSSDPResourceGroup.
- **/
 typedef struct {
         GObject parent;
 
