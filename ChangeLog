@@ -1,5 +1,10 @@
 2007-06-13  Ross Burton  <ross@openedhand.com>
 
+	* configure.ac:
+	Use --without-libglade rather than --disable-libglade.
+
+2007-06-13  Ross Burton  <ross@openedhand.com>
+
 	* tools/Makefile.am:
 	Dist the glade.
 

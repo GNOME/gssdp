@@ -14,9 +14,9 @@ PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 >= 2.9.1 libsoup-2.2 >= 2.2.97)
 
 LIBGLADE_REQUIRED=2.6.0
 
-AC_ARG_ENABLE( libglade,
-  AC_HELP_STRING([--disable-libglade],[compile without libglade support]),
-  try_libglade=$enableval, try_libglade=yes )
+AC_ARG_WITH( libglade,
+  AC_HELP_STRING([--without-libglade],[compile without libglade support]),
+  try_libglade=$withval, try_libglade=yes )
 
 HAVE_LIBGLADE=no
 if test x$try_libglade = xyes ; then
