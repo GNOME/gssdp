@@ -30,14 +30,10 @@
  * automatically when activating the browser.
  */
 
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE
-#endif
-
 #include <config.h>
+#include <libsoup/soup-date.h>
 #include <string.h>
 #include <stdio.h>
-#include <time.h>
 
 #include "gssdp-resource-browser.h"
 #include "gssdp-error.h"
@@ -616,20 +612,9 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         } else {
                 list = g_hash_table_lookup (headers, "Expires");
                 if (list) {
-                        /* XXX Expires header unsupported for now as getting
-                         * a correct local time out of an RFC 1123 time is the
-                         * pest */
-#if 0
-                        struct tm expiration_date;
                         time_t exp_time, cur_time;
 
-                        /* GNU strptime parses both local and international
-                         * weekdays and months */
-                        strptime (list->data,
-                                  "%a, %d %b %Y %T %z",
-                                  &expiration_date);
-
-                        exp_time = mktime (&expiration_date);
+                        exp_time = soup_date_parse (list->data);
                         cur_time = time (NULL);
 
                         if (exp_time > cur_time)
@@ -643,12 +628,6 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
                                 timeout = SSDP_DEFAULT_MAX_AGE;
                         }
-#endif
-                        g_warning ("The 'Expires' header is not supported."
-                                   "header was specified. Assuming default "
-                                   "max-age of %d.", SSDP_DEFAULT_MAX_AGE);
-
-                        timeout = SSDP_DEFAULT_MAX_AGE;
                 } else {
                         g_warning ("No 'Cache-Control' nor any 'Expires' "
                                    "header was specified. Assuming default "
