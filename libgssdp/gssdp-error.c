@@ -37,7 +37,7 @@ gssdp_error_quark (void)
         static GQuark quark = 0;
 
         if (!quark)
-                quark = g_quark_from_static_string ("gssdp-error-quark");
+                quark = g_quark_from_static_string ("gssdp-error");
 
         return quark;
 }

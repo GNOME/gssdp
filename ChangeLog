@@ -1,5 +1,11 @@
 2007-06-30  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-error.c: (gssdp_error_quark):
+
+	Change quark name for consistency.
+
+2007-06-30  Jorn Baayen  <jorn@openedhand.com>
+
 	* libgssdp/gssdp-client.c: (gssdp_client_set_property):
 	* libgssdp/gssdp-error.h:
 	* libgssdp/gssdp-resource-browser.c:
