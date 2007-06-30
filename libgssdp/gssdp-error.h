@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -29,7 +29,11 @@ G_BEGIN_DECLS
 GQuark
 gssdp_error_quark (void) G_GNUC_CONST;
 
-#define GSSDP_ERROR_QUARK (gssdp_error_quark ())
+#define GSSDP_ERROR (gssdp_error_quark ())
+
+typedef enum {
+        GSSDP_ERROR_FAILED
+} GSSDPError;
 
 G_END_DECLS
 

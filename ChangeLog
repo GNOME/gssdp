@@ -1,5 +1,14 @@
 2007-06-30  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-client.c: (gssdp_client_set_property):
+	* libgssdp/gssdp-error.h:
+	* libgssdp/gssdp-resource-browser.c:
+	* libgssdp/gssdp-resource-group.c:
+
+	Use error codes.
+
+2007-06-30  Jorn Baayen  <jorn@openedhand.com>
+
 	* libgssdp/gssdp-resource-browser.c: (resource_available):
 
 	Use SoupDate for Expires header support.

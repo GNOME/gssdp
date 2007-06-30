@@ -34,7 +34,6 @@
 
 #include "gssdp-resource-group.h"
 #include "gssdp-resource-browser.h"
-#include "gssdp-error.h"
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
 
@@ -284,7 +283,6 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
 /**
  * gssdp_resource_group_new
  * @client: The #GSSDPClient to associate with
- * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
  * Return value: A new #GSSDPResourceGroup object.
  **/

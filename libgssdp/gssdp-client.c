@@ -159,8 +159,8 @@ gssdp_client_set_property (GObject      *object,
                         error = g_value_get_pointer (value);
 
                         g_set_error (error,
-                                     GSSDP_ERROR_QUARK,
-                                     errno,
+                                     GSSDP_ERROR,
+                                     GSSDP_ERROR_FAILED,
                                      strerror (errno));
                 }
 
@@ -291,7 +291,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 /**
  * gssdp_client_new
  * @main_context: The #GMainContext to associate with
- * @error: A location to return an error of type #GSSDP_ERROR_QUARK
+ * @error: Location to store error, or NULL
  *
  * Return value: A new #GSSDPClient object.
  **/

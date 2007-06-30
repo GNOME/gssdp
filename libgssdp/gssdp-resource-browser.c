@@ -36,7 +36,6 @@
 #include <stdio.h>
 
 #include "gssdp-resource-browser.h"
-#include "gssdp-error.h"
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
 #include "gssdp-marshal.h"
@@ -353,7 +352,6 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
 /**
  * gssdp_resource_browser_new
  * @client: The #GSSDPClient to associate with
- * @error: A location to return an error of type #GSSDP_ERROR_QUARK
  *
  * Return value: A new #GSSDPResourceBrowser object.
  **/
