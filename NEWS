@@ -1,3 +1,10 @@
+0.2
+===
+
+- New "Expires" header support. [Jorn Baayen]
+- Define own error code for use in GErrors. [Jorn Baayen]
+- Build fixes. [Ross Burton]
+
 0.1
 ===
 

@@ -1,3 +1,10 @@
+2007-07-03  Jorn Baayen  <jorn@openedhand.com>
+
+	* NEWS:
+	* configure.ac:
+
+	Release 0.2.
+
 2007-06-30  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-error.c: (gssdp_error_quark):
