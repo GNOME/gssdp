@@ -186,6 +186,18 @@ gssdp_resource_group_dispose (GObject *object)
 
         resource_group = GSSDP_RESOURCE_GROUP (object);
 
+        while (resource_group->priv->resources) {
+                resource_free (resource_group->priv->resources->data);
+                resource_group->priv->resources =
+                        g_list_delete_link (resource_group->priv->resources,
+                                            resource_group->priv->resources);
+        }
+
+        if (resource_group->priv->timeout_id > 0) {
+                g_source_remove (resource_group->priv->timeout_id);
+                resource_group->priv->timeout_id = 0;
+        }
+
         if (resource_group->priv->client) {
                 if (g_signal_handler_is_connected
                         (resource_group->priv->client,
@@ -197,18 +209,6 @@ gssdp_resource_group_dispose (GObject *object)
                                                    
                 g_object_unref (resource_group->priv->client);
                 resource_group->priv->client = NULL;
-        }
-        
-        while (resource_group->priv->resources) {
-                resource_free (resource_group->priv->resources->data);
-                resource_group->priv->resources =
-                        g_list_delete_link (resource_group->priv->resources,
-                                            resource_group->priv->resources);
-        }
-
-        if (resource_group->priv->timeout_id > 0) {
-                g_source_remove (resource_group->priv->timeout_id);
-                resource_group->priv->timeout_id = 0;
         }
 }
 

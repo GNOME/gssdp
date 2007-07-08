@@ -1,3 +1,13 @@
+2007-07-08  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-protocol.h:
+
+	s/bye-bye/byebye.
+
+	* libgssdp/gssdp-resource-group.c: (gssdp_resource_group_dispose):
+
+	byebype resources before unreffing client.
+
 2007-07-03  Jorn Baayen  <jorn@openedhand.com>
 
 	* NEWS:

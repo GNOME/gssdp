@@ -60,7 +60,7 @@ G_BEGIN_DECLS
 #define SSDP_BYEBYE_MESSAGE                         \
         "NOTIFY * HTTP/1.1\r\n"                     \
         "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
-        "NTS: ssdp:bye-bye\r\n"                     \
+        "NTS: ssdp:byebye\r\n"                     \
         "NT: %s\r\n"                                \
         "USN: %s\r\n\r\n"
 
