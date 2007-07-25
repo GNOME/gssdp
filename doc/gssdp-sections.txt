@@ -1,0 +1,83 @@
+<SECTION>
+<FILE>gssdp-client</FILE>
+<TITLE>GSSDPClient</TITLE>
+GSSDPClient
+gssdp_client_new
+gssdp_client_get_main_context
+gssdp_client_set_server_id
+gssdp_client_get_server_id
+<SUBSECTION Standard>
+GSSDP_CLIENT
+GSSDP_IS_CLIENT
+GSSDP_TYPE_CLIENT
+gssdp_client_get_type
+GSSDP_CLIENT_CLASS
+GSSDP_IS_CLIENT_CLASS
+GSSDP_CLIENT_GET_CLASS
+<SUBSECTION Private>
+GSSDPClientPrivate
+</SECTION>
+
+<SECTION>
+<FILE>gssdp-resource-group</FILE>
+<TITLE>GSSDPResourceGroup</TITLE>
+GSSDPResourceGroup
+gssdp_resource_group_new
+gssdp_resource_group_get_client
+gssdp_resource_group_set_max_age
+gssdp_resource_group_get_max_age
+gssdp_resource_group_set_available
+gssdp_resource_group_get_available
+gssdp_resource_group_add_resource
+gssdp_resource_group_add_resource_simple
+gssdp_resource_group_remove_resource
+<SUBSECTION Standard>
+GSSDP_RESOURCE_GROUP
+GSSDP_IS_RESOURCE_GROUP
+GSSDP_TYPE_RESOURCE_GROUP
+gssdp_resource_group_get_type
+GSSDP_RESOURCE_GROUP_CLASS
+GSSDP_IS_RESOURCE_GROUP_CLASS
+GSSDP_RESOURCE_GROUP_GET_CLASS
+<SUBSECTION Private>
+GSSDPResourceGroupPrivate
+</SECTION>
+
+<SECTION>
+<FILE>gssdp-resource-browser</FILE>
+<TITLE>GSSDPResourceBrowser</TITLE>
+GSSDPResourceBrowser
+GSSDP_ALL_RESOURCES
+gssdp_resource_browser_new
+gssdp_resource_browser_get_client
+gssdp_resource_browser_set_target
+gssdp_resource_browser_get_target
+gssdp_resource_browser_set_mx
+gssdp_resource_browser_get_mx
+gssdp_resource_browser_set_active
+gssdp_resource_browser_get_active
+<SUBSECTION Standard>
+GSSDP_RESOURCE_BROWSER
+GSSDP_IS_RESOURCE_BROWSER
+GSSDP_TYPE_RESOURCE_BROWSER
+gssdp_resource_browser_get_type
+GSSDP_RESOURCE_BROWSER_CLASS
+GSSDP_IS_RESOURCE_BROWSER_CLASS
+GSSDP_RESOURCE_BROWSER_GET_CLASS
+<SUBSECTION Private>
+GSSDPResourceBrowserPrivate
+</SECTION>
+
+<SECTION>
+<FILE>gssdp-error</FILE>
+<TITLE>Error codes</TITLE>
+GSSDP_ERROR
+GSSDPError
+<SUBSECTION Private>
+gssdp_error_quark
+</SECTION>
+
+<SECTION>
+<FILE>gssdp</FILE>
+</SECTION>
+

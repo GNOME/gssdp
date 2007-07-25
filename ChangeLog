@@ -1,5 +1,12 @@
 2007-07-25  Jorn Baayen  <jorn@openedhand.com>
 
+	* doc/gssdp-sections.txt:
+	* libgssdp/gssdp-error.c:
+
+	Doc polish.
+
+2007-07-25  Jorn Baayen  <jorn@openedhand.com>
+
 	* README:
 
 	Somewhat better description.
