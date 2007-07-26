@@ -1,5 +1,15 @@
 2007-07-26  Jorn Baayen  <jorn@openedhand.com>
 
+	* NEWS:
+
+	Updated.
+
+	* configure.ac:
+
+	Bump version number to 0.4.
+
+2007-07-26  Jorn Baayen  <jorn@openedhand.com>
+
 	* gssdp-1.0.pc.in:
 
 	List all dependencies.
