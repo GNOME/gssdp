@@ -1,3 +1,11 @@
+2007-07-27  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-client.c: (socket_source_cb):
+
+	Fix compiler warning. Fixes #421.
+
+	Patch by Priit Laes.
+
 2007-07-26  Jorn Baayen  <jorn@openedhand.com>
 
 	* NEWS:

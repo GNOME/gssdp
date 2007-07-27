@@ -513,9 +513,9 @@ socket_source_cb (gpointer user_data)
                           &addr_size);
 
         if (bytes >= BUF_SIZE) {
-                g_warning ("Received packet of %d bytes, but the maximum "
+                g_warning ("Received packet of %u bytes, but the maximum "
                            "buffer size is %d. Packed dropped.",
-                           bytes, BUF_SIZE);
+                           (unsigned int) bytes, BUF_SIZE);
 
                 return TRUE;
         }
