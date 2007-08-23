@@ -9,3 +9,4 @@ Version: @VERSION@
 Libs: ${libdir}/libgssdp-1.0.la
 Cflags: -I${includedir}
 Requires: gobject-2.0
+Requires.Private: libsoup-2.2

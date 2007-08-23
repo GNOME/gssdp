@@ -1,3 +1,10 @@
+2007-08-23  Jorn Baayen  <jorn@openedhand.com>
+
+	* gssdp-1.0-uninstalled.pc.in:
+	* gssdp-1.0.pc.in:
+
+	Move libsoup req to Requires.Private.
+
 2007-07-27  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-client.c: (socket_source_cb):
