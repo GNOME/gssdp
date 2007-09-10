@@ -514,12 +514,15 @@ setup_treeviews ()
 
         treeviews[0] = glade_xml_get_widget (glade_xml,
                         "packet-treeview");
+        g_assert (treeviews[0] != NULL);
         treeviews[1] = glade_xml_get_widget (glade_xml, 
                         "device-details-treeview");
+        g_assert (treeviews[1] != NULL);
+        
         treemodels[0] = create_packet_treemodel ();
+        g_assert (treemodels[0] != NULL);
         treemodels[1] = create_device_treemodel ();
-
-        g_assert (treeviews[0] != NULL && treeviews[1] != NULL);
+        g_assert (treemodels[1] != NULL);
 
         for (i=0; i<2; i++)
                 setup_treeview (treeviews[i], treemodels[i], headers[i]);

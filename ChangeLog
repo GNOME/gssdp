@@ -1,3 +1,9 @@
+2007-09-10  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* tools/gssdp-device-sniffer.c: (setup_treeviews):
+
+	Make sure treemodels get created at the startup.
+
 2007-08-23  Jorn Baayen  <jorn@openedhand.com>
 
 	* gssdp-1.0-uninstalled.pc.in:

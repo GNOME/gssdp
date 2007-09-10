@@ -483,7 +483,6 @@ header_equal (const gchar *header1,
 /**
  * Called when data can be read from the socket
  **/
-
 static gboolean
 socket_source_cb (gpointer user_data)
 {
