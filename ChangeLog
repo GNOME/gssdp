@@ -1,3 +1,10 @@
+2007-09-11  Zeeshan Ali  <zeenix@gstreamer.net>
+
+	* tools/gssdp-device-sniffer.c: (setup_treeviews):
+
+	Pass the correct value to n_columns argument of
+	gtk_list_store_new(). Fixes bug#501.
+
 2007-09-10  Zeeshan Ali  <zeenix@gstreamer.net>
 
 	* tools/gssdp-device-sniffer.c: (setup_treeviews):

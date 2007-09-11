@@ -461,7 +461,7 @@ create_device_treemodel (void)
 {
         GtkListStore *store;
 
-        store = gtk_list_store_new (5,
+        store = gtk_list_store_new (4,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
