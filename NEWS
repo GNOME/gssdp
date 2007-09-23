@@ -1,3 +1,11 @@
+0.4.1
+=====
+
+- Pass the correct value to n_columns argument of gtk_list_store_new().
+  Fixes bug#501. [Zeeshan Ali]
+- Move libsoup requirement to Requires.Private. [Jorn Baayen]
+- Fix compiler warning. Fixes #421. [Priit Laes]
+
 0.4
 ===
 
