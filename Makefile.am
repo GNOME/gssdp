@@ -4,7 +4,7 @@ else
 TOOLS_DIR =
 endif
 
-SUBDIRS = libgssdp $(TOOLS_DIR) tests po doc
+SUBDIRS = libgssdp $(TOOLS_DIR) tests doc
 
 pkgconfig_DATA= gssdp-1.0.pc
 pkgconfigdir = $(libdir)/pkgconfig

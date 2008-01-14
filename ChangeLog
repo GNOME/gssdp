@@ -1,3 +1,10 @@
+2008-01-14  Jorn Baayen  <jorn@openedhand.com>
+
+	* Makefile.am:
+	* configure.ac:
+
+	Remove unused translation framework.
+
 2007-09-23  Jorn Baayen  <jorn@openedhand.com>
 
 	* NEWS:
