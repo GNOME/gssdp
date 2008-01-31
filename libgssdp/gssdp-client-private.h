@@ -32,9 +32,10 @@ typedef enum {
         _GSSDP_ANNOUNCEMENT       = 2
 } _GSSDPMessageType;
 
-void
+G_GNUC_INTERNAL void
 _gssdp_client_send_message (GSSDPClient *client,
                             const char  *dest_ip,
+                            gushort      dest_port,
                             const char  *message);
 
 G_END_DECLS

@@ -280,10 +280,11 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                               G_SIGNAL_RUN_LAST,
                               0,
                               NULL, NULL,
-                              gssdp_marshal_VOID__STRING_INT_POINTER,
+                              gssdp_marshal_VOID__STRING_UINT_INT_POINTER,
                               G_TYPE_NONE,
-                              3,
+                              4,
                               G_TYPE_STRING,
+                              G_TYPE_UINT,
                               G_TYPE_INT,
                               G_TYPE_POINTER);
 }
@@ -384,6 +385,7 @@ gssdp_client_get_server_id (GSSDPClient *client)
  * _gssdp_client_send_message
  * @client: A #GSSDPClient
  * @dest_ip: The destination IP address, or NULL to broadcast
+ * @dest_port: The destination port, or NULL for default
  * @message: The message to send
  *
  * Sends @message to @dest_ip.
@@ -391,6 +393,7 @@ gssdp_client_get_server_id (GSSDPClient *client)
 void
 _gssdp_client_send_message (GSSDPClient *client,
                             const char  *dest_ip,
+                            gushort      dest_port,
                             const char  *message)
 {
         struct sockaddr_in addr;
@@ -403,12 +406,16 @@ _gssdp_client_send_message (GSSDPClient *client,
         if (dest_ip == NULL)
                 dest_ip = SSDP_ADDR;
 
+        /* Use default port if no port was explicitly specified */
+        if (dest_port == 0)
+                dest_port = SSDP_PORT;
+
         socket_fd = gssdp_socket_source_get_fd (client->priv->socket_source);
 
         memset (&addr, 0, sizeof (addr));
 
         addr.sin_family      = AF_INET;
-        addr.sin_port        = htons (SSDP_PORT);
+        addr.sin_port        = htons (dest_port);
         addr.sin_addr.s_addr = inet_addr (dest_ip);
 
         res = sendto (socket_fd,
@@ -578,6 +585,7 @@ socket_source_cb (gpointer user_data)
                                signals[MESSAGE_RECEIVED],
                                0,
                                inet_ntoa (addr.sin_addr),
+                               ntohs (addr.sin_port),
                                type,
                                hash);
         }

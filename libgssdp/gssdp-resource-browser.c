@@ -87,6 +87,7 @@ gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
 static void
 message_received_cb              (GSSDPClient          *client,
                                   const char           *from_ip,
+                                  gushort               from_port,
                                   _GSSDPMessageType     type,
                                   GHashTable           *headers,
                                   gpointer              user_data);
@@ -501,6 +502,7 @@ gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
 
                 _gssdp_client_send_message (resource_browser->priv->client,
                                             NULL,
+                                            0,
                                             message);
 
                 g_free (message);
@@ -765,6 +767,7 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
 static void
 message_received_cb (GSSDPClient      *client,
                      const char       *from_ip,
+                     gushort           from_port,
                      _GSSDPMessageType type,
                      GHashTable       *headers,
                      gpointer          user_data)

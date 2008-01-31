@@ -1,3 +1,21 @@
+2008-01-31  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-client-private.h:
+	* libgssdp/gssdp-client.c: (gssdp_client_class_init),
+	(_gssdp_client_send_message), (socket_source_cb):
+	* libgssdp/gssdp-marshal.list:
+	* libgssdp/gssdp-protocol.h:
+	* libgssdp/gssdp-resource-browser.c:
+	(gssdp_resource_browser_set_active):
+	* libgssdp/gssdp-resource-group.c: (resource_group_timeout),
+	(message_received_cb), (construct_al),
+	(discovery_response_timeout), (resource_alive), (resource_byebye):
+	* libgssdp/gssdp-socket-source.h:
+
+	- Send discovery response to port of origin instead of to SSDP port.
+	- Add Date header to discovery response.
+	- Add missing G_GNUC_INTERNALs.
+
 2008-01-14  Jorn Baayen  <jorn@openedhand.com>
 
 	* Makefile.am:

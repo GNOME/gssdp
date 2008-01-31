@@ -44,6 +44,7 @@ G_BEGIN_DECLS
         "Server: %s\r\n"                            \
         "Cache-Control: max-age=%d\r\n"             \
         "ST: %s\r\n"                                \
+        "Date: %s\r\n"                              \
         "Content-Length: 0\r\n\r\n"
 
 #define SSDP_ALIVE_MESSAGE                          \

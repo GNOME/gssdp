@@ -26,10 +26,10 @@ G_BEGIN_DECLS
 
 typedef struct _GSSDPSocketSource GSSDPSocketSource;
 
-GSSDPSocketSource *
+G_GNUC_INTERNAL GSSDPSocketSource *
 gssdp_socket_source_new    (void);
 
-int
+G_GNUC_INTERNAL int
 gssdp_socket_source_get_fd (GSSDPSocketSource *socket_source);
 
 G_END_DECLS

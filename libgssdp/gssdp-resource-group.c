@@ -31,6 +31,9 @@
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+
+#include <libsoup/soup-date.h>
 
 #include "gssdp-resource-group.h"
 #include "gssdp-resource-browser.h"
@@ -78,6 +81,7 @@ typedef struct {
 
 typedef struct {
         char     *dest_ip;
+        gushort   dest_port;
         char     *target;
         Resource *resource;
 
@@ -93,6 +97,7 @@ resource_group_timeout          (gpointer            user_data);
 static void
 message_received_cb             (GSSDPClient        *client,
                                  const char         *from_ip,
+                                 gushort             from_port,
                                  _GSSDPMessageType   type,
                                  GHashTable         *headers,
                                  gpointer            user_data);
@@ -576,6 +581,7 @@ resource_group_timeout (gpointer user_data)
 static void
 message_received_cb (GSSDPClient      *client,
                      const char       *from_ip,
+                     gushort           from_port,
                      _GSSDPMessageType type,
                      GHashTable       *headers,
                      gpointer          user_data)
@@ -634,9 +640,10 @@ message_received_cb (GSSDPClient      *client,
                         /* Prepare response */
                         response = g_slice_new (DiscoveryResponse);
                         
-                        response->dest_ip  = g_strdup (from_ip);
-                        response->target   = g_strdup (target);
-                        response->resource = resource;
+                        response->dest_ip   = g_strdup (from_ip);
+                        response->dest_port = from_port;
+                        response->target    = g_strdup (target);
+                        response->resource  = resource;
 
                         /* Add timeout */
                         response->timeout_id =
@@ -684,7 +691,7 @@ discovery_response_timeout (gpointer user_data)
 {
         DiscoveryResponse *response;
         GSSDPClient *client;
-        char *al, *message;
+        char *al, *date, *message;
         guint max_age;
 
         response = user_data;
@@ -696,19 +703,24 @@ discovery_response_timeout (gpointer user_data)
 
         al = construct_al (response->resource);
 
+        date = soup_date_generate (time (NULL));
+
         message = g_strdup_printf (SSDP_DISCOVERY_RESPONSE,
                                    (char *) response->resource->locations->data,
                                    al ? al : "",
                                    response->resource->usn,
                                    gssdp_client_get_server_id (client),
                                    max_age,
-                                   response->target);
+                                   response->target,
+                                   date);
 
         _gssdp_client_send_message (client,
                                     response->dest_ip,
+                                    response->dest_port,
                                     message);
 
         g_free (message);
+        g_free (date);
         g_free (al);
 
         discovery_response_free (response);
@@ -760,6 +772,7 @@ resource_alive (Resource *resource)
 
         _gssdp_client_send_message (client,
                                     NULL,
+                                    0,
                                     message);
 
         g_free (message);
@@ -784,6 +797,7 @@ resource_byebye (Resource *resource)
         
         _gssdp_client_send_message (client,
                                     NULL,
+                                    0,
                                     message);
 
         g_free (message);
