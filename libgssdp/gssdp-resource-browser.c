@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006, 2007 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007, 2008 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -40,6 +40,9 @@
 #include "gssdp-protocol.h"
 #include "gssdp-marshal.h"
 
+#define MAX_DISCOVERY_MESSAGES 3
+#define DISCOVERY_FREQUENCY    500 /* 500 ms */
+
 G_DEFINE_TYPE (GSSDPResourceBrowser,
                gssdp_resource_browser,
                G_TYPE_OBJECT);
@@ -56,6 +59,9 @@ struct _GSSDPResourceBrowserPrivate {
         gulong       message_received_id;
 
         GHashTable  *resources;
+                        
+        guint        timeout_id;
+        guint        num_discovery;
 };
 
 enum {
@@ -95,6 +101,14 @@ static void
 resource_free                    (gpointer              data);
 static void
 clear_cache                      (GSSDPResourceBrowser *resource_browser);
+static void
+send_discovery_request            (GSSDPResourceBrowser *resource_browser);
+static gboolean
+discovery_timeout                (gpointer              data);
+static void
+start_discovery                  (GSSDPResourceBrowser *resource_browser);
+static void
+stop_discovery                   (GSSDPResourceBrowser *resource_browser);
 
 static void
 gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
@@ -198,7 +212,9 @@ gssdp_resource_browser_dispose (GObject *object)
                                 (resource_browser->priv->client,
                                  resource_browser->priv->message_received_id);
                 }
-                                                   
+
+                stop_discovery (resource_browser);
+
                 g_object_unref (resource_browser->priv->client);
                 resource_browser->priv->client = NULL;
         }
@@ -493,21 +509,12 @@ gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
         resource_browser->priv->active = active;
 
         if (active) {
-                /* Emit discovery message */
-                char *message;
+                start_discovery (resource_browser);
+        } else {
+                stop_discovery (resource_browser);
 
-                message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
-                                           resource_browser->priv->target,
-                                           resource_browser->priv->mx);
-
-                _gssdp_client_send_message (resource_browser->priv->client,
-                                            NULL,
-                                            0,
-                                            message);
-
-                g_free (message);
-        } else
                 clear_cache (resource_browser);
+        }
         
         g_object_notify (G_OBJECT (resource_browser), "active");
 }
@@ -833,4 +840,68 @@ clear_cache (GSSDPResourceBrowser *resource_browser)
         g_hash_table_foreach_remove (resource_browser->priv->resources,
                                      clear_cache_helper,
                                      NULL);
+}
+
+/* Sends discovery request */
+static void
+send_discovery_request (GSSDPResourceBrowser *resource_browser)
+{
+        char *message;
+
+        message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
+                                   resource_browser->priv->target,
+                                   resource_browser->priv->mx);
+
+        _gssdp_client_send_message (resource_browser->priv->client,
+                                    NULL,
+                                    0,
+                                    message);
+
+        g_free (message);
+}
+
+static gboolean
+discovery_timeout (gpointer data)
+{
+        GSSDPResourceBrowser *resource_browser;
+
+        resource_browser = GSSDP_RESOURCE_BROWSER (data);
+
+        send_discovery_request (resource_browser);
+
+        resource_browser->priv->num_discovery += 1;
+
+        if (resource_browser->priv->num_discovery >= MAX_DISCOVERY_MESSAGES) {
+                resource_browser->priv->timeout_id = 0;
+                resource_browser->priv->num_discovery = 0;
+
+                return FALSE;
+        } else
+                return TRUE;
+}
+
+/* Starts sending discovery requests */
+static void
+start_discovery (GSSDPResourceBrowser *resource_browser)
+{
+        /* Send one now */
+        send_discovery_request (resource_browser);
+
+        /* And schedule the rest for later */
+        resource_browser->priv->num_discovery = 1;
+        resource_browser->priv->timeout_id =
+                                g_timeout_add (DISCOVERY_FREQUENCY,
+                                               discovery_timeout,
+                                               resource_browser);
+}
+
+/* Stops the sending of discovery messages */
+static void
+stop_discovery (GSSDPResourceBrowser *resource_browser)
+{
+        if (resource_browser->priv->timeout_id) {
+                g_source_remove (resource_browser->priv->timeout_id);
+                resource_browser->priv->timeout_id = 0;
+                resource_browser->priv->num_discovery = 0;
+        }
 }
