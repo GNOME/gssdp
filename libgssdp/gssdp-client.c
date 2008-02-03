@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006, 2007 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007, 2008 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -58,7 +58,8 @@ struct _GSSDPClientPrivate {
 
         char              *server_id;
 
-        GSSDPSocketSource *socket_source;
+        GSSDPSocketSource *request_socket;
+        GSSDPSocketSource *multicast_socket;
 };
 
 enum {
@@ -82,7 +83,9 @@ gssdp_client_set_main_context (GSSDPClient  *client,
 static char *
 make_server_id                (void);
 static gboolean
-socket_source_cb              (gpointer      user_data);
+request_socket_source_cb      (gpointer      user_data);
+static gboolean
+multicast_socket_source_cb    (gpointer      user_data);
 
 static void
 gssdp_client_init (GSSDPClient *client)
@@ -95,13 +98,25 @@ gssdp_client_init (GSSDPClient *client)
         /* Generate default server ID */
         client->priv->server_id = make_server_id ();
 
-        /* Set up socket (Will set errno if it failed) */
-        client->priv->socket_source = gssdp_socket_source_new ();
-        if (client->priv->socket_source != NULL) {
-                g_source_set_callback ((GSource *) client->priv->socket_source,
-                                       socket_source_cb,
-                                       client,
-                                       NULL);
+        /* Set up sockets (Will set errno if it failed) */
+        client->priv->request_socket =
+                gssdp_socket_source_new (GSSPP_SOCKET_SOURCE_TYPE_REQUEST);
+        if (client->priv->request_socket != NULL) {
+                g_source_set_callback
+                        ((GSource *) client->priv->request_socket,
+                         request_socket_source_cb,
+                         client,
+                         NULL);
+        }
+
+        client->priv->multicast_socket =
+                gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST);
+        if (client->priv->multicast_socket != NULL) {
+                g_source_set_callback
+                        ((GSource *) client->priv->multicast_socket,
+                         multicast_socket_source_cb,
+                         client,
+                         NULL);
         }
 }
 
@@ -153,7 +168,8 @@ gssdp_client_set_property (GObject      *object,
                                                g_value_get_pointer (value));
                 break;
         case PROP_ERROR:
-                if (!client->priv->socket_source) {
+                if (!client->priv->request_socket ||
+                    !client->priv->multicast_socket) {
                         GError **error;
 
                         error = g_value_get_pointer (value);
@@ -178,10 +194,15 @@ gssdp_client_dispose (GObject *object)
 
         client = GSSDP_CLIENT (object);
 
-        /* Destroy the SocketSource */
-        if (client->priv->socket_source) {
-                g_source_destroy ((GSource *) client->priv->socket_source);
-                client->priv->socket_source = NULL;
+        /* Destroy the SocketSources */
+        if (client->priv->request_socket) {
+                g_source_destroy ((GSource *) client->priv->request_socket);
+                client->priv->request_socket = NULL;
+        }
+
+        if (client->priv->multicast_socket) {
+                g_source_destroy ((GSource *) client->priv->multicast_socket);
+                client->priv->multicast_socket = NULL;
         }
 
         /* Unref the context */
@@ -320,10 +341,16 @@ gssdp_client_set_main_context (GSSDPClient  *client,
 
         /* A NULL main_context is fine */
         
-        if (client->priv->socket_source) {
-                g_source_attach ((GSource *) client->priv->socket_source,
+        if (client->priv->request_socket) {
+                g_source_attach ((GSource *) client->priv->request_socket,
                                  client->priv->main_context);
-                g_source_unref ((GSource *) client->priv->socket_source);
+                g_source_unref ((GSource *) client->priv->request_socket);
+        }
+
+        if (client->priv->multicast_socket) {
+                g_source_attach ((GSource *) client->priv->multicast_socket,
+                                 client->priv->main_context);
+                g_source_unref ((GSource *) client->priv->multicast_socket);
         }
 
         g_object_notify (G_OBJECT (client), "main-context");
@@ -410,7 +437,7 @@ _gssdp_client_send_message (GSSDPClient *client,
         if (dest_port == 0)
                 dest_port = SSDP_PORT;
 
-        socket_fd = gssdp_socket_source_get_fd (client->priv->socket_source);
+        socket_fd = gssdp_socket_source_get_fd (client->priv->request_socket);
 
         memset (&addr, 0, sizeof (addr));
 
@@ -491,9 +518,8 @@ header_equal (const gchar *header1,
  * Called when data can be read from the socket
  **/
 static gboolean
-socket_source_cb (gpointer user_data)
+socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
 {
-        GSSDPClient *client;
         int fd, type, len;
         size_t bytes;
         char buf[BUF_SIZE], *end;
@@ -503,10 +529,8 @@ socket_source_cb (gpointer user_data)
         char *req_method;
         guint status_code;
 
-        client = GSSDP_CLIENT (user_data);
-
         /* Get FD */
-        fd = gssdp_socket_source_get_fd (client->priv->socket_source);
+        fd = gssdp_socket_source_get_fd (socket);
 
         /* Read data */
         addr_size = sizeof (addr);
@@ -593,4 +617,24 @@ socket_source_cb (gpointer user_data)
         g_hash_table_unref (hash);
 
         return TRUE;
+}
+
+static gboolean
+request_socket_source_cb (gpointer user_data)
+{
+        GSSDPClient *client;
+
+        client = GSSDP_CLIENT (user_data);
+
+        return socket_source_cb (client->priv->request_socket, client);
+}
+
+static gboolean
+multicast_socket_source_cb (gpointer user_data)
+{
+        GSSDPClient *client;
+
+        client = GSSDP_CLIENT (user_data);
+
+        return socket_source_cb (client->priv->multicast_socket, client);
 }

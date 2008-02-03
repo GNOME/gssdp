@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007, 2008 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -64,13 +64,15 @@ GSourceFuncs gssdp_socket_source_funcs = {
  * Return value: A new #GSSDPSocketSource
  **/
 GSSDPSocketSource *
-gssdp_socket_source_new (void)
+gssdp_socket_source_new (GSSDPSocketSourceType type)
 {
         GSource *source;
         GSSDPSocketSource *socket_source;
         struct sockaddr_in addr;
         struct ip_mreq mreq;
         gboolean boolean = TRUE;
+        guchar ttl = 4;
+        gushort port;
         int res;
 
         /* Create source */
@@ -89,28 +91,6 @@ gssdp_socket_source_new (void)
         socket_source->poll_fd.events = G_IO_IN | G_IO_ERR;
 
         g_source_add_poll (source, &socket_source->poll_fd);
-       
-        /* Allow multiple sockets to use the same PORT number */
-        res = setsockopt (socket_source->poll_fd.fd,
-                          SOL_SOCKET,
-                          SO_REUSEADDR,
-                          &boolean,
-                          sizeof (boolean));
-        if (res == -1)
-                goto error;
-
-        /* Bind to SSDP port */
-        memset (&addr, 0, sizeof (addr));
-                
-        addr.sin_family      = AF_INET;
-        addr.sin_addr.s_addr = htonl (INADDR_ANY);
-        addr.sin_port        = htons (SSDP_PORT);
-
-        res = bind (socket_source->poll_fd.fd,
-                    (struct sockaddr *) &addr,
-                    sizeof (addr));
-        if (res == -1)
-                goto error;
 
         /* Enable broadcasting */
         res = setsockopt (socket_source->poll_fd.fd, 
@@ -121,15 +101,52 @@ gssdp_socket_source_new (void)
         if (res == -1)
                 goto error;
 
-        /* Subscribe to multicast channel */
-        mreq.imr_multiaddr.s_addr = inet_addr (SSDP_ADDR);
-        mreq.imr_interface.s_addr = htonl (INADDR_ANY);
-
+        /* TTL */
         res = setsockopt (socket_source->poll_fd.fd,
                           IPPROTO_IP,
-                          IP_ADD_MEMBERSHIP,
-                          &mreq,
-                          sizeof (mreq));
+                          IP_MULTICAST_TTL,
+                          &ttl,
+                          sizeof (ttl));
+        if (res == -1)
+                goto error;
+
+        /* Set up additional things according to the type of socket desired */
+        if (type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
+                /* Allow multiple sockets to use the same PORT number */
+                res = setsockopt (socket_source->poll_fd.fd,
+                                  SOL_SOCKET,
+                                  SO_REUSEADDR,
+                                  &boolean,
+                                  sizeof (boolean));
+                if (res == -1)
+                        goto error;
+
+                /* Subscribe to multicast channel */
+                mreq.imr_multiaddr.s_addr = inet_addr (SSDP_ADDR);
+                mreq.imr_interface.s_addr = htonl (INADDR_ANY);
+
+                res = setsockopt (socket_source->poll_fd.fd,
+                                  IPPROTO_IP,
+                                  IP_ADD_MEMBERSHIP,
+                                  &mreq,
+                                  sizeof (mreq));
+                if (res == -1)
+                        goto error;
+
+                port = SSDP_PORT;
+        } else
+                port = 0;
+       
+        /* Bind to requested port */
+        memset (&addr, 0, sizeof (addr));
+                
+        addr.sin_family      = AF_INET;
+        addr.sin_addr.s_addr = htonl (INADDR_ANY);
+        addr.sin_port        = htons (port);
+
+        res = bind (socket_source->poll_fd.fd,
+                    (struct sockaddr *) &addr,
+                    sizeof (addr));
         if (res == -1)
                 goto error;
 

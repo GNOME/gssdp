@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2006 OpenedHand Ltd.
+ * Copyright (C) 2006, 2007, 2008 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -26,11 +26,16 @@ G_BEGIN_DECLS
 
 typedef struct _GSSDPSocketSource GSSDPSocketSource;
 
+typedef enum {
+        GSSPP_SOCKET_SOURCE_TYPE_REQUEST,
+        GSSDP_SOCKET_SOURCE_TYPE_MULTICAST
+} GSSDPSocketSourceType;
+
 G_GNUC_INTERNAL GSSDPSocketSource *
-gssdp_socket_source_new    (void);
+gssdp_socket_source_new    (GSSDPSocketSourceType type);
 
 G_GNUC_INTERNAL int
-gssdp_socket_source_get_fd (GSSDPSocketSource *socket_source);
+gssdp_socket_source_get_fd (GSSDPSocketSource    *socket_source);
 
 G_END_DECLS
 

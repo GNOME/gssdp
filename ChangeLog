@@ -1,3 +1,15 @@
+2008-02-02  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-client.c: (gssdp_client_init),
+	(gssdp_client_set_property), (gssdp_client_dispose),
+	(gssdp_client_new), (gssdp_client_set_main_context),
+	(_gssdp_client_send_message), (string_list_free), (header_hash),
+	(header_equal), (socket_source_cb):
+	* libgssdp/gssdp-socket-source.c: (gssdp_socket_source_new):
+	* libgssdp/gssdp-socket-source.h:
+
+	Send SSDP messages from dynamic port.
+
 2008-02-01  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-resource-browser.c:
