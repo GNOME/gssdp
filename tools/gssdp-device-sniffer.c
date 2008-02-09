@@ -228,6 +228,7 @@ append_packet (const gchar *from_ip,
 static void
 on_ssdp_message (GSSDPClient *client,
                 const gchar *from_ip,
+                gushort from_port,
                 _GSSDPMessageType type,
                 GHashTable *headers,
                 gpointer user_data)

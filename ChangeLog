@@ -1,3 +1,9 @@
+2008-02-09  Zeeshan Ali Khattak  <zeenix@gstreamer.net>
+
+	* tools/gssdp-device-sniffer.c:
+
+	Add port argument to 'message-received' callback function.
+
 2008-02-09  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-protocol.h:
