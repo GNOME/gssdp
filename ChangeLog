@@ -1,6 +1,13 @@
 2008-02-09  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-protocol.h:
+	* libgssdp/gssdp-resource-browser.c: (send_discovery_request):
+
+	Include g_get_application_name() in "User-Agent" header.
+
+2008-02-09  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-protocol.h:
 
 	Add "User-Agent" header to discovery request.
 

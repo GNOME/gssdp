@@ -36,7 +36,7 @@ G_BEGIN_DECLS
         "Man: \"ssdp:discover\"\r\n"                \
         "ST: %s\r\n"                                \
         "MX: %d\r\n"                                \
-        "User-Agent: GSSDP " VERSION "\r\n\r\n"     \
+        "User-Agent: %s GSSDP/" VERSION "\r\n\r\n"  \
 
 #define SSDP_DISCOVERY_RESPONSE                     \
         "HTTP/1.1 200 OK\r\n"                       \
