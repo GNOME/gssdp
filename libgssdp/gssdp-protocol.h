@@ -22,6 +22,8 @@
 #ifndef __GSSDP_PROTOCOL_H__
 #define __GSSDP_PROTOCOL_H__
 
+#include <config.h>
+
 G_BEGIN_DECLS
 
 #define SSDP_ADDR "239.255.255.250"
@@ -33,7 +35,8 @@ G_BEGIN_DECLS
         "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
         "Man: \"ssdp:discover\"\r\n"                \
         "ST: %s\r\n"                                \
-        "MX: %d\r\n\r\n"
+        "MX: %d\r\n"                                \
+        "User-Agent: GSSDP " VERSION "\r\n\r\n"     \
 
 #define SSDP_DISCOVERY_RESPONSE                     \
         "HTTP/1.1 200 OK\r\n"                       \

@@ -1,3 +1,9 @@
+2008-02-09  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-protocol.h:
+
+	Add "User-Agent" header to discovery request.
+
 2008-02-02  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-client.c: (gssdp_client_init),
