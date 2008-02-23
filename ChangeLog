@@ -1,3 +1,10 @@
+2008-02-23  Jorn Baayen  <jorn@openedhand.com>
+
+	* NEWS:
+	* configure.ac:
+
+	Release 0.4.2.
+
 2008-02-09  Zeeshan Ali Khattak  <zeenix@gstreamer.net>
 
 	* tools/gssdp-device-sniffer.c:

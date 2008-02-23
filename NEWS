@@ -1,3 +1,12 @@
+0.4.2
+=====
+
+- Add User-Agent header to discovery requests including the application name
+  as reported by g_get_application_name(). [Jorn Baayen]
+- Send messages from dynamic port. [Jorn Baayen]
+- Send responses to originating port (instead of to SSDP port). [Jorn Baayen]
+- Emit multiple discovery requests (because UDP is unreliable). [Zeeshan Ali]
+
 0.4.1
 =====
 
