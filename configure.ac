@@ -64,8 +64,6 @@ Makefile
 libgssdp/Makefile
 tools/Makefile
 tests/Makefile
-po/Makefile.in
-po/Makefile
 doc/Makefile
 doc/version.xml
 gssdp-1.0.pc
