@@ -1,3 +1,9 @@
+2008-02-26  Jorn Baayen  <jorn@openedhand.com>
+
+	* autogen.sh:
+
+	Don't call glib-gettextize.
+
 2008-02-24  Jorn Baayen  <jorn@openedhand.com>
 
 	* configure.ac:
