@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <libsoup/soup-date.h>
+#include <libsoup/soup.h>
 
 #include "gssdp-resource-group.h"
 #include "gssdp-resource-browser.h"
@@ -99,7 +99,7 @@ message_received_cb             (GSSDPClient        *client,
                                  const char         *from_ip,
                                  gushort             from_port,
                                  _GSSDPMessageType   type,
-                                 GHashTable         *headers,
+                                 SoupMessageHeaders *headers,
                                  gpointer            user_data);
 static void
 resource_alive                  (Resource           *resource);
@@ -579,16 +579,15 @@ resource_group_timeout (gpointer user_data)
  * Received a message
  **/
 static void
-message_received_cb (GSSDPClient      *client,
-                     const char       *from_ip,
-                     gushort           from_port,
-                     _GSSDPMessageType type,
-                     GHashTable       *headers,
-                     gpointer          user_data)
+message_received_cb (GSSDPClient        *client,
+                     const char         *from_ip,
+                     gushort             from_port,
+                     _GSSDPMessageType   type,
+                     SoupMessageHeaders *headers,
+                     gpointer            user_data)
 {
         GSSDPResourceGroup *resource_group;
-        GSList *list;
-        const char *target;
+        const char *target, *mx_str;
         gboolean want_all;
         int mx;
         GList *l;
@@ -604,22 +603,20 @@ message_received_cb (GSSDPClient      *client,
                 return;
 
         /* Extract target */
-        list = g_hash_table_lookup (headers, "ST");
-        if (!list) {
+        target = soup_message_headers_get (headers, "ST");
+        if (!target) {
                 g_warning ("Discovery request did not have an ST header");
 
                 return;
         }
 
-        target = list->data;
-
         /* Is this the "ssdp:all" target? */
         want_all = (strcmp (target, GSSDP_ALL_RESOURCES) == 0);
 
         /* Extract MX */
-        list = g_hash_table_lookup (headers, "MX");
-        if (list)
-                mx = atoi (list->data);
+        mx_str = soup_message_headers_get (headers, "MX");
+        if (mx_str)
+                mx = atoi (mx_str);
         else
                 mx = SSDP_DEFAULT_MX;
 
@@ -691,7 +688,8 @@ discovery_response_timeout (gpointer user_data)
 {
         DiscoveryResponse *response;
         GSSDPClient *client;
-        char *al, *date, *message;
+        SoupDate *date;
+        char *al, *date_str, *message;
         guint max_age;
 
         response = user_data;
@@ -703,7 +701,9 @@ discovery_response_timeout (gpointer user_data)
 
         al = construct_al (response->resource);
 
-        date = soup_date_generate (time (NULL));
+        date = soup_date_new_from_now (0);
+        date_str = soup_date_to_string (date, SOUP_DATE_HTTP);
+        soup_date_free (date);
 
         message = g_strdup_printf (SSDP_DISCOVERY_RESPONSE,
                                    (char *) response->resource->locations->data,
@@ -712,7 +712,7 @@ discovery_response_timeout (gpointer user_data)
                                    gssdp_client_get_server_id (client),
                                    max_age,
                                    response->target,
-                                   date);
+                                   date_str);
 
         _gssdp_client_send_message (client,
                                     response->dest_ip,
@@ -720,7 +720,7 @@ discovery_response_timeout (gpointer user_data)
                                     message);
 
         g_free (message);
-        g_free (date);
+        g_free (date_str);
         g_free (al);
 
         discovery_response_free (response);

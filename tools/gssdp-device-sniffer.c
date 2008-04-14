@@ -19,6 +19,7 @@
 
 #include <libgssdp/gssdp.h>
 #include <libgssdp/gssdp-client-private.h>
+#include <libsoup/soup.h>
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <string.h>
@@ -72,22 +73,15 @@ on_details_activate (GtkWidget *scrolled_window, GtkCheckMenuItem *menuitem)
 }
 
 static void
-packet_header_to_string (char *header_name,
-                GSList *header_val,
-                GString **text)
+packet_header_to_string (const char *header_name,
+                 const char *header_val,
+                 GString **text)
 {
-        GSList *node;
-
-        g_string_append_printf (*text, "%s: %s",
-                        header_name,
-                        (char *) header_val->data);
-
-        for (node = header_val->next; node; node = node->next) {
-                g_string_append_printf (*text, "; %s", (char *) node->data);
-        }
-        g_string_append (*text, "\n");
+        g_string_append_printf (*text, "%s: %s\n",
+                         header_name,
+                         header_val);
 }
-
+ 
 static void
 clear_textbuffer (GtkTextBuffer *textbuffer)
 {
@@ -112,16 +106,17 @@ update_packet_details (char *text, unsigned int len)
 }
 
 static void
-display_packet (time_t arrival_time, GHashTable *packet_headers)
+display_packet (time_t arrival_time, SoupMessageHeaders *packet_headers)
 {
         GString *text;
-       
+
         text = g_string_new ("");
         g_string_printf (text, "Received on: %s\nHeaders:\n\n",
                         ctime (&arrival_time));
-        
-        g_hash_table_foreach (packet_headers,
-                        (GHFunc) packet_header_to_string,
+
+        soup_message_headers_foreach (packet_headers,
+                        (SoupMessageHeadersForeachFunc)
+                        packet_header_to_string,
                         &text);
 
         update_packet_details (text->str, text->len);
@@ -136,14 +131,14 @@ on_packet_selected (GtkTreeSelection *selection, gpointer user_data)
         time_t *arrival_time;
 
         if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
-                GHashTable *packet_headers;
+                SoupMessageHeaders *packet_headers;
 
                 gtk_tree_model_get (model,
                                 &iter, 
                                 4, &packet_headers,
                                 5, &arrival_time, -1);
                 display_packet (*arrival_time, packet_headers);
-                g_boxed_free (G_TYPE_HASH_TABLE, packet_headers);
+                g_boxed_free (SOUP_TYPE_MESSAGE_HEADERS, packet_headers);
         }
 
         else
@@ -162,11 +157,11 @@ static char **
 packet_to_treeview_data (const gchar *from_ip,
                 time_t arrival_time,
                 _GSSDPMessageType type,
-                GHashTable *headers)
+                SoupMessageHeaders *headers)
 {
         char **packet_data;
+        const char *target;
         struct tm *tm;
-        GSList *node;
 
         packet_data = g_malloc (sizeof (char *) * 5);
 
@@ -182,12 +177,11 @@ packet_to_treeview_data (const gchar *from_ip,
         
         /* Now the Packet Information */
         if (type == _GSSDP_DISCOVERY_RESPONSE)
-                node = g_hash_table_lookup (headers, "ST");
+                target = soup_message_headers_get (headers, "ST");
         else
-                node = g_hash_table_lookup (headers, "NT");
+                target = soup_message_headers_get (headers, "NT");
         
-        if (node)
-                packet_data[3] = g_strdup (node->data);
+        packet_data[3] = g_strdup (target);
         packet_data[4] = NULL;
 
         return packet_data;
@@ -197,7 +191,7 @@ static void
 append_packet (const gchar *from_ip,
                time_t arrival_time,
                _GSSDPMessageType type,
-               GHashTable *headers)
+               SoupMessageHeaders *headers)
 {
         GtkWidget *treeview;
         GtkListStore *liststore;
@@ -230,7 +224,7 @@ on_ssdp_message (GSSDPClient *client,
                 const gchar *from_ip,
                 gushort from_port,
                 _GSSDPMessageType type,
-                GHashTable *headers,
+                SoupMessageHeaders *headers,
                 gpointer user_data)
 {
         time_t arrival_time;
@@ -451,7 +445,7 @@ create_packet_treemodel (void)
                         G_TYPE_STRING,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
-                        G_TYPE_HASH_TABLE,
+                        SOUP_TYPE_MESSAGE_HEADERS,
                         G_TYPE_POINTER);
 
         return GTK_TREE_MODEL (store);

@@ -474,44 +474,72 @@ make_server_id (void)
                                 VERSION);
 }
 
-/**
- * Free a GSList of strings
- **/
-static void
-string_list_free (gpointer ptr)
+static gboolean
+parse_http_request (char                *buf,
+                    int                  len,
+                    SoupMessageHeaders **headers,
+                    int                 *type)
 {
-        GSList *list;
+        char *req_method;
 
-        list = ptr;
+        *headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
 
-        while (list) {
-                g_free (list->data);
-                list = g_slist_delete_link (list, list);
+        if (soup_headers_parse_request (buf,
+                                        len,
+                                        *headers,
+                                        &req_method,
+                                        NULL,
+                                        NULL) == SOUP_STATUS_OK) {
+                if (g_ascii_strncasecmp (req_method,
+                                         SSDP_SEARCH_METHOD,
+                                         strlen (SSDP_SEARCH_METHOD)) == 0)
+                        *type = _GSSDP_DISCOVERY_REQUEST;
+                else if (g_ascii_strncasecmp (req_method,
+                                              GENA_NOTIFY_METHOD,
+                                              strlen (GENA_NOTIFY_METHOD)) == 0)
+                        *type = _GSSDP_ANNOUNCEMENT;
+                else
+                        g_warning ("Unhandled method '%s'", req_method);
+
+                g_free (req_method);
+
+                return TRUE;
+        } else {
+                soup_message_headers_free (*headers);
+                *headers = NULL;
+
+                return FALSE;
         }
 }
 
-/**
- * HTTP/1.1 headers needs to be case-insensitive and so should be our
- * hash-table of HTTP headers.
- **/
-
-/**
- * Calculates the hash for our case-insensitive Hashtable.
- **/
-static guint 
-header_hash (const char *header)
-{
-        return g_ascii_toupper (header[0]);
-}
-
-/**
- * Compares keys for our case-insensitive Hashtable.
- **/
 static gboolean
-header_equal (const gchar *header1,
-              const gchar *header2)
+parse_http_response (char                *buf,
+                    int                  len,
+                    SoupMessageHeaders **headers,
+                    int                 *type)
 {
-        return (g_ascii_strcasecmp (header1, header2) == 0);
+        guint status_code;
+
+        *headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_RESPONSE);
+
+        if (soup_headers_parse_response (buf,
+                                         len,
+                                         *headers,
+                                         NULL,
+                                         &status_code,
+                                         NULL)) {
+                if (status_code == 200)
+                        *type = _GSSDP_DISCOVERY_RESPONSE;
+                else
+                        g_warning ("Unhandled status code '%d'", status_code);
+
+                return TRUE;
+        } else {
+                soup_message_headers_free (*headers);
+                *headers = NULL;
+
+                return FALSE;
+        }
 }
 
 /**
@@ -525,9 +553,7 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
         char buf[BUF_SIZE], *end;
         struct sockaddr_in addr;
         socklen_t addr_size;
-        GHashTable *hash;
-        char *req_method;
-        guint status_code;
+        SoupMessageHeaders *headers;
 
         /* Get FD */
         fd = gssdp_socket_source_get_fd (socket);
@@ -566,42 +592,19 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
         
         /* Parse message */
         type = -1;
+        headers = NULL;
 
-        hash = g_hash_table_new_full ((GHashFunc) header_hash,
-                                      (GEqualFunc) header_equal,
-                                      g_free,
-                                      string_list_free);
-
-        if (soup_headers_parse_request (buf,
-                                        len,
-                                        hash,
-                                        &req_method,
-                                        NULL,
-                                        NULL)) {
-                if (g_ascii_strncasecmp (req_method,
-                                         SSDP_SEARCH_METHOD,
-                                         strlen (SSDP_SEARCH_METHOD)) == 0)
-                        type = _GSSDP_DISCOVERY_REQUEST;
-                else if (g_ascii_strncasecmp (req_method,
-                                              GENA_NOTIFY_METHOD,
-                                              strlen (GENA_NOTIFY_METHOD)) == 0)
-                        type = _GSSDP_ANNOUNCEMENT;
-                else
-                        g_warning ("Unhandled method '%s'", req_method);
-
-                g_free (req_method);
-        } else if (soup_headers_parse_response (buf,
-                                                len,
-                                                hash,
-                                                NULL,
-                                                &status_code,
-                                                NULL)) {
-                if (status_code == 200)
-                        type = _GSSDP_DISCOVERY_RESPONSE;
-                else
-                        g_warning ("Unhandled status code '%d'", status_code);
-        } else
-                g_warning ("Unhandled message '%s'", buf);
+        if (!parse_http_request (buf,
+                                 len,
+                                 &headers,
+                                 &type)) {
+                if (!parse_http_response (buf,
+                                          len,
+                                          &headers,
+                                          &type)) {
+                        g_warning ("Unhandled message '%s'", buf);
+                }
+        }
         
         /* Emit signal if parsing succeeded */
         if (type >= 0) {
@@ -611,10 +614,11 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
                                inet_ntoa (addr.sin_addr),
                                ntohs (addr.sin_port),
                                type,
-                               hash);
+                               headers);
         }
 
-        g_hash_table_unref (hash);
+        if (headers)
+                soup_message_headers_free (headers);
 
         return TRUE;
 }

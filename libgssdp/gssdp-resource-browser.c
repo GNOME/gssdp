@@ -31,7 +31,7 @@
  */
 
 #include <config.h>
-#include <libsoup/soup-date.h>
+#include <libsoup/soup.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -95,7 +95,7 @@ message_received_cb              (GSSDPClient          *client,
                                   const char           *from_ip,
                                   gushort               from_port,
                                   _GSSDPMessageType     type,
-                                  GHashTable           *headers,
+                                  SoupMessageHeaders   *headers,
                                   gpointer              user_data);
 static void
 resource_free                    (gpointer              data);
@@ -556,19 +556,18 @@ resource_expire (gpointer user_data)
 
 static void
 resource_available (GSSDPResourceBrowser *resource_browser,
-                    GHashTable           *headers)
+                    SoupMessageHeaders   *headers)
 {
-        GSList *list;
         const char *usn;
+        const char *header;
         Resource *resource;
         gboolean was_cached;
         guint timeout;
         GList *locations;
 
-        list = g_hash_table_lookup (headers, "USN");
-        if (!list)
+        usn = soup_message_headers_get (headers, "USN");
+        if (!usn)
                 return; /* No USN specified */
-        usn = list->data;
 
         /* Get from cache, if possible */
         resource = g_hash_table_lookup (resource_browser->priv->resources, usn);
@@ -592,15 +591,17 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         }
 
         /* Calculate new timeout */
-        list = g_hash_table_lookup (headers, "Cache-Control");
-        if (list) {
-                GSList *l;
+        header = soup_message_headers_get (headers, "Cache-Control");
+        if (header) {
+                GSList *list;
                 int res;
 
                 res = 0;
 
-                for (l = list; l; l = l->next) {
-                        res = sscanf (l->data,
+                for (list = soup_header_parse_list (header);
+                     list;
+                     list = list->next) {
+                        res = sscanf (list->data,
                                       "max-age = %d",
                                       &timeout);
                         if (res == 1)
@@ -612,16 +613,24 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                                    "default max-age of %d.\n"
                                    "Header was:\n%s",
                                    SSDP_DEFAULT_MAX_AGE,
-                                   (char *) list->data);
+                                   header);
 
                         timeout = SSDP_DEFAULT_MAX_AGE;
                 }
+
+                soup_header_free_list (list);
         } else {
-                list = g_hash_table_lookup (headers, "Expires");
-                if (list) {
+                const char *expires;
+
+                expires = soup_message_headers_get (headers, "Expires");
+                if (expires) {
+                        SoupDate *soup_exp_time;
                         time_t exp_time, cur_time;
 
-                        exp_time = soup_date_parse (list->data);
+                        soup_exp_time = soup_date_new_from_string (expires);
+                        exp_time = soup_date_to_time_t (soup_exp_time);
+                        soup_date_free (soup_exp_time);
+
                         cur_time = time (NULL);
 
                         if (exp_time > cur_time)
@@ -631,7 +640,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                                            "default max-age of %d.\n"
                                            "Header was:\n%s",
                                            SSDP_DEFAULT_MAX_AGE,
-                                           (char *) list->data);
+                                           expires);
 
                                 timeout = SSDP_DEFAULT_MAX_AGE;
                         }
@@ -656,17 +665,18 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         /* Build list of locations */
         locations = NULL;
 
-        list = g_hash_table_lookup (headers, "Location");
-        if (list)
-                locations = g_list_append (locations, g_strdup (list->data));
+        header = soup_message_headers_get (headers, "Location");
+        if (header)
+                locations = g_list_append (locations, g_strdup (header));
 
-        list = g_hash_table_lookup (headers, "AL");
-        if (list) {
+        header = soup_message_headers_get (headers, "AL");
+        if (header) {
                 /* Parse AL header. The format is:
                  * <uri1><uri2>... */
-                char *start, *end, *uri;
+                const char *start, *end;
+                char *uri;
                 
-                start = list->data;
+                start = header;
                 while ((start = strchr (start, '<'))) {
                         start += 1;
                         if (!start || !*start)
@@ -700,15 +710,13 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
 static void
 resource_unavailable (GSSDPResourceBrowser *resource_browser,
-                      GHashTable           *headers)
+                      SoupMessageHeaders   *headers)
 {
-        GSList *list;
         const char *usn;
 
-        list = g_hash_table_lookup (headers, "USN");
-        if (!list)
+        usn = soup_message_headers_get (headers, "USN");
+        if (!usn)
                 return; /* No USN specified */
-        usn = list->data;
 
         /* Only process if we were cached */
         if (!g_hash_table_lookup (resource_browser->priv->resources, usn))
@@ -724,16 +732,16 @@ resource_unavailable (GSSDPResourceBrowser *resource_browser,
 
 static void
 received_discovery_response (GSSDPResourceBrowser *resource_browser,
-                             GHashTable           *headers)
+                             SoupMessageHeaders   *headers)
 {
-        GSList *list;
+        const char *st;
 
-        list = g_hash_table_lookup (headers, "ST");
-        if (!list)
+        st = soup_message_headers_get (headers, "ST");
+        if (!st)
                 return; /* No target specified */
 
         if (strcmp (resource_browser->priv->target, GSSDP_ALL_RESOURCES) != 0 &&
-            strcmp (resource_browser->priv->target, list->data) != 0)
+            strcmp (resource_browser->priv->target, st) != 0)
                 return; /* Target doesn't match */
 
         resource_available (resource_browser, headers);
@@ -741,28 +749,28 @@ received_discovery_response (GSSDPResourceBrowser *resource_browser,
 
 static void
 received_announcement (GSSDPResourceBrowser *resource_browser,
-                       GHashTable           *headers)
+                       SoupMessageHeaders   *headers)
 {
-        GSList *list;
+        const char *header;
 
-        list = g_hash_table_lookup (headers, "NT");
-        if (!list)
+        header = soup_message_headers_get (headers, "NT");
+        if (!header)
                 return; /* No target specified */
 
         if (strcmp (resource_browser->priv->target, GSSDP_ALL_RESOURCES) != 0 &&
-            strcmp (resource_browser->priv->target, list->data) != 0)
+            strcmp (resource_browser->priv->target, header) != 0)
                 return; /* Target doesn't match */
 
-        list = g_hash_table_lookup (headers, "NTS");
-        if (!list)
+        header = soup_message_headers_get (headers, "NTS");
+        if (!header)
                 return; /* No announcement type specified */
 
         /* Check announcement type */
-        if      (strncmp (list->data,
+        if      (strncmp (header,
                           SSDP_ALIVE_NTS,
                           strlen (SSDP_ALIVE_NTS)) == 0)
                 resource_available (resource_browser, headers);
-        else if (strncmp (list->data,
+        else if (strncmp (header,
                           SSDP_BYEBYE_NTS,
                           strlen (SSDP_BYEBYE_NTS)) == 0)
                 resource_unavailable (resource_browser, headers);
@@ -772,12 +780,12 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
  * Received a message
  **/
 static void
-message_received_cb (GSSDPClient      *client,
-                     const char       *from_ip,
-                     gushort           from_port,
-                     _GSSDPMessageType type,
-                     GHashTable       *headers,
-                     gpointer          user_data)
+message_received_cb (GSSDPClient        *client,
+                     const char         *from_ip,
+                     gushort             from_port,
+                     _GSSDPMessageType   type,
+                     SoupMessageHeaders *headers,
+                     gpointer            user_data)
 {
         GSSDPResourceBrowser *resource_browser;
 

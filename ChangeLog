@@ -1,3 +1,20 @@
+2008-04-14  Zeeshan Ali Khattak  <zeenix@gmail.com>
+
+	* configure.ac:
+	* libgssdp/gssdp-client.c (parse_http_request),
+	(parse_http_response), (socket_source_cb):
+	* libgssdp/gssdp-resource-browser.c (resource_available),
+	(resource_unavailable), (received_discovery_response),
+	(received_announcement), (message_received_cb):
+	* libgssdp/gssdp-resource-group.c (message_received_cb),
+	(discovery_response_timeout):
+	* tools/Makefile.am:
+	* tools/gssdp-device-sniffer.c (packet_header_to_string),
+	(display_packet), (on_packet_selected), (packet_to_treeview_data),
+	(append_packet), (on_ssdp_message), (create_packet_treemodel):
+	
+	Port to libsoup 2.4.
+
 2008-03-12  Zeeshan Ali Khattak  <zeenix@gmail.com>
 
 	* configure.ac:

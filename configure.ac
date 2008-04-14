@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_INIT(gssdp, 0.4.2, http://www.gupnp.org/)
+AC_INIT(gssdp, 0.4.2.99, http://www.gupnp.org/)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR(libgssdp/gssdp-client.c)
 AM_CONFIG_HEADER(config.h)
@@ -10,7 +10,7 @@ AC_PROG_CC
 AC_STDC_HEADERS
 AC_PROG_LIBTOOL
 
-PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 >= 2.9.1 libsoup-2.2 >= 2.2.100)
+PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 >= 2.9.1 libsoup-2.4)
 
 LIBGLADE_REQUIRED=2.6.0
 
