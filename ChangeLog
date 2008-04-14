@@ -1,3 +1,10 @@
+2008-04-15  Jorn Baayen  <jorn@openedhand.com>
+
+	* gssdp-1.0-uninstalled.pc.in:
+	* gssdp-1.0.pc.in:
+
+	Update for soup 2.4.
+
 2008-04-14  Zeeshan Ali Khattak  <zeenix@gmail.com>
 
 	* configure.ac:
