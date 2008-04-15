@@ -653,9 +653,9 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                 }
         }
 
-        resource->timeout_id = g_timeout_add (timeout * 1000,
-                                              resource_expire,
-                                              resource);
+        resource->timeout_id = g_timeout_add_seconds (timeout,
+                                                      resource_expire,
+                                                      resource);
 
         /* Only continue with signal emission if this resource was not
          * cached already */

@@ -395,9 +395,9 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
         if (available) {
                 /* Add re-announcement timer */
                 resource_group->priv->timeout_id =
-                        g_timeout_add (resource_group->priv->max_age * 1000,
-                                       resource_group_timeout,
-                                       resource_group);
+                        g_timeout_add_seconds (resource_group->priv->max_age,
+                                               resource_group_timeout,
+                                               resource_group);
 
                 /* Announce all resources */
                 for (l = resource_group->priv->resources; l; l = l->next)

@@ -1,5 +1,14 @@
 2008-04-15  Jorn Baayen  <jorn@openedhand.com>
 
+	* libgssdp/gssdp-resource-browser.c (resource_available):
+	* libgssdp/gssdp-resource-group.c
+	(gssdp_resource_group_set_available):
+
+	Use g_timeout_add_seconds(). We can because soup 2.4 depends
+	on glib 2.16.
+
+2008-04-15  Jorn Baayen  <jorn@openedhand.com>
+
 	* gssdp-1.0-uninstalled.pc.in:
 	* gssdp-1.0.pc.in:
 
