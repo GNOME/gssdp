@@ -1,3 +1,9 @@
+0.6
+===
+
+- Use libsoup 2.4. [Zeeshan Ali Khattak, Jorn Baayen]
+- Use g_timeout_add_seconds(). [Jorn Baayen]
+
 0.4.2
 =====
 

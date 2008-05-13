@@ -1,3 +1,10 @@
+2008-05-13  Jorn Baayen  <jorn@openedhand.com>
+
+	* NEWS:
+	* configure.ac:
+
+	Release gssdp 0.6.
+
 2008-04-15  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-resource-browser.c (resource_available):
