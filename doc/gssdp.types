@@ -1,0 +1,5 @@
+#include <libgssdp/gssdp.h>
+
+gssdp_client_get_type
+gssdp_resource_browser_get_type
+gssdp_resource_group_get_type

@@ -1,5 +1,11 @@
 2008-05-13  Jorn Baayen  <jorn@openedhand.com>
 
+	* doc/gssdp.types:
+
+	Add types file so that introspection works.
+
+2008-05-13  Jorn Baayen  <jorn@openedhand.com>
+
 	* NEWS:
 	* configure.ac:
 
