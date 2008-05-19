@@ -1,3 +1,11 @@
+2008-05-19  Jorn Baayen  <jorn@openedhand.com>
+
+	* NEWS:
+	* configure.ac:
+	* libgssdp/Makefile.am:
+
+	Bump soname and release 0.6.1.
+
 2008-05-13  Jorn Baayen  <jorn@openedhand.com>
 
 	* doc/gssdp.types:

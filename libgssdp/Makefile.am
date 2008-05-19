@@ -1,3 +1,5 @@
+LTVERSION = 1:0:0
+
 AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir)
 
 libgssdpincdir = $(includedir)/gssdp-1.0/libgssdp
@@ -17,6 +19,8 @@ gssdp-marshal.h: gssdp-marshal.list
 	$(GLIB_GENMARSHAL) --prefix=gssdp_marshal $(srcdir)/gssdp-marshal.list --header > gssdp-marshal.h
 
 BUILT_SOURCES = gssdp-marshal.c gssdp-marshal.h
+
+libgssdp_1_0_la_LDFLAGS = -version-info $(LTVERSION)
 
 libgssdp_1_0_la_SOURCES = gssdp-client.c		\
 			  gssdp-client-private.h	\
