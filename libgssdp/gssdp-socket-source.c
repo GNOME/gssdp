@@ -51,7 +51,7 @@ gssdp_socket_source_dispatch (GSource    *source,
 static void
 gssdp_socket_source_finalize (GSource    *source);
 
-GSourceFuncs gssdp_socket_source_funcs = {
+static const GSourceFuncs gssdp_socket_source_funcs = {
         gssdp_socket_source_prepare,
         gssdp_socket_source_check,
         gssdp_socket_source_dispatch,
@@ -76,7 +76,7 @@ gssdp_socket_source_new (GSSDPSocketSourceType type)
         int res;
 
         /* Create source */
-        source = g_source_new (&gssdp_socket_source_funcs,
+        source = g_source_new ((GSourceFuncs*)&gssdp_socket_source_funcs,
                                sizeof (GSSDPSocketSource));
 
         socket_source = (GSSDPSocketSource *) source;

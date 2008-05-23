@@ -1,3 +1,8 @@
+2008-05-23  Ross Burton  <ross@openedhand.com>
+
+	* libgssdp/gssdp-socket-source.c:
+	Make the GSourceFuncs static const.
+
 2008-05-19  Jorn Baayen  <jorn@openedhand.com>
 
 	* NEWS:
