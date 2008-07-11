@@ -1,3 +1,11 @@
+2008-07-11  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-resource-group.c
+	(gssdp_resource_group_set_available):
+	Reannounce after max_age / 2 - 1 instead of after max_age, as per
+	UPnP specs. Based on a patch by Peter Christensen
+	<peter@developers.dk>.
+
 2008-05-23  Ross Burton  <ross@openedhand.com>
 
 	* libgssdp/gssdp-socket-source.c:
