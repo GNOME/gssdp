@@ -596,8 +596,6 @@ init_upnp (void)
 {
         GError *error;
         
-        g_thread_init (NULL);
-
         error = NULL;
         client = gssdp_client_new (NULL, &error);
         if (error) {

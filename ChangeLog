@@ -1,3 +1,9 @@
+2008-08-12  Zeeshan Ali Khattak  <zeenix@gmail.com>
+
+	* tools/gssdp-device-sniffer.c:
+
+	Remove the unneeded call to g_thread_init().
+
 2008-07-11  Jorn Baayen  <jorn@openedhand.com>
 
 	* libgssdp/gssdp-resource-group.c
