@@ -1,3 +1,10 @@
+0.6.2
+=====
+
+- Reannounce resources after max_age / 2 - 1 instead of after max_age.
+  [Peter Christensen, Jorn Baayen]
+- Remove unnecessary call to g_thread_init(). [Zeeshan Ali]
+
 0.6.1
 =====
 
