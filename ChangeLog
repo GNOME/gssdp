@@ -1,5 +1,11 @@
 2008-09-27  Jorn Baayen  <jorn@openedhand.com>
 
+	* configure.ac:
+
+	Increase version number.
+
+2008-09-27  Jorn Baayen  <jorn@openedhand.com>
+
 	* libgssdp/gssdp-resource-browser.c (resource_available),
 	(resource_free), (discovery_timeout), (start_discovery),
 	(stop_discovery):
