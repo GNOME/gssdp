@@ -55,7 +55,7 @@ struct _GSSDPResourceGroupPrivate {
 
         gulong       message_received_id;
 
-        guint        timeout_id;
+        GSource     *timeout_src;
 
         guint        last_resource_id;
 };
@@ -85,7 +85,7 @@ typedef struct {
         char     *target;
         Resource *resource;
 
-        guint     timeout_id;
+        GSource  *timeout_src;
 } DiscoveryResponse;
 
 /* Function prototypes */
@@ -198,9 +198,9 @@ gssdp_resource_group_dispose (GObject *object)
                                             resource_group->priv->resources);
         }
 
-        if (resource_group->priv->timeout_id > 0) {
-                g_source_remove (resource_group->priv->timeout_id);
-                resource_group->priv->timeout_id = 0;
+        if (resource_group->priv->timeout_src) {
+                g_source_destroy (resource_group->priv->timeout_src);
+                resource_group->priv->timeout_src = NULL;
         }
 
         if (resource_group->priv->client) {
@@ -393,6 +393,7 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
         resource_group->priv->available = available;
 
         if (available) {
+                GMainContext *context;
                 int timeout;
 
                 /* We want to re-announce before actually timing out */
@@ -401,10 +402,17 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                         timeout = timeout / 2 - 1;
 
                 /* Add re-announcement timer */
-                resource_group->priv->timeout_id =
-                        g_timeout_add_seconds (timeout,
-                                               resource_group_timeout,
-                                               resource_group);
+                resource_group->priv->timeout_src =
+                        g_timeout_source_new_seconds (timeout);
+		g_source_set_callback (resource_group->priv->timeout_src,
+				       resource_group_timeout,
+				       resource_group, NULL);
+
+                context = gssdp_client_get_main_context
+                        (resource_group->priv->client);
+		g_source_attach (resource_group->priv->timeout_src, context);
+
+                g_source_unref (resource_group->priv->timeout_src);
 
                 /* Announce all resources */
                 for (l = resource_group->priv->resources; l; l = l->next)
@@ -415,8 +423,8 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                         resource_byebye (l->data);
 
                 /* Remove re-announcement timer */
-                g_source_remove (resource_group->priv->timeout_id);
-                resource_group->priv->timeout_id = 0;
+                g_source_destroy (resource_group->priv->timeout_src);
+                resource_group->priv->timeout_src = NULL;
         }
         
         g_object_notify (G_OBJECT (resource_group), "available");
@@ -637,6 +645,7 @@ message_received_cb (GSSDPClient        *client,
                         /* Match. */
                         guint timeout;
                         DiscoveryResponse *response;
+                        GMainContext *context;
 
                         /* Get a random timeout from the interval [0, mx] */
                         timeout = g_random_int_range (0, mx * 1000);
@@ -650,10 +659,15 @@ message_received_cb (GSSDPClient        *client,
                         response->resource  = resource;
 
                         /* Add timeout */
-                        response->timeout_id =
-                                g_timeout_add (timeout,
-                                               discovery_response_timeout,
-                                               response);
+                        response->timeout_src = g_timeout_source_new (timeout);
+			g_source_set_callback (response->timeout_src,
+					       discovery_response_timeout,
+					       response, NULL);
+
+                        context = gssdp_client_get_main_context (client);
+			g_source_attach (response->timeout_src, context);
+
+                        g_source_unref (response->timeout_src);
                         
                         /* Add to resource */
                         resource->responses =
@@ -744,7 +758,7 @@ discovery_response_free (DiscoveryResponse *response)
         response->resource->responses =
                 g_list_remove (response->resource->responses, response);
 
-        g_source_remove (response->timeout_id);
+        g_source_destroy (response->timeout_src);
         
         g_free (response->dest_ip);
         g_free (response->target);

@@ -1,7 +1,21 @@
+2008-09-27  Jorn Baayen  <jorn@openedhand.com>
+
+	* libgssdp/gssdp-resource-browser.c (resource_available),
+	(resource_free), (discovery_timeout), (start_discovery),
+	(stop_discovery):
+	* libgssdp/gssdp-resource-group.c (gssdp_resource_group_dispose),
+	(gssdp_resource_group_set_available), (message_received_cb),
+	(discovery_response_free):
+
+	Use the specified GMainContext for timeouts.
+
+	Based on a patch from Olivier Crete <olivier.crete@collabora.co.uk>.
+
 2008-08-31  Jorn Baayen  <jorn@openedhand.com>
 
 	* configure.ac:
 	* NEWS:
+
 	Release 0.6.2
 	
 2008-08-12  Zeeshan Ali Khattak  <zeenix@gmail.com>

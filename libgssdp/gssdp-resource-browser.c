@@ -60,7 +60,7 @@ struct _GSSDPResourceBrowserPrivate {
 
         GHashTable  *resources;
                         
-        guint        timeout_id;
+        GSource     *timeout_src;
         guint        num_discovery;
 };
 
@@ -83,7 +83,7 @@ static guint signals[LAST_SIGNAL];
 typedef struct {
         GSSDPResourceBrowser *resource_browser;
         char                 *usn;
-        guint                 timeout_id;
+        GSource              *timeout_src;
 } Resource;
 
 /* Function prototypes */
@@ -564,6 +564,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         gboolean was_cached;
         guint timeout;
         GList *locations;
+        GMainContext *context;
 
         usn = soup_message_headers_get (headers, "USN");
         if (!usn)
@@ -573,7 +574,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         resource = g_hash_table_lookup (resource_browser->priv->resources, usn);
         if (resource) {
                 /* Remove old timeout */
-                g_source_remove (resource->timeout_id);
+                g_source_destroy (resource->timeout_src);
 
                 was_cached = TRUE;
         } else {
@@ -653,9 +654,16 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                 }
         }
 
-        resource->timeout_id = g_timeout_add_seconds (timeout,
-                                                      resource_expire,
-                                                      resource);
+        resource->timeout_src = g_timeout_source_new_seconds (timeout);
+	g_source_set_callback (resource->timeout_src,
+                               resource_expire,
+			       resource, NULL);
+
+        context = gssdp_client_get_main_context
+                (resource_browser->priv->client);
+	g_source_attach (resource->timeout_src, context);
+
+        g_source_unref (resource->timeout_src);
 
         /* Only continue with signal emission if this resource was not
          * cached already */
@@ -818,7 +826,7 @@ resource_free (gpointer data)
 
         g_free (resource->usn);
 
-        g_source_remove (resource->timeout_id);
+        g_source_destroy (resource->timeout_src);
 
         g_slice_free (Resource, resource);
 }
@@ -881,7 +889,7 @@ discovery_timeout (gpointer data)
         resource_browser->priv->num_discovery += 1;
 
         if (resource_browser->priv->num_discovery >= MAX_DISCOVERY_MESSAGES) {
-                resource_browser->priv->timeout_id = 0;
+		resource_browser->priv->timeout_src = NULL;
                 resource_browser->priv->num_discovery = 0;
 
                 return FALSE;
@@ -893,24 +901,33 @@ discovery_timeout (gpointer data)
 static void
 start_discovery (GSSDPResourceBrowser *resource_browser)
 {
+        GMainContext *context;
+
         /* Send one now */
         send_discovery_request (resource_browser);
 
         /* And schedule the rest for later */
         resource_browser->priv->num_discovery = 1;
-        resource_browser->priv->timeout_id =
-                                g_timeout_add (DISCOVERY_FREQUENCY,
-                                               discovery_timeout,
-                                               resource_browser);
+        resource_browser->priv->timeout_src =
+                g_timeout_source_new (DISCOVERY_FREQUENCY);
+	g_source_set_callback (resource_browser->priv->timeout_src,
+			       discovery_timeout,
+			       resource_browser, NULL);
+
+        context = gssdp_client_get_main_context
+                (resource_browser->priv->client);
+	g_source_attach (resource_browser->priv->timeout_src, context);
+
+        g_source_unref (resource_browser->priv->timeout_src);
 }
 
 /* Stops the sending of discovery messages */
 static void
 stop_discovery (GSSDPResourceBrowser *resource_browser)
 {
-        if (resource_browser->priv->timeout_id) {
-                g_source_remove (resource_browser->priv->timeout_id);
-                resource_browser->priv->timeout_id = 0;
-                resource_browser->priv->num_discovery = 0;
-        }
+	if (resource_browser->priv->timeout_src) {
+		g_source_destroy (resource_browser->priv->timeout_src);
+		resource_browser->priv->timeout_src = NULL;
+		resource_browser->priv->num_discovery = 0;
+	}
 }
