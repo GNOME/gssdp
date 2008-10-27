@@ -1,3 +1,8 @@
+2008-10-27  Ross Burton  <ross@linux.intel.com>
+
+	* libgssdp/gssdp-resource-browser.c:
+	Don't use NULL return values from g_get_application_name() (#1177).
+
 2008-09-27  Jorn Baayen  <jorn@openedhand.com>
 
 	* configure.ac:
