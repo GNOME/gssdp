@@ -1,5 +1,10 @@
 2008-10-27  Ross Burton  <ross@linux.intel.com>
 
+	* doc/Makefile.am:
+	Add version.xml to content_files so building docs in distcheck works.
+
+2008-10-27  Ross Burton  <ross@linux.intel.com>
+
 	* Makefile.am:
 	Enable gtk-doc in distcheck.
 
