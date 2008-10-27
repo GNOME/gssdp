@@ -1,6 +1,12 @@
 0.6.2
 =====
 
+- Don't use NULL g_get_application_names [Ross Burton]
+- Use specified GMainContext for timeouts [Olivier Crete, Jorn Baayen]
+
+0.6.2
+=====
+
 - Reannounce resources after max_age / 2 - 1 instead of after max_age.
   [Peter Christensen, Jorn Baayen]
 - Remove unnecessary call to g_thread_init(). [Zeeshan Ali]

@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_INIT(gssdp, 0.6.2.99, http://www.gupnp.org/)
+AC_INIT(gssdp, 0.6.3, http://www.gupnp.org/)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR(libgssdp/gssdp-client.c)
 AM_CONFIG_HEADER(config.h)

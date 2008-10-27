@@ -1,5 +1,11 @@
 2008-10-27  Ross Burton  <ross@linux.intel.com>
 
+	* NEWS:
+	* configure.ac:
+	Version 0.6.3.
+
+2008-10-27  Ross Burton  <ross@linux.intel.com>
+
 	* doc/Makefile.am:
 	Add version.xml to content_files so building docs in distcheck works.
 
