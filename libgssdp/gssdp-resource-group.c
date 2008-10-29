@@ -77,6 +77,8 @@ typedef struct {
         GList               *responses;
 
         guint                id;
+
+        gboolean             initial_alive_sent;
 } Resource;
 
 typedef struct {
@@ -476,6 +478,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 
         resource->target = g_strdup (target);
         resource->usn    = g_strdup (usn);
+        resource->initial_alive_sent = FALSE;
 
         for (l = locations; l; l = l->next) {
                 resource->locations = g_list_append (resource->locations,
@@ -573,7 +576,7 @@ gssdp_resource_group_remove_resource (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * Called every max-age seconds to re-announce all resources
+ * Called to re-announce all resources periodically
  **/
 static gboolean
 resource_group_timeout (gpointer user_data)
@@ -775,6 +778,14 @@ resource_alive (Resource *resource)
         GSSDPClient *client;
         guint max_age;
         char *al, *message;
+
+        if (!resource->initial_alive_sent) {
+                /* Unannounce before first announce. This is done to
+                   minimize the possibility of control points thinking
+                   that this is just a reannouncement. */
+                resource_byebye (resource);
+                resource->initial_alive_sent = TRUE;
+        }
 
         /* Send message */
         client = resource->resource_group->priv->client;

@@ -1,3 +1,9 @@
+2008-10-29  Jussi Kukkonen  <jku@linux.intel.com>
+
+	* libgssdp/gssdp-resource-group.c (resource_alive):
+
+	send ssdp:byebye before sending the first ssdp:alive.
+
 2008-10-27  Ross Burton  <ross@linux.intel.com>
 
 	* NEWS:
