@@ -1,3 +1,11 @@
+2008-11-06  Zeeshan Ali (Khattak)  <zeeshanak@gnome.org>
+
+	* AUTHORS:
+	* tools/gssdp-device-sniffer.c:
+	* tools/gssdp-device-sniffer.glade:
+
+	Replace my non-working "@gstreamer.net" email with "@gnome.org" one.
+
 2008-10-29  Jussi Kukkonen  <jku@linux.intel.com>
 
 	* libgssdp/gssdp-resource-group.c (resource_alive):
