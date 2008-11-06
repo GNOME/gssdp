@@ -58,13 +58,18 @@ struct _GSSDPResourceGroupPrivate {
         GSource     *timeout_src;
 
         guint        last_resource_id;
+        
+        guint        message_delay;
+        GQueue      *message_queue;
+        guint        message_src_id;
 };
 
 enum {
         PROP_0,
         PROP_CLIENT,
         PROP_MAX_AGE,
-        PROP_AVAILABLE
+        PROP_AVAILABLE,
+        PROP_MESSAGE_DELAY,
 };
 
 typedef struct {
@@ -90,6 +95,8 @@ typedef struct {
         GSource  *timeout_src;
 } DiscoveryResponse;
 
+#define DEFAULT_MESSAGE_DELAY 20 
+
 /* Function prototypes */
 static void
 gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
@@ -113,6 +120,8 @@ static gboolean
 discovery_response_timeout      (gpointer            user_data);
 static void
 discovery_response_free         (DiscoveryResponse  *response);
+gboolean
+process_queue                   (gpointer            data);
 
 static void
 gssdp_resource_group_init (GSSDPResourceGroup *resource_group)
@@ -123,6 +132,9 @@ gssdp_resource_group_init (GSSDPResourceGroup *resource_group)
                                          GSSDPResourceGroupPrivate);
 
         resource_group->priv->max_age = SSDP_DEFAULT_MAX_AGE;
+        resource_group->priv->message_delay = DEFAULT_MESSAGE_DELAY;
+
+        resource_group->priv->message_queue = g_queue_new ();
 }
 
 static void
@@ -150,6 +162,12 @@ gssdp_resource_group_get_property (GObject    *object,
                 g_value_set_boolean
                         (value,
                          gssdp_resource_group_get_available (resource_group));
+                break;
+        case PROP_MESSAGE_DELAY:
+                g_value_set_uint
+                        (value,
+                         gssdp_resource_group_get_message_delay 
+                                (resource_group));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -180,6 +198,10 @@ gssdp_resource_group_set_property (GObject      *object,
                 gssdp_resource_group_set_available
                         (resource_group, g_value_get_boolean (value));
                 break;
+        case PROP_MESSAGE_DELAY:
+                gssdp_resource_group_set_message_delay
+                        (resource_group, g_value_get_uint (value));
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -190,32 +212,57 @@ static void
 gssdp_resource_group_dispose (GObject *object)
 {
         GSSDPResourceGroup *resource_group;
+        GSSDPResourceGroupPrivate *priv;
 
         resource_group = GSSDP_RESOURCE_GROUP (object);
+        priv = resource_group->priv;
 
-        while (resource_group->priv->resources) {
-                resource_free (resource_group->priv->resources->data);
-                resource_group->priv->resources =
-                        g_list_delete_link (resource_group->priv->resources,
-                                            resource_group->priv->resources);
+        if (priv->message_queue) {
+
+                /* Currently queued messages are not relevant anymore */
+                while (!g_queue_is_empty (priv->message_queue)){
+                        g_free (g_queue_pop_head (priv->message_queue));
+                }
+                
+                while (priv->resources) {
+                        resource_free (priv->resources->data);
+                        priv->resources =
+                                g_list_delete_link (priv->resources,
+                                                    priv->resources);
+                }
+
+                /* There may now be new byebyes in message queue. 
+                   We'll block while processing them. */
+                while (!g_queue_is_empty (priv->message_queue)) {
+                        g_usleep (1000 * priv->message_delay);
+                        process_queue (resource_group);
+                }
+
+                g_queue_free (priv->message_queue);
+                priv->message_queue = NULL;
         }
 
-        if (resource_group->priv->timeout_src) {
-                g_source_destroy (resource_group->priv->timeout_src);
-                resource_group->priv->timeout_src = NULL;
+        if (priv->message_src_id > 0) {
+                g_source_remove (priv->message_src_id);
+                priv->message_src_id = 0;
         }
 
-        if (resource_group->priv->client) {
+        if (priv->timeout_src) {
+                g_source_destroy (priv->timeout_src);
+                priv->timeout_src = NULL;
+        }
+
+        if (priv->client) {
                 if (g_signal_handler_is_connected
-                        (resource_group->priv->client,
-                         resource_group->priv->message_received_id)) {
+                        (priv->client,
+                         priv->message_received_id)) {
                         g_signal_handler_disconnect
-                                (resource_group->priv->client,
-                                 resource_group->priv->message_received_id);
+                                (priv->client,
+                                 priv->message_received_id);
                 }
                                                    
-                g_object_unref (resource_group->priv->client);
-                resource_group->priv->client = NULL;
+                g_object_unref (priv->client);
+                priv->client = NULL;
         }
 }
 
@@ -282,6 +329,26 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           "Whether this group of resources is available or "
                           "not.",
                           FALSE,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
+
+        /**
+         * GSSDPResourceGroup:message-delay
+         *
+         * The minimum number of milliseconds between SSDP messages.
+         * The default is 20 based on DLNA specification.
+         **/
+        g_object_class_install_property
+                (object_class,
+                 PROP_MESSAGE_DELAY,
+                 g_param_spec_uint
+                         ("message-delay",
+                          "Message delay",
+                          "The minimum number of milliseconds between SSDP messages.",
+                          0,
+                          G_MAXUINT,
+                          DEFAULT_MESSAGE_DELAY,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
@@ -370,6 +437,41 @@ gssdp_resource_group_get_max_age (GSSDPResourceGroup *resource_group)
         g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
 
         return resource_group->priv->max_age;
+}
+
+/**
+ * gssdp_resource_group_set_message_delay
+ * @resource_group: A #GSSDPResourceGroup
+ * @message_delay: The message delay in ms.
+ *
+ * Sets the minimum time between each SSDP message.
+ **/
+void
+gssdp_resource_group_set_message_delay (GSSDPResourceGroup *resource_group,
+                                        guint               message_delay)
+{
+        g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group));
+
+        if (resource_group->priv->message_delay == message_delay)
+                return;
+
+        resource_group->priv->message_delay = message_delay;
+        
+        g_object_notify (G_OBJECT (resource_group), "message-delay");
+}
+
+/**
+ * gssdp_resource_group_get_message_delay
+ * @resource_group: A #GSSDPResourceGroup
+ *
+ * Return value: the minimum time between each SSDP message in ms.
+ **/
+guint
+gssdp_resource_group_get_message_delay (GSSDPResourceGroup *resource_group)
+{
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
+
+        return resource_group->priv->message_delay;
 }
 
 /**
@@ -770,6 +872,63 @@ discovery_response_free (DiscoveryResponse *response)
 }
 
 /**
+ * Send the next queued message, if any
+ **/
+gboolean
+process_queue (gpointer data)
+{
+        GSSDPResourceGroup *resource_group;
+
+        resource_group = GSSDP_RESOURCE_GROUP (data);
+
+        if (g_queue_is_empty (resource_group->priv->message_queue)) {
+                
+                /* this is the timeout after last message in queue */
+                resource_group->priv->message_src_id = 0;
+
+                return FALSE;
+        } else {
+                char* message;
+                GSSDPClient *client;
+
+                client = resource_group->priv->client;
+                message = g_queue_pop_head (resource_group->priv->message_queue);
+
+                _gssdp_client_send_message (client,
+                                            NULL,
+                                            0,
+                                            message);
+                g_free (message);
+
+                return TRUE;
+        }
+}
+
+/**
+ * Add a message to sending queue
+ * 
+ * Do not free @message.
+ **/
+void
+gssdp_resource_group_queue_message (GSSDPResourceGroup *resource_group,
+                                    char               *message)
+{
+        g_queue_push_tail (resource_group->priv->message_queue, 
+                           message);
+
+        if (resource_group->priv->message_src_id == 0) {
+                /* nothing in the queue: process message immediately 
+                   and add a timeout for (possible) next message */
+
+                process_queue (resource_group);
+                resource_group->priv->message_src_id = 
+                        g_timeout_add (resource_group->priv->message_delay, 
+                                       process_queue,
+                                       resource_group);
+        }
+}
+
+/**
  * Send ssdp:alive message for @resource
  **/
 static void
@@ -802,12 +961,9 @@ resource_alive (Resource *resource)
                                    resource->target,
                                    resource->usn);
 
-        _gssdp_client_send_message (client,
-                                    NULL,
-                                    0,
-                                    message);
+        gssdp_resource_group_queue_message (resource->resource_group,
+                                            message);
 
-        g_free (message);
         g_free (al);
 }
 
@@ -817,22 +973,15 @@ resource_alive (Resource *resource)
 static void
 resource_byebye (Resource *resource)
 {
-        GSSDPClient *client;
         char *message;
 
-        /* Send message */
-        client = resource->resource_group->priv->client;
-
+        /* Queue message */
         message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
                                    resource->target,
                                    resource->usn);
         
-        _gssdp_client_send_message (client,
-                                    NULL,
-                                    0,
-                                    message);
-
-        g_free (message);
+        gssdp_resource_group_queue_message (resource->resource_group,
+                                            message);
 }
 
 /**

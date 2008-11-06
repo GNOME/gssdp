@@ -1,3 +1,9 @@
+2008-11-06  Jussi Kukkonen  <jku@linux.intel.com>
+
+	* libgssdp/gssdp-resource-group.c:
+
+	Only send one SSDP message per X milliseconds (X == 20 by default)
+
 2008-11-06  Zeeshan Ali (Khattak)  <zeeshanak@gnome.org>
 
 	* AUTHORS:

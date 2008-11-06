@@ -88,6 +88,13 @@ gssdp_resource_group_set_available       (GSSDPResourceGroup *resource_group,
 gboolean
 gssdp_resource_group_get_available       (GSSDPResourceGroup *resource_group);
 
+void
+gssdp_resource_group_set_message_delay         (GSSDPResourceGroup *resource_group,
+                                                guint               message_delay);
+
+guint
+gssdp_resource_group_get_message_delay         (GSSDPResourceGroup *resource_group);
+
 guint
 gssdp_resource_group_add_resource        (GSSDPResourceGroup *resource_group,
                                           const char         *target,
