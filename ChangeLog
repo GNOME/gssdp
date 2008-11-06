@@ -1,5 +1,15 @@
 2008-11-06  Jussi Kukkonen  <jku@linux.intel.com>
 
+	* doc/gssdp-sections.txt:
+	* libgssdp/gssdp-client.c (gssdp_client_new):
+	* libgssdp/gssdp-client.h (gssdp_client_new):
+	* libgssdp/gssdp-error.c (gssdp_error_quark):
+	* libgssdp/gssdp-resource-group.c (gssdp_resource_group_get_client):
+
+	Documentation fixes
+
+2008-11-06  Jussi Kukkonen  <jku@linux.intel.com>
+
 	* libgssdp/gssdp-resource-group.c:
 
 	Only send one SSDP message per X milliseconds (X == 20 by default)

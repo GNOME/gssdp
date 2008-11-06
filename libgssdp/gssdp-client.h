@@ -69,7 +69,7 @@ typedef struct {
 } GSSDPClientClass;
 
 GSSDPClient *
-gssdp_client_new              (GMainContext *context,
+gssdp_client_new              (GMainContext *main_context,
                                GError      **error);
 
 GMainContext *

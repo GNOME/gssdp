@@ -407,7 +407,7 @@ gssdp_resource_group_get_client (GSSDPResourceGroup *resource_group)
 /**
  * gssdp_resource_group_set_max_age
  * @resource_group: A #GSSDPResourceGroup
- * @mx: The number of seconds advertisements are valid
+ * @max_age: The number of seconds advertisements are valid
  *
  * Sets the number of seconds advertisements are valid to @max_age.
  **/

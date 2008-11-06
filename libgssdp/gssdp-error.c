@@ -24,7 +24,7 @@
 /**
  * gssdp_error_quark
  *
- * Returns a #GQuark uniquely used by GSSDP's errors.
+ * Returns: a #GQuark uniquely used by GSSDP's errors.
  **/
 GQuark
 gssdp_error_quark (void)
