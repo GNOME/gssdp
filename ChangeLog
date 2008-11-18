@@ -1,3 +1,13 @@
+2008-11-18  Jorn Baayen  <jorn.baayen@collabora.co.uk>
+
+	* configure.ac:
+
+	Depend on glib 2.18.
+
+	* libgssdp/gssdp-client.c (gssdp_client_set_property):
+
+	Use g_set_error_literal().
+
 2008-11-06  Jussi Kukkonen  <jku@linux.intel.com>
 
 	* doc/gssdp-sections.txt:

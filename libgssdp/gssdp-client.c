@@ -174,10 +174,10 @@ gssdp_client_set_property (GObject      *object,
 
                         error = g_value_get_pointer (value);
 
-                        g_set_error (error,
-                                     GSSDP_ERROR,
-                                     GSSDP_ERROR_FAILED,
-                                     strerror (errno));
+                        g_set_error_literal (error,
+                                             GSSDP_ERROR,
+                                             GSSDP_ERROR_FAILED,
+                                             strerror (errno));
                 }
 
                 break;

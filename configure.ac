@@ -10,7 +10,9 @@ AC_PROG_CC
 AC_STDC_HEADERS
 AC_PROG_LIBTOOL
 
-PKG_CHECK_MODULES(LIBGSSDP, gobject-2.0 >= 2.9.1 libsoup-2.4)
+PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.18 \
+                            gobject-2.0 >= 2.18 \
+                            libsoup-2.4)
 
 LIBGLADE_REQUIRED=2.6.0
 
