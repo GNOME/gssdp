@@ -2,6 +2,12 @@
 
 	* libgssdp/gssdp-resource-group.c:
 
+	Make gssdp_resource_group_queue_message() static as well.
+
+2008-11-19  Jussi Kukkonen  <jku@linux.intel.com>
+
+	* libgssdp/gssdp-resource-group.c:
+
 	Send byebyes in dispose without sleep: DLNA message delay is
 	only mandatory for alive-messages after all. 
 	Make process_queue() static.

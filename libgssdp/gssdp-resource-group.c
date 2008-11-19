@@ -910,7 +910,7 @@ process_queue (gpointer data)
  * 
  * Do not free @message.
  **/
-void
+static void
 gssdp_resource_group_queue_message (GSSDPResourceGroup *resource_group,
                                     char               *message)
 {
