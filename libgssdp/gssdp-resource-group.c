@@ -120,7 +120,7 @@ static gboolean
 discovery_response_timeout      (gpointer            user_data);
 static void
 discovery_response_free         (DiscoveryResponse  *response);
-gboolean
+static gboolean
 process_queue                   (gpointer            data);
 
 static void
@@ -219,11 +219,14 @@ gssdp_resource_group_dispose (GObject *object)
 
         if (priv->message_queue) {
 
-                /* Currently queued messages are not relevant anymore */
-                while (!g_queue_is_empty (priv->message_queue)){
-                        g_free (g_queue_pop_head (priv->message_queue));
+                if (priv->available) {
+                        /* Currently queued messages are not relevant */
+                        while (!g_queue_is_empty (priv->message_queue)) {
+                                g_free (g_queue_pop_head
+                                        (priv->message_queue));
+                        }
                 }
-                
+
                 while (priv->resources) {
                         resource_free (priv->resources->data);
                         priv->resources =
@@ -231,10 +234,8 @@ gssdp_resource_group_dispose (GObject *object)
                                                     priv->resources);
                 }
 
-                /* There may now be new byebyes in message queue. 
-                   We'll block while processing them. */
+                /* send messages without usual delay */
                 while (!g_queue_is_empty (priv->message_queue)) {
-                        g_usleep (1000 * priv->message_delay);
                         process_queue (resource_group);
                 }
 
@@ -874,7 +875,7 @@ discovery_response_free (DiscoveryResponse *response)
 /**
  * Send the next queued message, if any
  **/
-gboolean
+static gboolean
 process_queue (gpointer data)
 {
         GSSDPResourceGroup *resource_group;
