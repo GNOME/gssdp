@@ -1,3 +1,17 @@
+2008-11-21  Jorn Baayen  <jorn.baayen@collabora.co.uk>
+
+	* AUTHORS:
+
+	New e-mail address.
+
+	* libgssdp/gssdp-resource-group.c (gssdp_resource_group_dispose),
+	(gssdp_resource_group_class_init),
+	(gssdp_resource_group_add_resource), (process_queue),
+	(queue_message), (resource_alive), (resource_byebye):
+
+	Do not byebye unavailable resources.
+	(And polish message delaying code a little)
+
 2008-11-19  Jussi Kukkonen  <jku@linux.intel.com>
 
 	* libgssdp/gssdp-resource-group.c:

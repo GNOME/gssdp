@@ -69,7 +69,7 @@ enum {
         PROP_CLIENT,
         PROP_MAX_AGE,
         PROP_AVAILABLE,
-        PROP_MESSAGE_DELAY,
+        PROP_MESSAGE_DELAY
 };
 
 typedef struct {
@@ -217,26 +217,21 @@ gssdp_resource_group_dispose (GObject *object)
         resource_group = GSSDP_RESOURCE_GROUP (object);
         priv = resource_group->priv;
 
+        while (priv->resources) {
+                resource_free (priv->resources->data);
+                priv->resources =
+                        g_list_delete_link (priv->resources,
+                                            priv->resources);
+        }
+
         if (priv->message_queue) {
-
-                if (priv->available) {
-                        /* Currently queued messages are not relevant */
-                        while (!g_queue_is_empty (priv->message_queue)) {
-                                g_free (g_queue_pop_head
-                                        (priv->message_queue));
-                        }
-                }
-
-                while (priv->resources) {
-                        resource_free (priv->resources->data);
-                        priv->resources =
-                                g_list_delete_link (priv->resources,
-                                                    priv->resources);
-                }
-
                 /* send messages without usual delay */
                 while (!g_queue_is_empty (priv->message_queue)) {
-                        process_queue (resource_group);
+                        if (priv->available)
+                                process_queue (resource_group);
+                        else
+                                g_free (g_queue_pop_head
+                                        (priv->message_queue));
                 }
 
                 g_queue_free (priv->message_queue);
@@ -346,7 +341,8 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                  g_param_spec_uint
                          ("message-delay",
                           "Message delay",
-                          "The minimum number of milliseconds between SSDP messages.",
+                          "The minimum number of milliseconds between SSDP "
+                          "messages.",
                           0,
                           G_MAXUINT,
                           DEFAULT_MESSAGE_DELAY,
@@ -581,6 +577,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 
         resource->target = g_strdup (target);
         resource->usn    = g_strdup (usn);
+
         resource->initial_alive_sent = FALSE;
 
         for (l = locations; l; l = l->next) {
@@ -883,17 +880,17 @@ process_queue (gpointer data)
         resource_group = GSSDP_RESOURCE_GROUP (data);
 
         if (g_queue_is_empty (resource_group->priv->message_queue)) {
-                
                 /* this is the timeout after last message in queue */
                 resource_group->priv->message_src_id = 0;
 
                 return FALSE;
         } else {
-                char* message;
                 GSSDPClient *client;
+                char *message;
 
                 client = resource_group->priv->client;
-                message = g_queue_pop_head (resource_group->priv->message_queue);
+                message = g_queue_pop_head
+                        (resource_group->priv->message_queue);
 
                 _gssdp_client_send_message (client,
                                             NULL,
@@ -911,8 +908,8 @@ process_queue (gpointer data)
  * Do not free @message.
  **/
 static void
-gssdp_resource_group_queue_message (GSSDPResourceGroup *resource_group,
-                                    char               *message)
+queue_message (GSSDPResourceGroup *resource_group,
+               char               *message)
 {
         g_queue_push_tail (resource_group->priv->message_queue, 
                            message);
@@ -944,6 +941,7 @@ resource_alive (Resource *resource)
                    minimize the possibility of control points thinking
                    that this is just a reannouncement. */
                 resource_byebye (resource);
+
                 resource->initial_alive_sent = TRUE;
         }
 
@@ -962,8 +960,7 @@ resource_alive (Resource *resource)
                                    resource->target,
                                    resource->usn);
 
-        gssdp_resource_group_queue_message (resource->resource_group,
-                                            message);
+        queue_message (resource->resource_group, message);
 
         g_free (al);
 }
@@ -981,8 +978,7 @@ resource_byebye (Resource *resource)
                                    resource->target,
                                    resource->usn);
         
-        gssdp_resource_group_queue_message (resource->resource_group,
-                                            message);
+        queue_message (resource->resource_group, message);
 }
 
 /**
