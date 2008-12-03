@@ -758,8 +758,12 @@ message_received_cb (GSSDPClient        *client,
                         
                         response->dest_ip   = g_strdup (from_ip);
                         response->dest_port = from_port;
-                        response->target    = g_strdup (target);
                         response->resource  = resource;
+
+                        if (want_all)
+                                response->target = g_strdup (resource->target);
+                        else
+                                response->target = g_strdup (target);
 
                         /* Add timeout */
                         response->timeout_src = g_timeout_source_new (timeout);

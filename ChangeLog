@@ -1,3 +1,13 @@
+2008-12-03  Jorn Baayen  <jorn.baayen@collabora.co.uk>
+
+	* libgssdp/gssdp-resource-group.c (message_received_cb):
+
+	"All SSDP services MUST respond to SEARCH requests over the SSDP 
+	multicast channel/port with the ST value of ssdp:all by responding 
+	as if the ST value had been their service type. "
+
+	Thanks Hugo Calleja. Fixes #1312.
+
 2008-11-21  Jorn Baayen  <jorn.baayen@collabora.co.uk>
 
 	* AUTHORS:
