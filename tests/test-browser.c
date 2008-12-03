@@ -20,6 +20,7 @@
  */
 
 #include <libgssdp/gssdp.h>
+#include <stdlib.h>
 
 static void
 resource_available_cb (GSSDPResourceBrowser *resource_browser,
@@ -59,11 +60,12 @@ main (int    argc,
         error = NULL;
         client = gssdp_client_new (NULL, &error);
         if (error) {
-                g_critical (error->message);
+                g_printerr ("Error creating the GSSDP client: %s\n",
+                            error->message);
 
                 g_error_free (error);
 
-                return 1;
+                return EXIT_FAILURE;
         }
 
         resource_browser = gssdp_resource_browser_new (client,
@@ -87,5 +89,5 @@ main (int    argc,
         g_object_unref (resource_browser);
         g_object_unref (client);
 
-        return 0;
+        return EXIT_SUCCESS;
 }

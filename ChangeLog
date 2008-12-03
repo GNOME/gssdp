@@ -1,5 +1,13 @@
 2008-12-03  Jorn Baayen  <jorn.baayen@collabora.co.uk>
 
+	* tests/test-browser.c (main):
+	* tests/test-publish.c (main):
+	* tools/gssdp-device-sniffer.c (init_upnp):
+
+	Use g_printerr() and EXIT_{SUCCESS,FAILURE}.
+
+2008-12-03  Jorn Baayen  <jorn.baayen@collabora.co.uk>
+
 	* libgssdp/gssdp-resource-group.c (message_received_cb):
 
 	"All SSDP services MUST respond to SEARCH requests over the SSDP 

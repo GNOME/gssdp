@@ -599,9 +599,12 @@ init_upnp (void)
         error = NULL;
         client = gssdp_client_new (NULL, &error);
         if (error) {
-                g_critical (error->message);
+                g_printerr ("Error creating the GSSDP client: %s\n",
+                            error->message);
+
                 g_error_free (error);
-                return 1;
+
+                return FALSE;
         }
 
         resource_browser = gssdp_resource_browser_new (client,
