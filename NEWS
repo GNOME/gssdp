@@ -1,3 +1,15 @@
+0.6.4
+=====
+
+- Send ssdp:byebye before sending the first ssdp:alive. [Jussi Kukkonen]
+- Moderate the outbound SSDP messages. [Jussi Kukkonen]
+- Documentation fixes. [Jussi Kukkonen]
+- Send byebyes in dispose without sleep. [Jussi Kukkonen]
+- Use g_set_error_literal(). [Jorn Baayen]
+- Depend on glib 2.18. [Jorn Baayen]
+- Do not byebye unavailable resources. [Jorn Baayen]
+- All resources must respond to "ssdp:all" messages. [Hugo Calleja, Jorn Baayen]
+
 0.6.3
 =====
 
