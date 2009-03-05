@@ -70,6 +70,7 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
         GSource *source;
         GSSDPSocketSource *socket_source;
         struct sockaddr_in addr;
+        struct in_addr iface_addr;
         struct ip_mreq mreq;
         gboolean boolean = TRUE;
         guchar ttl = 4;
@@ -111,6 +112,10 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
         if (res == -1)
                 goto error;
 
+        res = inet_aton (host_ip, &iface_addr);
+        if (res == 0)
+                goto error;
+
         /* Set up additional things according to the type of socket desired */
         if (type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
                 /* Allow multiple sockets to use the same PORT number */
@@ -122,12 +127,23 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                 if (res == -1)
                         goto error;
 
+                /* Set the interface */
+                res = setsockopt (socket_source->poll_fd.fd,
+                                  IPPROTO_IP,
+                                  IP_MULTICAST_IF,
+                                  &iface_addr,
+                                  sizeof (struct in_addr));
+                if (res == -1)
+                        goto error;
+
                 /* Subscribe to multicast channel */
                 res = inet_aton (SSDP_ADDR, &(mreq.imr_multiaddr));
                 if (res == 0)
                         goto error;
 
-                mreq.imr_interface.s_addr = htonl (INADDR_ANY);
+                memcpy (&(mreq.imr_interface),
+                        &iface_addr,
+                        sizeof (struct in_addr));
 
                 res = setsockopt (socket_source->poll_fd.fd,
                                   IPPROTO_IP,
@@ -145,8 +161,8 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
         memset (&addr, 0, sizeof (addr));
                 
         addr.sin_family      = AF_INET;
-        addr.sin_addr.s_addr = htonl (INADDR_ANY);
         addr.sin_port        = htons (port);
+        memcpy (&(addr.sin_addr), &iface_addr, sizeof (struct in_addr));
 
         res = bind (socket_source->poll_fd.fd,
                     (struct sockaddr *) &addr,
