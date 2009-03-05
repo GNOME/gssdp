@@ -62,6 +62,8 @@ struct _GSSDPClientPrivate {
         char              *server_id;
         char              *host_ip;
 
+        GError            **error;
+
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
 };
@@ -101,6 +103,7 @@ gssdp_client_init (GSSDPClient *client)
                                         (client,
                                          GSSDP_TYPE_CLIENT,
                                          GSSDPClientPrivate);
+        client->priv->error = NULL;
 }
 
 static void
@@ -132,6 +135,15 @@ gssdp_client_constructed (GObject *object)
                          multicast_socket_source_cb,
                          client,
                          NULL);
+        }
+
+        if (client->priv->error &&
+            (!client->priv->request_socket ||
+             !client->priv->multicast_socket)) {
+                g_set_error_literal (client->priv->error,
+                                     GSSDP_ERROR,
+                                     GSSDP_ERROR_FAILED,
+                                     strerror (errno));
         }
 }
 
@@ -187,18 +199,7 @@ gssdp_client_set_property (GObject      *object,
                                                g_value_get_pointer (value));
                 break;
         case PROP_ERROR:
-                if (!client->priv->request_socket ||
-                    !client->priv->multicast_socket) {
-                        GError **error;
-
-                        error = g_value_get_pointer (value);
-
-                        g_set_error_literal (error,
-                                             GSSDP_ERROR,
-                                             GSSDP_ERROR_FAILED,
-                                             strerror (errno));
-                }
-
+                client->priv->error = g_value_get_pointer (value);
                 break;
         case PROP_HOST_IP:
                 client->priv->host_ip = g_value_dup_string (value);
