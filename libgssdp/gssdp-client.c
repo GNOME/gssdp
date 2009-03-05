@@ -101,6 +101,12 @@ gssdp_client_init (GSSDPClient *client)
                                         (client,
                                          GSSDP_TYPE_CLIENT,
                                          GSSDPClientPrivate);
+}
+
+static void
+gssdp_client_constructed (GObject *object)
+{
+        GSSDPClient *client = GSSDP_CLIENT (object);
 
         /* Generate default server ID */
         client->priv->server_id = make_server_id ();
@@ -246,6 +252,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 
 	object_class = G_OBJECT_CLASS (klass);
 
+	object_class->constructed = gssdp_client_constructed;
 	object_class->set_property = gssdp_client_set_property;
 	object_class->get_property = gssdp_client_get_property;
 	object_class->dispose      = gssdp_client_dispose;
