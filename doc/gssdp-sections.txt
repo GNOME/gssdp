@@ -3,9 +3,11 @@
 <TITLE>GSSDPClient</TITLE>
 GSSDPClient
 gssdp_client_new
+gssdp_client_new_full
 gssdp_client_get_main_context
 gssdp_client_set_server_id
 gssdp_client_get_server_id
+gssdp_client_get_host_ip
 <SUBSECTION Standard>
 GSSDP_CLIENT
 GSSDP_IS_CLIENT

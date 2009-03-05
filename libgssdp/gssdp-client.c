@@ -37,6 +37,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <ifaddrs.h>
 #include <libsoup/soup-headers.h>
 
 #include "gssdp-client.h"
@@ -57,6 +60,7 @@ struct _GSSDPClientPrivate {
         GMainContext      *main_context;
 
         char              *server_id;
+        char              *host_ip;
 
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
@@ -66,6 +70,7 @@ enum {
         PROP_0,
         PROP_MAIN_CONTEXT,
         PROP_SERVER_ID,
+        PROP_HOST_IP,
         PROP_ERROR
 };
 
@@ -86,6 +91,8 @@ static gboolean
 request_socket_source_cb      (gpointer      user_data);
 static gboolean
 multicast_socket_source_cb    (gpointer      user_data);
+static char *
+get_default_host_ip           (void);
 
 static void
 gssdp_client_init (GSSDPClient *client)
@@ -142,6 +149,10 @@ gssdp_client_get_property (GObject    *object,
                          (gpointer)
                           gssdp_client_get_main_context (client));
                 break;
+        case PROP_HOST_IP:
+                g_value_set_string (value,
+                                    gssdp_client_get_host_ip (client));
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -180,6 +191,9 @@ gssdp_client_set_property (GObject      *object,
                                              strerror (errno));
                 }
 
+                break;
+        case PROP_HOST_IP:
+                client->priv->host_ip = g_value_dup_string (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -220,6 +234,7 @@ gssdp_client_finalize (GObject *object)
         client = GSSDP_CLIENT (object);
 
         g_free (client->priv->server_id);
+        g_free (client->priv->host_ip);
 }
 
 static void
@@ -289,6 +304,24 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
+         * GSSDPClient:host-ip
+         *
+         * The local host's IP address. Set to NULL to autodetect.
+         **/
+        g_object_class_install_property
+                (object_class,
+                 PROP_HOST_IP,
+                 g_param_spec_string ("host-ip",
+                                      "Host IP",
+                                      "The local host's IP address",
+                                      NULL,
+                                      G_PARAM_READWRITE |
+                                      G_PARAM_CONSTRUCT_ONLY |
+                                      G_PARAM_STATIC_NAME |
+                                      G_PARAM_STATIC_NICK |
+                                      G_PARAM_STATIC_BLURB));
+
+        /**
          * GSSDPClient::message-received
          *
          * Internal signal.
@@ -311,6 +344,27 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 }
 
 /**
+ * gssdp_client_new_full
+ * @main_context: The #GMainContext to associate with, or NULL
+ * @host_ip: The local host's IP address, or %NULL to use the IP address
+ * of the first non-loopback network interface.
+ * @error: Location to store error, or NULL
+ *
+ * Return value: A new #GSSDPClient object.
+ **/
+GSSDPClient *
+gssdp_client_new_full (GMainContext *main_context,
+                       const char   *host_ip,
+                       GError      **error)
+{
+        return g_object_new (GSSDP_TYPE_CLIENT,
+                             "main-context", main_context,
+                             "host-ip", host_ip,
+                             "error", error,
+                             NULL);
+}
+
+/**
  * gssdp_client_new
  * @main_context: The #GMainContext to associate with, or NULL
  * @error: Location to store error, or NULL
@@ -321,10 +375,9 @@ GSSDPClient *
 gssdp_client_new (GMainContext *main_context,
                   GError      **error)
 {
-        return g_object_new (GSSDP_TYPE_CLIENT,
-                             "main-context", main_context,
-                             "error", error,
-                             NULL);
+        return gssdp_client_new_full (main_context,
+                                      NULL,
+                                      error);
 }
 
 /**
@@ -406,6 +459,25 @@ gssdp_client_get_server_id (GSSDPClient *client)
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
 
         return client->priv->server_id;
+}
+
+/**
+ * gssdp_client_get_host_ip
+ * @client: A #GSSDPClient
+ *
+ * Get the IP address we advertise ourselves as using.
+ *
+ * Return value: The IP address. This string should not be freed.
+ **/
+const char *
+gssdp_client_get_host_ip (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+
+        if (client->priv->host_ip == NULL)
+                client->priv->host_ip = get_default_host_ip ();
+
+        return client->priv->host_ip;
 }
 
 /**
@@ -642,3 +714,149 @@ multicast_socket_source_cb (gpointer user_data)
 
         return socket_source_cb (client->priv->multicast_socket, client);
 }
+
+#define LOOPBACK_IP "127.0.0.1"
+
+/*
+ * Get the host IP for the specified interface, or the first up and non-loopback
+ * interface if no name is specified.
+ */
+static char *
+get_host_ip (const char *name)
+{
+        struct ifaddrs *ifa_list, *ifa;
+        char *ret;
+
+        ret = NULL;
+
+        if (getifaddrs (&ifa_list) != 0) {
+                g_error ("Failed to retrieve list of network interfaces:\n%s\n",
+                         strerror (errno));
+
+                return NULL;
+        }
+
+        for (ifa = ifa_list; ifa != NULL; ifa = ifa->ifa_next) {
+                char ip[INET6_ADDRSTRLEN];
+                const char *p;
+                struct sockaddr_in *s4;
+                struct sockaddr_in6 *s6;
+
+                if (ifa->ifa_addr == NULL)
+                        continue;
+
+                if ((ifa->ifa_flags & IFF_LOOPBACK) ||
+                    !(ifa->ifa_flags & IFF_UP))
+                        continue;
+
+                /* If a name was specified, check it */
+                if (name && strcmp (name, ifa->ifa_name) != 0)
+                        continue;
+
+                p = NULL;
+
+                switch (ifa->ifa_addr->sa_family) {
+                case AF_INET:
+                        s4 = (struct sockaddr_in *) ifa->ifa_addr;
+                        p = inet_ntop (AF_INET,
+                                       &s4->sin_addr, ip, sizeof (ip));
+                        break;
+                case AF_INET6:
+                        s6 = (struct sockaddr_in6 *) ifa->ifa_addr;
+                        p = inet_ntop (AF_INET6,
+                                       &s6->sin6_addr, ip, sizeof (ip));
+                        break;
+                default:
+                        continue; /* Unknown: ignore */
+                }
+
+                if (p != NULL) {
+                        ret = g_strdup (p);
+                        break;
+                }
+        }
+
+        freeifaddrs (ifa_list);
+
+        if (!ret) {
+                /* Didn't find anything. Let's take the loopback IP. */
+                ret = g_strdup (LOOPBACK_IP);
+        }
+
+        return ret;
+}
+
+/*
+ * Get the host IP of the interface used for the default route.  On any error,
+ * the first up and non-loopback interface is used.
+ */
+static char *
+get_default_host_ip (void)
+{
+        FILE *fp;
+        int ret;
+        char dev[32];
+        unsigned long dest;
+        gboolean found = FALSE;
+
+#if defined(__FreeBSD__)
+	if ((fp = popen ("netstat -r -f inet -n -W", "r"))) {
+		char buffer[BUFSIZ];
+
+		char destination[32];
+
+		int i;
+		/* Skip the 4 header lines */
+		for (i=0;i<4;i++) {
+			if (!(fgets(buffer, BUFSIZ, fp)))
+				return NULL; /* Can't read */
+
+			if (buffer[strlen(buffer)-1] != '\n') {
+				g_warning("Can't read netstat output!");
+				return NULL;
+			}
+		}
+
+		while (fgets(buffer, BUFSIZ, fp)) {
+			if (buffer[strlen(buffer)-1] != '\n') {
+				g_warning("Can't read netstat output!");
+				return NULL;
+			}
+
+			if (sscanf(buffer, "%s %*s %*s %*d %*d %*d %s %*d", destination, dev) == 2) {
+				if (strcmp("default", destination) == 0) {
+					found = TRUE;
+					break;
+				}
+			}
+		}
+		pclose(fp);
+	}
+#else
+        /* TODO: error checking */
+
+        fp = fopen ("/proc/net/route", "r");
+
+        /* Skip the header */
+        if (fscanf (fp, "%*[^\n]\n") == EOF) {
+               fclose (fp);
+               return NULL;
+	}
+
+        while ((ret = fscanf (fp,
+                              "%31s %lx %*x %*X %*d %*d %*d %*x %*d %*d %*d",
+                              dev, &dest)) != EOF) {
+                /* If we got a device name and destination, and the destination
+                   is 0, then we have the default route */
+                if (ret == 2 && dest == 0) {
+                        found = TRUE;
+                        break;
+                }
+        }
+
+        fclose (fp);
+#endif
+
+        return get_host_ip (found ? dev : NULL);
+}
+
