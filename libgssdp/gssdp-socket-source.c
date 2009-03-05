@@ -124,7 +124,7 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
 
                 /* Subscribe to multicast channel */
                 res = inet_aton (SSDP_ADDR, &(mreq.imr_multiaddr));
-                if (res == -1)
+                if (res == 0)
                         goto error;
 
                 mreq.imr_interface.s_addr = htonl (INADDR_ANY);
