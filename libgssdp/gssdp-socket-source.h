@@ -32,7 +32,8 @@ typedef enum {
 } GSSDPSocketSourceType;
 
 G_GNUC_INTERNAL GSSDPSocketSource *
-gssdp_socket_source_new    (GSSDPSocketSourceType type);
+gssdp_socket_source_new    (GSSDPSocketSourceType type,
+                            const char           *host_ip);
 
 G_GNUC_INTERNAL int
 gssdp_socket_source_get_fd (GSSDPSocketSource    *socket_source);

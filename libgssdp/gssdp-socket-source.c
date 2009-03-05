@@ -64,7 +64,8 @@ static const GSourceFuncs gssdp_socket_source_funcs = {
  * Return value: A new #GSSDPSocketSource
  **/
 GSSDPSocketSource *
-gssdp_socket_source_new (GSSDPSocketSourceType type)
+gssdp_socket_source_new (GSSDPSocketSourceType type,
+                         const char           *host_ip)
 {
         GSource *source;
         GSSDPSocketSource *socket_source;
