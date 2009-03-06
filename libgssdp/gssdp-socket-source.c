@@ -69,12 +69,10 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
 {
         GSource *source;
         GSSDPSocketSource *socket_source;
-        struct sockaddr_in addr;
-        struct in_addr iface_addr;
+        struct sockaddr_in bind_addr;
         struct ip_mreq mreq;
         gboolean boolean = TRUE;
         guchar ttl = 4;
-        gushort port;
         int res;
 
         /* Create source */
@@ -112,12 +110,13 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
         if (res == -1)
                 goto error;
 
-        res = inet_aton (host_ip, &iface_addr);
-        if (res == 0)
-                goto error;
+        memset (&bind_addr, 0, sizeof (bind_addr));
+        bind_addr.sin_family = AF_INET;
 
         /* Set up additional things according to the type of socket desired */
         if (type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
+                struct in_addr iface_addr;
+
                 /* Allow multiple sockets to use the same PORT number */
                 res = setsockopt (socket_source->poll_fd.fd,
                                   SOL_SOCKET,
@@ -135,6 +134,10 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                                   sizeof (boolean));
                 if (res == -1)
                        goto error;
+
+                res = inet_aton (host_ip, &iface_addr);
+                if (res == 0)
+                        goto error;
 
                 /* Set the interface */
                 res = setsockopt (socket_source->poll_fd.fd,
@@ -162,20 +165,19 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                 if (res == -1)
                         goto error;
 
-                port = SSDP_PORT;
-        } else
-                port = 0;
-       
-        /* Bind to requested port */
-        memset (&addr, 0, sizeof (addr));
-                
-        addr.sin_family      = AF_INET;
-        addr.sin_port        = htons (port);
-        memcpy (&(addr.sin_addr), &iface_addr, sizeof (struct in_addr));
+                bind_addr.sin_port = htons (SSDP_PORT);
+                res = inet_aton (SSDP_ADDR, &(bind_addr.sin_addr));
+                if (res == 0)
+                        goto error;
+        } else {
+                bind_addr.sin_port = 0;
+                bind_addr.sin_addr.s_addr = htonl (INADDR_ANY);
+        }
 
+        /* Bind to requested port and address */
         res = bind (socket_source->poll_fd.fd,
-                    (struct sockaddr *) &addr,
-                    sizeof (addr));
+                    (struct sockaddr *) &bind_addr,
+                    sizeof (bind_addr));
         if (res == -1)
                 goto error;
 
