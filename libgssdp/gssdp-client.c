@@ -103,7 +103,6 @@ gssdp_client_init (GSSDPClient *client)
                                         (client,
                                          GSSDP_TYPE_CLIENT,
                                          GSSDPClientPrivate);
-        client->priv->error = NULL;
 
         /* Generate default server ID */
         client->priv->server_id = make_server_id ();
