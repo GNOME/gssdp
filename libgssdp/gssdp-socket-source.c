@@ -127,6 +127,15 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                 if (res == -1)
                         goto error;
 
+                /* Enable multicast loopback */
+                res = setsockopt (socket_source->poll_fd.fd,
+                                  IPPROTO_IP,
+                                  IP_MULTICAST_LOOP,
+                                  &boolean,
+                                  sizeof (boolean));
+                if (res == -1)
+                       goto error;
+
                 /* Set the interface */
                 res = setsockopt (socket_source->poll_fd.fd,
                                   IPPROTO_IP,
