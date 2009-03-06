@@ -136,14 +136,23 @@ gssdp_client_constructed (GObject *object)
                          NULL);
         }
 
-        if (client->priv->error &&
-            (!client->priv->request_socket ||
-             !client->priv->multicast_socket)) {
-                g_set_error_literal (client->priv->error,
-                                     GSSDP_ERROR,
-                                     GSSDP_ERROR_FAILED,
-                                     strerror (errno));
+        if (!client->priv->request_socket || !client->priv->multicast_socket) {
+                if (client->priv->error)
+                        g_set_error_literal (client->priv->error,
+                                             GSSDP_ERROR,
+                                             GSSDP_ERROR_FAILED,
+                                             strerror (errno));
+
+                return;
         }
+
+        g_source_attach ((GSource *) client->priv->request_socket,
+                         client->priv->main_context);
+        g_source_unref ((GSource *) client->priv->request_socket);
+
+        g_source_attach ((GSource *) client->priv->multicast_socket,
+                         client->priv->main_context);
+        g_source_unref ((GSource *) client->priv->multicast_socket);
 }
 
 static void
@@ -398,22 +407,9 @@ gssdp_client_set_main_context (GSSDPClient  *client,
 {
         g_return_if_fail (GSSDP_IS_CLIENT (client));
 
+        /* A NULL main_context is fine */
         if (main_context)
                 client->priv->main_context = g_main_context_ref (main_context);
-
-        /* A NULL main_context is fine */
-        
-        if (client->priv->request_socket) {
-                g_source_attach ((GSource *) client->priv->request_socket,
-                                 client->priv->main_context);
-                g_source_unref ((GSource *) client->priv->request_socket);
-        }
-
-        if (client->priv->multicast_socket) {
-                g_source_attach ((GSource *) client->priv->multicast_socket,
-                                 client->priv->main_context);
-                g_source_unref ((GSource *) client->priv->multicast_socket);
-        }
 
         g_object_notify (G_OBJECT (client), "main-context");
 }
