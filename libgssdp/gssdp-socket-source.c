@@ -70,6 +70,7 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
         GSource *source;
         GSSDPSocketSource *socket_source;
         struct sockaddr_in bind_addr;
+        struct in_addr iface_addr;
         struct ip_mreq mreq;
         gboolean boolean = TRUE;
         guchar ttl = 4;
@@ -113,10 +114,12 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
         memset (&bind_addr, 0, sizeof (bind_addr));
         bind_addr.sin_family = AF_INET;
 
+        res = inet_aton (host_ip, &iface_addr);
+        if (res == 0)
+                goto error;
+
         /* Set up additional things according to the type of socket desired */
         if (type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
-                struct in_addr iface_addr;
-
                 /* Allow multiple sockets to use the same PORT number */
                 res = setsockopt (socket_source->poll_fd.fd,
                                   SOL_SOCKET,
@@ -134,10 +137,6 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                                   sizeof (boolean));
                 if (res == -1)
                        goto error;
-
-                res = inet_aton (host_ip, &iface_addr);
-                if (res == 0)
-                        goto error;
 
                 /* Set the interface */
                 res = setsockopt (socket_source->poll_fd.fd,
@@ -171,7 +170,9 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                         goto error;
         } else {
                 bind_addr.sin_port = 0;
-                bind_addr.sin_addr.s_addr = htonl (INADDR_ANY);
+                memcpy (&(bind_addr.sin_addr),
+                        &iface_addr,
+                        sizeof (struct in_addr));
         }
 
         /* Bind to requested port and address */
