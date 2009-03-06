@@ -104,15 +104,15 @@ gssdp_client_init (GSSDPClient *client)
                                          GSSDP_TYPE_CLIENT,
                                          GSSDPClientPrivate);
         client->priv->error = NULL;
+
+        /* Generate default server ID */
+        client->priv->server_id = make_server_id ();
 }
 
 static void
 gssdp_client_constructed (GObject *object)
 {
         GSSDPClient *client = GSSDP_CLIENT (object);
-
-        /* Generate default server ID */
-        client->priv->server_id = make_server_id ();
 
         /* Set up sockets (Will set errno if it failed) */
         client->priv->request_socket =
