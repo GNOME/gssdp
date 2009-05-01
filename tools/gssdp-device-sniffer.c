@@ -21,19 +21,19 @@
 #include <libgssdp/gssdp-client-private.h>
 #include <libsoup/soup.h>
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <string.h>
 #include <stdlib.h>
 
-#define GLADE_FILE "gssdp-device-sniffer.glade"
+#define UI_FILE "gssdp-device-sniffer.ui"
 #define MAX_IP_LEN 16
 
-GladeXML *glade_xml;
+GtkBuilder *builder;
 GSSDPResourceBrowser *resource_browser;
 GSSDPClient *client;
 char *ip_filter = NULL;
 gboolean capture_packets = TRUE;
 
+G_MODULE_EXPORT
 void
 on_enable_packet_capture_activate (GtkCheckMenuItem *menuitem, gpointer user_data)
 {
@@ -49,7 +49,7 @@ clear_packet_treeview ()
         gboolean more;
         time_t *arrival_time;
 
-        treeview = glade_xml_get_widget (glade_xml, "packet-treeview");
+        treeview = GTK_WIDGET(gtk_builder_get_object (builder, "packet-treeview"));
         g_assert (treeview != NULL);
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
         more = gtk_tree_model_get_iter_first (model, &iter);
@@ -63,6 +63,7 @@ clear_packet_treeview ()
         }
 }
 
+G_MODULE_EXPORT
 void
 on_details_activate (GtkWidget *scrolled_window, GtkCheckMenuItem *menuitem)
 {
@@ -97,7 +98,7 @@ update_packet_details (char *text, unsigned int len)
         GtkWidget *textview;
         GtkTextBuffer *textbuffer;
         
-        textview = glade_xml_get_widget (glade_xml, "packet-details-textview");
+        textview = GTK_WIDGET(gtk_builder_get_object (builder, "packet-details-textview"));
         g_assert (textview != NULL);
         textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
         
@@ -145,6 +146,7 @@ on_packet_selected (GtkTreeSelection *selection, gpointer user_data)
                 update_packet_details ("", 0);
 }
 
+G_MODULE_EXPORT
 void
 on_clear_packet_capture_activate (GtkMenuItem *menuitem, gpointer user_data)
 {
@@ -198,7 +200,7 @@ append_packet (const gchar *from_ip,
         GtkTreeIter iter;
         char **packet_data;
         
-        treeview = glade_xml_get_widget (glade_xml, "packet-treeview");
+        treeview = GTK_WIDGET(gtk_builder_get_object (builder, "packet-treeview"));
         g_assert (treeview != NULL);
         liststore = GTK_LIST_STORE (
                         gtk_tree_view_get_model (GTK_TREE_VIEW (treeview)));
@@ -275,7 +277,7 @@ append_device (const char *uuid,
         GtkTreeModel *model;
         GtkTreeIter iter;
        
-        treeview = glade_xml_get_widget (glade_xml, "device-details-treeview");
+        treeview = GTK_WIDGET(gtk_builder_get_object (builder, "device-details-treeview"));
         g_assert (treeview != NULL);
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
         g_assert (model != NULL);
@@ -346,7 +348,7 @@ remove_device (const char *uuid)
         GtkTreeModel *model;
         GtkTreeIter iter;
        
-        treeview = glade_xml_get_widget (glade_xml, "device-details-treeview");
+        treeview = GTK_WIDGET(gtk_builder_get_object (builder, "device-details-treeview"));
         g_assert (treeview != NULL);
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
         g_assert (model != NULL);
@@ -372,6 +374,7 @@ resource_unavailable_cb (GSSDPResourceBrowser *resource_browser,
         g_strfreev (usn_tokens);
 }
 
+G_MODULE_EXPORT
 void
 on_use_filter_radiobutton_toggled (GtkToggleButton *togglebutton,
                 gpointer         user_data)
@@ -379,7 +382,7 @@ on_use_filter_radiobutton_toggled (GtkToggleButton *togglebutton,
         GtkWidget *filter_hbox;
         gboolean use_filter;
 
-        filter_hbox = glade_xml_get_widget (glade_xml, "address-filter-hbox");
+        filter_hbox = GTK_WIDGET(gtk_builder_get_object (builder, "address-filter-hbox"));
         g_assert (filter_hbox != NULL);
         
         use_filter = gtk_toggle_button_get_active (togglebutton);
@@ -400,7 +403,7 @@ get_ip_filter ()
                 gint val;
 
                 sprintf (entry_name, "address-entry%d", i);
-                entry = glade_xml_get_widget (glade_xml, entry_name);
+                entry = GTK_WIDGET(gtk_builder_get_object (builder, entry_name));
                 g_assert (entry != NULL);
 
                 val = atoi (gtk_entry_get_text (GTK_ENTRY (entry)));
@@ -411,6 +414,7 @@ get_ip_filter ()
         return ip;
 }
 
+G_MODULE_EXPORT
 void
 on_address_filter_dialog_response (GtkDialog *dialog,
                 gint       response,
@@ -420,7 +424,7 @@ on_address_filter_dialog_response (GtkDialog *dialog,
 
         gtk_widget_hide (GTK_WIDGET (dialog));
         
-        use_filter_radio = glade_xml_get_widget (glade_xml, "use-filter-radiobutton");
+        use_filter_radio = GTK_WIDGET(gtk_builder_get_object (builder, "use-filter-radiobutton"));
         g_assert (use_filter_radio != NULL);
         
         if (response != GTK_RESPONSE_OK)
@@ -507,11 +511,11 @@ setup_treeviews ()
         GtkTreeSelection *selection;
         int i;
 
-        treeviews[0] = glade_xml_get_widget (glade_xml,
-                        "packet-treeview");
+        treeviews[0] = GTK_WIDGET(gtk_builder_get_object (builder,
+                        "packet-treeview"));
         g_assert (treeviews[0] != NULL);
-        treeviews[1] = glade_xml_get_widget (glade_xml, 
-                        "device-details-treeview");
+        treeviews[1] = GTK_WIDGET(gtk_builder_get_object (builder,
+                        "device-details-treeview"));
         g_assert (treeviews[1] != NULL);
         
         treemodels[0] = create_packet_treemodel ();
@@ -530,6 +534,7 @@ setup_treeviews ()
                         (gpointer *) treeviews[0]);
 }
 
+G_MODULE_EXPORT
 gboolean
 on_delete_event (GtkWidget *widget,
                 GdkEvent  *event,
@@ -544,31 +549,30 @@ init_ui (gint *argc, gchar **argv[])
 {
         GtkWidget *main_window;
         gint window_width, window_height;
-        gchar *glade_path = NULL;
+        gchar *ui_path = NULL;
         
         gtk_init (argc, argv);
-        glade_init ();
 
-        /* Try to fetch the glade file from the CWD first */
-        glade_path = GLADE_FILE;
-        if (!g_file_test (glade_path, G_FILE_TEST_EXISTS)) {
+        /* Try to fetch the ui file from the CWD first */
+        ui_path = UI_FILE;
+        if (!g_file_test (ui_path, G_FILE_TEST_EXISTS)) {
                 /* Then Try to fetch it from the system path */
-                glade_path = UI_DIR "/" GLADE_FILE;
+                ui_path = UI_DIR "/" UI_FILE;
 
-                if (!g_file_test (glade_path, G_FILE_TEST_EXISTS))
-                        glade_path = NULL;
+                if (!g_file_test (ui_path, G_FILE_TEST_EXISTS))
+                        ui_path = NULL;
         }
         
-        if (glade_path == NULL) {
-                g_critical ("Unable to load the GUI file %s", GLADE_FILE);
+        if (ui_path == NULL) {
+                g_critical ("Unable to load the GUI file %s", UI_FILE);
                 return FALSE;
         }
 
-        glade_xml = glade_xml_new (glade_path, NULL, NULL); 
-        if (glade_xml == NULL)
+        builder = gtk_builder_new();
+        if (gtk_builder_add_from_file(builder, ui_path, NULL) == 0)
                 return FALSE;
 
-        main_window = glade_xml_get_widget (glade_xml, "main-window");
+        main_window = GTK_WIDGET(gtk_builder_get_object (builder, "main-window"));
         g_assert (main_window != NULL);
 
         /* 80% of the screen but don't get bigger than 1000x800 */
@@ -578,7 +582,7 @@ init_ui (gint *argc, gchar **argv[])
                                      window_width,
                                      window_height);
 
-        glade_xml_signal_autoconnect (glade_xml);
+        gtk_builder_connect_signals (builder, NULL);
         setup_treeviews ();
         gtk_widget_show_all (main_window);
 
@@ -588,7 +592,7 @@ init_ui (gint *argc, gchar **argv[])
 static void
 deinit_ui (void)
 {
-        g_object_unref (glade_xml);
+        g_object_unref (builder);
 }
 
 static gboolean

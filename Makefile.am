@@ -1,4 +1,4 @@
-if USE_LIBGLADE
+if USE_LIBGTK
 TOOLS_DIR = tools
 else
 TOOLS_DIR =

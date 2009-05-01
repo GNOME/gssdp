@@ -14,38 +14,38 @@ PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.18 \
                             gobject-2.0 >= 2.18 \
                             libsoup-2.4)
 
-LIBGLADE_REQUIRED=2.6.0
+LIBGTK_REQUIRED=2.12.0
 
-AC_ARG_WITH( libglade,
-  AC_HELP_STRING([--without-libglade],[compile without libglade support]),
-  try_libglade=$withval, try_libglade=yes )
+AC_ARG_WITH( gtk,
+  AC_HELP_STRING([--without-gtk],[compile without gtk+ support]),
+  try_gtk=$withval, try_gtk=yes )
 
-HAVE_LIBGLADE=no
-if test x$try_libglade = xyes ; then
-    dnl check for libglade
-    PKG_CHECK_MODULES(LIBGLADE, libglade-2.0 >= $LIBGLADE_REQUIRED ,
+HAVE_LIBGGTK=no
+if test x$try_gtk = xyes ; then
+    dnl check for gtk+
+    PKG_CHECK_MODULES(LIBGTK, gtk+-2.0 >= $LIBGTK_REQUIRED ,
       [
-        HAVE_LIBGLADE=yes
-        AC_SUBST(LIBGLADE_CFLAGS)
-        AC_SUBST(LIBGLADE_LIBS)
+        HAVE_LIBGTK=yes
+        AC_SUBST(LIBGTK_CFLAGS)
+        AC_SUBST(LIBGTK_LIBS)
       ],
       [ 
-        HAVE_LIBGLADE=no
-        AC_MSG_WARN([libglade $LIBGLADE_REQUIRED or greater not found, some tools will not build.])
+        HAVE_LIBGTK=no
+        AC_MSG_WARN([gtk+ $LIBGTK_REQUIRED or greater not found, some tools will not build.])
       ])
 else
-    AC_MSG_NOTICE([libglade usage disabled, some tools may not build.])
+    AC_MSG_NOTICE([gtk+ usage disabled, some tools may not build.])
 fi
 
-if test x$HAVE_LIBGLADE = xno; then
-  USE_LIBGLADE=no
+if test x$HAVE_LIBGTK = xno; then
+  USE_LIBGTK=no
 else
-  USE_LIBGLADE=yes
-  AC_DEFINE(HAVE_LIBGLADE, , [Use libglade])
+  USE_LIBGTK=yes
+  AC_DEFINE(HAVE_LIBGTK, , [Use gtk+])
 fi
 
-AC_SUBST(HAVE_LIBGLADE)
-AM_CONDITIONAL(USE_LIBGLADE, test x$USE_LIBGLADE = xyes)
+AC_SUBST(HAVE_LIBGTK)
+AM_CONDITIONAL(USE_LIBGTK, test x$USE_LIBGTK = xyes)
 
 # glib-genmarshal
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
