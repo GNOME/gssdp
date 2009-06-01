@@ -61,7 +61,7 @@ struct _GSSDPResourceGroupPrivate {
         
         guint        message_delay;
         GQueue      *message_queue;
-        guint        message_src_id;
+        GSource     *message_src;
 };
 
 enum {
@@ -238,9 +238,9 @@ gssdp_resource_group_dispose (GObject *object)
                 priv->message_queue = NULL;
         }
 
-        if (priv->message_src_id > 0) {
-                g_source_remove (priv->message_src_id);
-                priv->message_src_id = 0;
+        if (priv->message_src) {
+                g_source_destroy (priv->message_src);
+                priv->message_src = NULL;
         }
 
         if (priv->timeout_src) {
@@ -885,7 +885,7 @@ process_queue (gpointer data)
 
         if (g_queue_is_empty (resource_group->priv->message_queue)) {
                 /* this is the timeout after last message in queue */
-                resource_group->priv->message_src_id = 0;
+                resource_group->priv->message_src = NULL;
 
                 return FALSE;
         } else {
@@ -918,15 +918,20 @@ queue_message (GSSDPResourceGroup *resource_group,
         g_queue_push_tail (resource_group->priv->message_queue, 
                            message);
 
-        if (resource_group->priv->message_src_id == 0) {
+        if (resource_group->priv->message_src == NULL) {
                 /* nothing in the queue: process message immediately 
                    and add a timeout for (possible) next message */
+                GMainContext *context;
 
                 process_queue (resource_group);
-                resource_group->priv->message_src_id = 
-                        g_timeout_add (resource_group->priv->message_delay, 
-                                       process_queue,
-                                       resource_group);
+                resource_group->priv->message_src = g_timeout_source_new (
+                    resource_group->priv->message_delay);
+                g_source_set_callback (resource_group->priv->message_src,
+                    process_queue, resource_group, NULL);
+                context = gssdp_client_get_main_context (
+                    resource_group->priv->client);
+                g_source_attach (resource_group->priv->message_src, context);
+                g_source_unref (resource_group->priv->message_src);
         }
 }
 
