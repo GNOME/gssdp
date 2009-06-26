@@ -70,7 +70,7 @@ typedef struct {
 
 GSSDPClient *
 gssdp_client_new              (GMainContext *main_context,
-                               const char   *interface,
+                               const char   *iface,
                                GError      **error);
 
 GMainContext *

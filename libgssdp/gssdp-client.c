@@ -31,18 +31,29 @@
  */
 
 #include <config.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <glib.h>
+#ifndef G_OS_WIN32
+#include <sys/socket.h>
 #include <sys/utsname.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+typedef int socklen_t;
+/* from the return value of inet_addr */
+typedef unsigned long in_addr_t;
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#ifndef G_OS_WIN32
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <ifaddrs.h>
+#endif
 #include <libsoup/soup-headers.h>
 
 #include "gssdp-client.h"
@@ -63,7 +74,7 @@ struct _GSSDPClientPrivate {
         GMainContext      *main_context;
 
         char              *server_id;
-        char              *interface;
+        char              *iface;
         char              *host_ip;
 
         GError            **error;
@@ -234,7 +245,7 @@ gssdp_client_set_property (GObject      *object,
                 client->priv->error = g_value_get_pointer (value);
                 break;
         case PROP_IFACE:
-                client->priv->interface = g_value_dup_string (value);
+                client->priv->iface = g_value_dup_string (value);
                 break;
         case PROP_ACTIVE:
                 client->priv->active = g_value_get_boolean (value);
@@ -280,7 +291,7 @@ gssdp_client_finalize (GObject *object)
         client = GSSDP_CLIENT (object);
 
         g_free (client->priv->server_id);
-        g_free (client->priv->interface);
+        g_free (client->priv->iface);
         g_free (client->priv->host_ip);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->finalize (object);
@@ -444,12 +455,12 @@ gssdp_client_class_init (GSSDPClientClass *klass)
  **/
 GSSDPClient *
 gssdp_client_new (GMainContext *main_context,
-                  const char   *interface,
+                  const char   *iface,
                   GError      **error)
 {
         return g_object_new (GSSDP_TYPE_CLIENT,
                              "main-context", main_context,
-                             "interface", interface,
+                             "interface", iface,
                              "error", error,
                              NULL);
 }
@@ -535,7 +546,7 @@ gssdp_client_get_interface (GSSDPClient *client)
 {
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
 
-        return client->priv->interface;
+        return client->priv->iface;
 }
 
 /**
@@ -630,6 +641,19 @@ _gssdp_client_send_message (GSSDPClient *client,
 static char *
 make_server_id (void)
 {
+#ifdef G_OS_WIN32
+        OSVERSIONINFO versioninfo;
+        versioninfo.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+        if (GetVersionEx (&versioninfo)) {
+                return g_strdup_printf ("Microsoft Windows/%ld.%ld GSSDP/%s",
+                                        versioninfo.dwMajorVersion,
+                                        versioninfo.dwMinorVersion,
+                                        VERSION);
+        } else {
+                return g_strdup_printf ("Microsoft Windows GSSDP/%s",
+                                        VERSION);
+        }
+#else
         struct utsname sysinfo;
 
         uname (&sysinfo);
@@ -638,6 +662,7 @@ make_server_id (void)
                                 sysinfo.sysname,
                                 sysinfo.version,
                                 VERSION);
+#endif
 }
 
 static gboolean
@@ -707,6 +732,20 @@ parse_http_response (char                *buf,
                 return FALSE;
         }
 }
+
+#ifdef G_OS_WIN32
+static in_addr_t
+inet_netof (struct in_addr in) {
+        in_addr_t i = ntohl(in.s_addr);
+
+        if (IN_CLASSA (i))
+            return (((i) & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT);
+        else if (IN_CLASSB (i))
+            return (((i) & IN_CLASSB_NET) >> IN_CLASSB_NSHIFT);
+        else
+            return (((i) & IN_CLASSC_NET) >> IN_CLASSC_NSHIFT);
+}
+#endif
 
 /**
  * Called when data can be read from the socket
@@ -866,11 +905,14 @@ multicast_socket_source_cb (GIOChannel  *source,
  * appropriately.
  */
 static char *
-get_host_ip (char **interface)
+get_host_ip (char **iface)
 {
+#ifdef G_OS_WIN32
+        return g_strdup ("127.0.0.1");
+#else
         struct ifaddrs *ifa_list, *ifa;
         char *ret;
-        GList *up_ifaces, *iface;
+        GList *up_ifaces, *ifaceptr;
 
         ret = NULL;
         up_ifaces = NULL;
@@ -886,7 +928,7 @@ get_host_ip (char **interface)
                 if (ifa->ifa_addr == NULL)
                         continue;
 
-                if (*interface && strcmp (*interface, ifa->ifa_name) != 0)
+                if (*iface && strcmp (*iface, ifa->ifa_name) != 0)
                         continue;
                 else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
@@ -901,7 +943,9 @@ get_host_ip (char **interface)
                         up_ifaces = g_list_prepend (up_ifaces, ifa);
         }
 
-        for (iface = up_ifaces; iface != NULL; iface = iface->next) {
+        for (ifaceptr = up_ifaces;
+             ifaceptr != NULL;
+             ifaceptr = ifaceptr->next) {
                 char ip[INET6_ADDRSTRLEN];
                 const char *p;
                 struct sockaddr_in *s4;
@@ -909,7 +953,7 @@ get_host_ip (char **interface)
 
                 p = NULL;
 
-                ifa = iface->data;
+                ifa = ifaceptr->data;
 
                 switch (ifa->ifa_addr->sa_family) {
                 case AF_INET:
@@ -929,8 +973,8 @@ get_host_ip (char **interface)
                 if (p != NULL) {
                         ret = g_strdup (p);
 
-                        if (*interface == NULL)
-                                *interface = g_strdup (ifa->ifa_name);
+                        if (*iface == NULL)
+                                *iface = g_strdup (ifa->ifa_name);
                         break;
                 }
         }
@@ -939,6 +983,7 @@ get_host_ip (char **interface)
         freeifaddrs (ifa_list);
 
         return ret;
+#endif
 }
 
 static gboolean
@@ -946,11 +991,11 @@ init_network_info (GSSDPClient *client)
 {
         gboolean ret = TRUE;
 
-        if (client->priv->interface == NULL || client->priv->host_ip == NULL)
+        if (client->priv->iface == NULL || client->priv->host_ip == NULL)
                 client->priv->host_ip =
-                        get_host_ip (&client->priv->interface);
+                        get_host_ip (&client->priv->iface);
 
-        if (client->priv->interface == NULL) {
+        if (client->priv->iface == NULL) {
                 if (client->priv->error)
                         g_set_error (client->priv->error,
                                      GSSDP_ERROR,
@@ -964,7 +1009,7 @@ init_network_info (GSSDPClient *client)
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_NO_IP_ADDRESS,
                                      "Failed to find IP of interface %s",
-                                     client->priv->interface);
+                                     client->priv->iface);
 
                 ret = FALSE;
         }

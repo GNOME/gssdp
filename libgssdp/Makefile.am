@@ -48,6 +48,12 @@ libgssdp_1_0_la_SOURCES = gssdp-client.c		\
 
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
 
+if OS_WIN32
+
+libgssdp_1_0_la_LIBADD += -lws2_32
+libgssdp_1_0_la_LDFLAGS += -no-undefined
+endif
+
 EXTRA_DIST = gssdp-marshal.list
 
 

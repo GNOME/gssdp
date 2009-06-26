@@ -63,6 +63,18 @@ if test "x$enable_debug" = "xyes"; then
 fi
 
 GOBJECT_INTROSPECTION_CHECK([0.6.4])
+dnl Check for Win32
+AC_MSG_CHECKING([for Win32])
+case "$host" in
+    *-*-mingw*)
+        os_win32=yes
+        ;;
+    *)
+        os_win32=no
+        ;;
+esac
+AC_MSG_RESULT([$os_win32])
+AM_CONDITIONAL(OS_WIN32, [test $os_win32 = yes])
 
 GTK_DOC_CHECK([1.0])
 
