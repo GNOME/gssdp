@@ -831,7 +831,10 @@ get_default_host_ip (void)
 				return NULL;
 			}
 
-			if (sscanf(buffer, "%s %*s %*s %*d %*d %*d %s %*d", destination, dev) == 2) {
+			if (sscanf(buffer,
+                                   "%s %*s %*s %*d %*d %*d %s %*d",
+                                   destination,
+                                   dev) == 2) {
 				if (strcmp("default", destination) == 0) {
 					found = TRUE;
 					break;
