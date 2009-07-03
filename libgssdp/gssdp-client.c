@@ -786,11 +786,6 @@ get_host_ip (const char *name)
 
         freeifaddrs (ifa_list);
 
-        if (!ret) {
-                /* Didn't find anything. Let's take the loopback IP. */
-                ret = g_strdup (LOOPBACK_IP);
-        }
-
         return ret;
 }
 
@@ -807,6 +802,8 @@ get_default_host_ip (void)
         unsigned long dest;
         gboolean found = FALSE;
 
+        char *host_ip = NULL;
+
 #if defined(__FreeBSD__)
 	if ((fp = popen ("netstat -r -f inet -n -W", "r"))) {
 		char buffer[BUFSIZ];
@@ -817,18 +814,18 @@ get_default_host_ip (void)
 		/* Skip the 4 header lines */
 		for (i=0;i<4;i++) {
 			if (!(fgets(buffer, BUFSIZ, fp)))
-				return NULL; /* Can't read */
+				goto no_dev; /* Can't read */
 
 			if (buffer[strlen(buffer)-1] != '\n') {
 				g_warning("Can't read netstat output!");
-				return NULL;
+				goto no_dev;
 			}
 		}
 
 		while (fgets(buffer, BUFSIZ, fp)) {
 			if (buffer[strlen(buffer)-1] != '\n') {
 				g_warning("Can't read netstat output!");
-				return NULL;
+				goto no_dev;
 			}
 
 			if (sscanf(buffer,
@@ -851,7 +848,7 @@ get_default_host_ip (void)
         /* Skip the header */
         if (fscanf (fp, "%*[^\n]\n") == EOF) {
                fclose (fp);
-               return NULL;
+               goto no_dev;
 	}
 
         while ((ret = fscanf (fp,
@@ -868,6 +865,13 @@ get_default_host_ip (void)
         fclose (fp);
 #endif
 
-        return get_host_ip (found ? dev : NULL);
+        host_ip = get_host_ip (dev);
+
+no_dev:
+        if (host_ip == NULL)
+                /* Didn't find anything. Let's take the loopback IP. */
+                host_ip = g_strdup (LOOPBACK_IP);
+
+        return host_ip;
 }
 
