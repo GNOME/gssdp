@@ -738,6 +738,15 @@ resource_unavailable (GSSDPResourceBrowser *resource_browser,
         g_hash_table_remove (resource_browser->priv->resources, usn);
 }
 
+static gboolean
+check_target_compat (GSSDPResourceBrowser *resource_browser,
+                     const char           *st)
+{
+        return strcmp (resource_browser->priv->target,
+                       GSSDP_ALL_RESOURCES) == 0 ||
+               strcmp (resource_browser->priv->target, st) == 0;
+}
+
 static void
 received_discovery_response (GSSDPResourceBrowser *resource_browser,
                              SoupMessageHeaders   *headers)
@@ -748,8 +757,7 @@ received_discovery_response (GSSDPResourceBrowser *resource_browser,
         if (!st)
                 return; /* No target specified */
 
-        if (strcmp (resource_browser->priv->target, GSSDP_ALL_RESOURCES) != 0 &&
-            strcmp (resource_browser->priv->target, st) != 0)
+        if (!check_target_compat (resource_browser, st))
                 return; /* Target doesn't match */
 
         resource_available (resource_browser, headers);
@@ -765,8 +773,7 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
         if (!header)
                 return; /* No target specified */
 
-        if (strcmp (resource_browser->priv->target, GSSDP_ALL_RESOURCES) != 0 &&
-            strcmp (resource_browser->priv->target, header) != 0)
+        if (!check_target_compat (resource_browser, header))
                 return; /* Target doesn't match */
 
         header = soup_message_headers_get (headers, "NTS");
