@@ -69,6 +69,8 @@ struct _GSSDPClientPrivate {
 
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
+
+        gboolean           active;
 };
 
 enum {
@@ -76,6 +78,7 @@ enum {
         PROP_MAIN_CONTEXT,
         PROP_SERVER_ID,
         PROP_HOST_IP,
+        PROP_ACTIVE,
         PROP_ERROR
 };
 
@@ -106,6 +109,8 @@ gssdp_client_init (GSSDPClient *client)
                                         (client,
                                          GSSDP_TYPE_CLIENT,
                                          GSSDPClientPrivate);
+
+        client->priv->active = TRUE;
 
         /* Generate default server ID */
         client->priv->server_id = make_server_id ();
@@ -184,6 +189,9 @@ gssdp_client_get_property (GObject    *object,
                 g_value_set_string (value,
                                     gssdp_client_get_host_ip (client));
                 break;
+        case PROP_ACTIVE:
+                g_value_set_boolean (value, client->priv->active);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -214,6 +222,9 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_HOST_IP:
                 client->priv->host_ip = g_value_dup_string (value);
+                break;
+        case PROP_ACTIVE:
+                client->priv->active = g_value_get_boolean (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -341,6 +352,27 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       G_PARAM_STATIC_NAME |
                                       G_PARAM_STATIC_NICK |
                                       G_PARAM_STATIC_BLURB));
+
+        /**
+         * GSSDPClient:active
+         *
+         * Whether this client is active or not (passive). When active
+         * (default), the client sends messages on the network, otherwise
+         * not. In most cases, you don't want to touch this property.
+         *
+         **/
+        g_object_class_install_property
+                (object_class,
+                 PROP_ACTIVE,
+                 g_param_spec_boolean
+                         ("active",
+                          "Active",
+                          "TRUE if the client is active.",
+                          TRUE,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_NAME |
+                          G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
 
         /**
          * GSSDPClient::message-received
@@ -508,6 +540,10 @@ _gssdp_client_send_message (GSSDPClient *client,
 
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         g_return_if_fail (message != NULL);
+
+        if (!client->priv->active)
+                /* We don't send messages in passive mode */
+                return;
 
         /* Broadcast if @dest_ip is NULL */
         if (dest_ip == NULL)
