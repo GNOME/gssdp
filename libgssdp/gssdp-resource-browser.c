@@ -51,6 +51,7 @@ struct _GSSDPResourceBrowserPrivate {
         GSSDPClient *client;
 
         char        *target;
+        GRegex      *target_regex;
 
         gushort      mx;
 
@@ -430,6 +431,11 @@ void
 gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
                                    const char           *target)
 {
+        char *pattern;
+        char *version;
+        char *version_pattern;
+        GError *error;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
         g_return_if_fail (target != NULL);
         g_return_if_fail (!resource_browser->priv->active);
@@ -437,6 +443,34 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
         g_free (resource_browser->priv->target);
         resource_browser->priv->target = g_strdup (target);
 
+        if (resource_browser->priv->target_regex)
+                g_regex_unref (resource_browser->priv->target_regex);
+
+        version_pattern = "[0-9]+";
+        /* Make sure we have enough room for version pattern */
+        pattern = g_strndup (target,
+                             strlen (target) + strlen (version_pattern));
+
+        version = g_strrstr (pattern, ":") + 1;
+        if (version != NULL &&
+            g_regex_match_simple (version_pattern, version, 0, 0)) {
+                strcpy (version, version_pattern);
+        }
+
+        error = NULL;
+        resource_browser->priv->target_regex = g_regex_new (pattern,
+                                                            0,
+                                                            0,
+                                                            &error);
+        if (error) {
+                g_warning ("Error compiling regular expression '%s': %s",
+                           pattern,
+                           error->message);
+
+                g_error_free (error);
+        }
+
+        g_free (pattern);
         g_object_notify (G_OBJECT (resource_browser), "target");
 }
 
@@ -744,7 +778,10 @@ check_target_compat (GSSDPResourceBrowser *resource_browser,
 {
         return strcmp (resource_browser->priv->target,
                        GSSDP_ALL_RESOURCES) == 0 ||
-               strcmp (resource_browser->priv->target, st) == 0;
+               g_regex_match (resource_browser->priv->target_regex,
+                              st,
+                              0,
+                              NULL);
 }
 
 static void
