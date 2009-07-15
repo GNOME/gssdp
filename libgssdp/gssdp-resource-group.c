@@ -75,6 +75,7 @@ enum {
 typedef struct {
         GSSDPResourceGroup *resource_group;
 
+        GRegex              *target_regex;
         char                *target;
         char                *usn;
         GList               *locations;
@@ -122,6 +123,9 @@ static void
 discovery_response_free         (DiscoveryResponse  *response);
 static gboolean
 process_queue                   (gpointer            data);
+static GRegex *
+create_target_regex             (const char         *target,
+                                 GError            **error);
 
 static void
 gssdp_resource_group_init (GSSDPResourceGroup *resource_group)
@@ -565,6 +569,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 {
         Resource *resource;
         GList *l;
+        GError *error;
 
         g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
         g_return_val_if_fail (target != NULL, 0);
@@ -577,6 +582,19 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 
         resource->target = g_strdup (target);
         resource->usn    = g_strdup (usn);
+
+        error = NULL;
+        resource->target_regex = create_target_regex (target, &error);
+        if (error) {
+                g_warning ("Error compiling regular expression for '%s': %s",
+                           target,
+                           error->message);
+
+                g_error_free (error);
+                resource_free (resource);
+
+                return 0;
+        }
 
         resource->initial_alive_sent = FALSE;
 
@@ -615,6 +633,7 @@ gssdp_resource_group_add_resource_simple (GSSDPResourceGroup *resource_group,
                                           const char         *location)
 {
         Resource *resource;
+        GError   *error;
 
         g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
         g_return_val_if_fail (target != NULL, 0);
@@ -627,6 +646,19 @@ gssdp_resource_group_add_resource_simple (GSSDPResourceGroup *resource_group,
 
         resource->target = g_strdup (target);
         resource->usn    = g_strdup (usn);
+
+        error = NULL;
+        resource->target_regex = create_target_regex (target, &error);
+        if (error) {
+                g_warning ("Error compiling regular expression for '%s': %s",
+                           target,
+                           error->message);
+
+                g_error_free (error);
+                resource_free (resource);
+
+                return 0;
+        }
 
         resource->locations = g_list_append (resource->locations,
                                              g_strdup (location));
@@ -744,7 +776,11 @@ message_received_cb (GSSDPClient        *client,
 
                 resource = l->data;
 
-                if (want_all || strcmp (resource->target, target) == 0) {
+                if (want_all ||
+                    g_regex_match (resource->target_regex,
+                                   target,
+                                   0,
+                                   NULL)) {
                         /* Match. */
                         guint timeout;
                         DiscoveryResponse *response;
@@ -1005,6 +1041,9 @@ resource_free (Resource *resource)
         g_free (resource->usn);
         g_free (resource->target);
 
+        if (resource->target_regex)
+                g_regex_unref (resource->target_regex);
+
         while (resource->locations) {
                 g_free (resource->locations->data);
                 resource->locations = g_list_delete_link (resource->locations,
@@ -1013,3 +1052,30 @@ resource_free (Resource *resource)
 
         g_slice_free (Resource, resource);
 }
+
+static GRegex *
+create_target_regex (const char *target, GError **error)
+{
+        GRegex *regex;
+        char *pattern;
+        char *version;
+        char *version_pattern;
+
+        version_pattern = "[0-9]+";
+        /* Make sure we have enough room for version pattern */
+        pattern = g_strndup (target,
+                             strlen (target) + strlen (version_pattern));
+
+        version = g_strrstr (pattern, ":") + 1;
+        if (version != NULL &&
+            g_regex_match_simple (version_pattern, version, 0, 0)) {
+                strcpy (version, version_pattern);
+        }
+
+        regex = g_regex_new (pattern, 0, 0, error);
+
+        g_free (pattern);
+
+        return regex;
+}
+
