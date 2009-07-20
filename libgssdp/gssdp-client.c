@@ -759,11 +759,9 @@ multicast_socket_source_cb (gpointer user_data)
         return socket_source_cb (client->priv->multicast_socket, client);
 }
 
-#define LOOPBACK_IP "127.0.0.1"
-
 /*
- * Get the host IP for the specified interface, or the first up and non-loopback
- * interface if no name is specified.
+ * Get the host IP for the specified interface. If no name is specified, it gets
+ * the IP of the first up & running interface.
  */
 static char *
 get_host_ip (const char *name)
@@ -789,12 +787,9 @@ get_host_ip (const char *name)
                 if (ifa->ifa_addr == NULL)
                         continue;
 
-                if ((ifa->ifa_flags & IFF_LOOPBACK) ||
-                    !(ifa->ifa_flags & IFF_UP))
-                        continue;
-
-                /* If a name was specified, check it */
                 if (name && strcmp (name, ifa->ifa_name) != 0)
+                        continue;
+                else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
 
                 p = NULL;
@@ -827,7 +822,7 @@ get_host_ip (const char *name)
 
 /*
  * Get the host IP of the interface used for the default route.  On any error,
- * the first up and non-loopback interface is used.
+ * the first up and running interface is used.
  */
 static char *
 get_default_host_ip (void)
@@ -901,12 +896,8 @@ get_default_host_ip (void)
         fclose (fp);
 #endif
 
-        host_ip = get_host_ip (dev);
-
 no_dev:
-        if (host_ip == NULL)
-                /* Didn't find anything. Let's take the loopback IP. */
-                host_ip = g_strdup (LOOPBACK_IP);
+        host_ip = get_host_ip (dev);
 
         return host_ip;
 }
