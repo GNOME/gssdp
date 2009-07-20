@@ -103,8 +103,6 @@ static gboolean
 multicast_socket_source_cb    (gpointer      user_data);
 static gboolean
 init_network_info             (GSSDPClient  *client);
-static char *
-get_default_route             (char        **host_ip);
 
 static void
 gssdp_client_init (GSSDPClient *client)
@@ -853,101 +851,12 @@ get_host_ip (char **interface)
         return ret;
 }
 
-/*
- * Get the host IP of the interface used for the default route.  On any error,
- * the first up and running interface is used.
- */
-static char *
-get_default_route (char **host_ip)
-{
-        FILE *fp;
-        int ret;
-        char dev[32];
-        unsigned long dest;
-        gboolean found = FALSE;
-
-        char *interface = NULL;
-
-#if defined(__FreeBSD__)
-	if ((fp = popen ("netstat -r -f inet -n -W", "r"))) {
-		char buffer[BUFSIZ];
-
-		char destination[32];
-
-		int i;
-		/* Skip the 4 header lines */
-		for (i=0;i<4;i++) {
-			if (!(fgets(buffer, BUFSIZ, fp)))
-				goto no_dev; /* Can't read */
-
-			if (buffer[strlen(buffer)-1] != '\n') {
-				g_warning("Can't read netstat output!");
-				goto no_dev;
-			}
-		}
-
-		while (fgets(buffer, BUFSIZ, fp)) {
-			if (buffer[strlen(buffer)-1] != '\n') {
-				g_warning("Can't read netstat output!");
-				goto no_dev;
-			}
-
-			if (sscanf(buffer,
-                                   "%s %*s %*s %*d %*d %*d %s %*d",
-                                   destination,
-                                   dev) == 2) {
-				if (strcmp("default", destination) == 0) {
-					found = TRUE;
-					break;
-				}
-			}
-		}
-		pclose(fp);
-	}
-#else
-        /* TODO: error checking */
-
-        fp = fopen ("/proc/net/route", "r");
-
-        /* Skip the header */
-        if (fscanf (fp, "%*[^\n]\n") == EOF) {
-               fclose (fp);
-               goto no_dev;
-	}
-
-        while ((ret = fscanf (fp,
-                              "%31s %lx %*x %*X %*d %*d %*d %*x %*d %*d %*d",
-                              dev, &dest)) != EOF) {
-                /* If we got a device name and destination, and the destination
-                   is 0, then we have the default route */
-                if (ret == 2 && dest == 0) {
-                        found = TRUE;
-                        break;
-                }
-        }
-
-        fclose (fp);
-#endif
-
-no_dev:
-        if (dev != NULL) {
-                interface = g_strdup (dev);
-        }
-
-        *host_ip = get_host_ip (&interface);
-
-        return interface;
-}
-
 static gboolean
 init_network_info (GSSDPClient *client)
 {
         gboolean ret = TRUE;
 
-        if (client->priv->interface == NULL)
-                client->priv->interface =
-                        get_default_route (&client->priv->host_ip);
-        else
+        if (client->priv->interface == NULL || client->priv->host_ip == NULL)
                 client->priv->host_ip =
                         get_host_ip (&client->priv->interface);
 
