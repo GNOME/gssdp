@@ -58,7 +58,7 @@ main (int    argc,
         g_type_init ();
 
         error = NULL;
-        client = gssdp_client_new (NULL, &error);
+        client = gssdp_client_new (NULL, NULL, &error);
         if (error) {
                 g_printerr ("Error creating the GSSDP client: %s\n",
                             error->message);

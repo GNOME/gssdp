@@ -63,6 +63,7 @@ struct _GSSDPClientPrivate {
         GMainContext      *main_context;
 
         char              *server_id;
+        char              *interface;
         char              *host_ip;
 
         GError            **error;
@@ -77,6 +78,7 @@ enum {
         PROP_0,
         PROP_MAIN_CONTEXT,
         PROP_SERVER_ID,
+        PROP_IFACE,
         PROP_HOST_IP,
         PROP_ACTIVE,
         PROP_ERROR
@@ -99,8 +101,10 @@ static gboolean
 request_socket_source_cb      (gpointer      user_data);
 static gboolean
 multicast_socket_source_cb    (gpointer      user_data);
+static gboolean
+init_network_info             (GSSDPClient  *client);
 static char *
-get_default_host_ip           (void);
+get_default_route             (char        **host_ip);
 
 static void
 gssdp_client_init (GSSDPClient *client)
@@ -120,6 +124,10 @@ static void
 gssdp_client_constructed (GObject *object)
 {
         GSSDPClient *client = GSSDP_CLIENT (object);
+
+        /* Make sure all network info is available to us */
+        if (!init_network_info (client))
+                return;
 
         /* Set up sockets (Will set errno if it failed) */
         client->priv->request_socket =
@@ -185,6 +193,10 @@ gssdp_client_get_property (GObject    *object,
                          (gpointer)
                           gssdp_client_get_main_context (client));
                 break;
+        case PROP_IFACE:
+                g_value_set_string (value,
+                                    gssdp_client_get_interface (client));
+                break;
         case PROP_HOST_IP:
                 g_value_set_string (value,
                                     gssdp_client_get_host_ip (client));
@@ -220,8 +232,8 @@ gssdp_client_set_property (GObject      *object,
         case PROP_ERROR:
                 client->priv->error = g_value_get_pointer (value);
                 break;
-        case PROP_HOST_IP:
-                client->priv->host_ip = g_value_dup_string (value);
+        case PROP_IFACE:
+                client->priv->interface = g_value_dup_string (value);
                 break;
         case PROP_ACTIVE:
                 client->priv->active = g_value_get_boolean (value);
@@ -265,6 +277,7 @@ gssdp_client_finalize (GObject *object)
         client = GSSDP_CLIENT (object);
 
         g_free (client->priv->server_id);
+        g_free (client->priv->interface);
         g_free (client->priv->host_ip);
 }
 
@@ -336,19 +349,39 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
+         * GSSDPClient:interface
+         *
+         * The name of the network interface this client is associated with.
+         * Set to NULL to autodetect.
+         **/
+        g_object_class_install_property
+                (object_class,
+                 PROP_IFACE,
+                 g_param_spec_string
+                         ("interface",
+                          "Network interface",
+                          "The name of the associated network interface.",
+                          NULL,
+                          G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_NAME |
+                          G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
+
+        /**
          * GSSDPClient:host-ip
          *
-         * The local host's IP address. Set to NULL to autodetect.
+         * The IP address of the assoicated network interface.
          **/
         g_object_class_install_property
                 (object_class,
                  PROP_HOST_IP,
                  g_param_spec_string ("host-ip",
                                       "Host IP",
-                                      "The local host's IP address",
+                                      "The IP address of the associated"
+                                      "network interface",
                                       NULL,
-                                      G_PARAM_READWRITE |
-                                      G_PARAM_CONSTRUCT_ONLY |
+                                      G_PARAM_READABLE |
                                       G_PARAM_STATIC_NAME |
                                       G_PARAM_STATIC_NICK |
                                       G_PARAM_STATIC_BLURB));
@@ -397,40 +430,23 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 }
 
 /**
- * gssdp_client_new_full
- * @main_context: The #GMainContext to associate with, or NULL
- * @host_ip: The local host's IP address, or %NULL to use the IP address
- * of the first non-loopback network interface.
- * @error: Location to store error, or NULL
- *
- * Return value: A new #GSSDPClient object.
- **/
-GSSDPClient *
-gssdp_client_new_full (GMainContext *main_context,
-                       const char   *host_ip,
-                       GError      **error)
-{
-        return g_object_new (GSSDP_TYPE_CLIENT,
-                             "main-context", main_context,
-                             "host-ip", host_ip,
-                             "error", error,
-                             NULL);
-}
-
-/**
  * gssdp_client_new
  * @main_context: The #GMainContext to associate with, or NULL
+ * @interface: The name of the network interface, or %NULL for auto-detection.
  * @error: Location to store error, or NULL
  *
  * Return value: A new #GSSDPClient object.
  **/
 GSSDPClient *
 gssdp_client_new (GMainContext *main_context,
+                  const char   *interface,
                   GError      **error)
 {
-        return gssdp_client_new_full (main_context,
-                                      NULL,
-                                      error);
+        return g_object_new (GSSDP_TYPE_CLIENT,
+                             "main-context", main_context,
+                             "interface", interface,
+                             "error", error,
+                             NULL);
 }
 
 /**
@@ -502,6 +518,22 @@ gssdp_client_get_server_id (GSSDPClient *client)
 }
 
 /**
+ * gssdp_client_get_interface
+ * @client: A #GSSDPClient
+ *
+ * Get the name of the network interface associated to @client.
+ *
+ * Return value: The network interface name. This string should not be freed.
+ **/
+const char *
+gssdp_client_get_interface (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+
+        return client->priv->interface;
+}
+
+/**
  * gssdp_client_get_host_ip
  * @client: A #GSSDPClient
  *
@@ -513,9 +545,6 @@ const char *
 gssdp_client_get_host_ip (GSSDPClient *client)
 {
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
-
-        if (client->priv->host_ip == NULL)
-                client->priv->host_ip = get_default_host_ip ();
 
         return client->priv->host_ip;
 }
@@ -760,11 +789,12 @@ multicast_socket_source_cb (gpointer user_data)
 }
 
 /*
- * Get the host IP for the specified interface. If no name is specified, it gets
- * the IP of the first up & running interface.
+ * Get the host IP for the specified interface. If no interface is specified,
+ * it gets the IP of the first up & running interface and sets @interface
+ * appropriately.
  */
 static char *
-get_host_ip (const char *name)
+get_host_ip (char **interface)
 {
         struct ifaddrs *ifa_list, *ifa;
         char *ret;
@@ -787,7 +817,7 @@ get_host_ip (const char *name)
                 if (ifa->ifa_addr == NULL)
                         continue;
 
-                if (name && strcmp (name, ifa->ifa_name) != 0)
+                if (*interface && strcmp (*interface, ifa->ifa_name) != 0)
                         continue;
                 else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
@@ -811,6 +841,9 @@ get_host_ip (const char *name)
 
                 if (p != NULL) {
                         ret = g_strdup (p);
+
+                        if (*interface == NULL)
+                                *interface = g_strdup (ifa->ifa_name);
                         break;
                 }
         }
@@ -825,7 +858,7 @@ get_host_ip (const char *name)
  * the first up and running interface is used.
  */
 static char *
-get_default_host_ip (void)
+get_default_route (char **host_ip)
 {
         FILE *fp;
         int ret;
@@ -833,7 +866,7 @@ get_default_host_ip (void)
         unsigned long dest;
         gboolean found = FALSE;
 
-        char *host_ip = NULL;
+        char *interface = NULL;
 
 #if defined(__FreeBSD__)
 	if ((fp = popen ("netstat -r -f inet -n -W", "r"))) {
@@ -897,8 +930,46 @@ get_default_host_ip (void)
 #endif
 
 no_dev:
-        host_ip = get_host_ip (dev);
+        if (dev != NULL) {
+                interface = g_strdup (dev);
+        }
 
-        return host_ip;
+        *host_ip = get_host_ip (&interface);
+
+        return interface;
+}
+
+static gboolean
+init_network_info (GSSDPClient *client)
+{
+        gboolean ret = TRUE;
+
+        if (client->priv->interface == NULL)
+                client->priv->interface =
+                        get_default_route (&client->priv->host_ip);
+        else
+                client->priv->host_ip =
+                        get_host_ip (&client->priv->interface);
+
+        if (client->priv->interface == NULL) {
+                if (client->priv->error)
+                        g_set_error (client->priv->error,
+                                     GSSDP_ERROR,
+                                     GSSDP_ERROR_FAILED,
+                                     "No default route?");
+
+                ret = FALSE;
+        } else if (client->priv->host_ip == NULL) {
+                if (client->priv->error)
+                        g_set_error (client->priv->error,
+                                     GSSDP_ERROR,
+                                     GSSDP_ERROR_FAILED,
+                                     "Failed to find IP of interface %s",
+                                     client->priv->interface);
+
+                ret = FALSE;
+        }
+
+        return ret;
 }
 

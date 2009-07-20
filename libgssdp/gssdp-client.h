@@ -70,6 +70,7 @@ typedef struct {
 
 GSSDPClient *
 gssdp_client_new              (GMainContext *main_context,
+                               const char   *interface,
                                GError      **error);
 
 GSSDPClient *
@@ -86,6 +87,9 @@ gssdp_client_set_server_id    (GSSDPClient  *client,
 
 const char *
 gssdp_client_get_server_id    (GSSDPClient  *client);
+
+const char *
+gssdp_client_get_interface    (GSSDPClient  *client);
 
 const char *
 gssdp_client_get_host_ip      (GSSDPClient  *client);
