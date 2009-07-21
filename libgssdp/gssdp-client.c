@@ -796,8 +796,10 @@ get_host_ip (char **interface)
 {
         struct ifaddrs *ifa_list, *ifa;
         char *ret;
+        GList *up_ifaces, *iface;
 
         ret = NULL;
+        up_ifaces = NULL;
 
         if (getifaddrs (&ifa_list) != 0) {
                 g_error ("Failed to retrieve list of network interfaces:\n%s\n",
@@ -807,11 +809,6 @@ get_host_ip (char **interface)
         }
 
         for (ifa = ifa_list; ifa != NULL; ifa = ifa->ifa_next) {
-                char ip[INET6_ADDRSTRLEN];
-                const char *p;
-                struct sockaddr_in *s4;
-                struct sockaddr_in6 *s6;
-
                 if (ifa->ifa_addr == NULL)
                         continue;
 
@@ -820,7 +817,23 @@ get_host_ip (char **interface)
                 else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
 
+                /* Loopback and IPv6 interfaces go at the bottom on the list */
+                if (ifa->ifa_flags & IFF_LOOPBACK ||
+                    ifa->ifa_addr->sa_family == AF_INET6)
+                        up_ifaces = g_list_append (up_ifaces, ifa);
+                else
+                        up_ifaces = g_list_prepend (up_ifaces, ifa);
+        }
+
+        for (iface = up_ifaces; iface != NULL; iface = iface->next) {
+                char ip[INET6_ADDRSTRLEN];
+                const char *p;
+                struct sockaddr_in *s4;
+                struct sockaddr_in6 *s6;
+
                 p = NULL;
+
+                ifa = iface->data;
 
                 switch (ifa->ifa_addr->sa_family) {
                 case AF_INET:
@@ -846,6 +859,7 @@ get_host_ip (char **interface)
                 }
         }
 
+        g_list_free (up_ifaces);
         freeifaddrs (ifa_list);
 
         return ret;
