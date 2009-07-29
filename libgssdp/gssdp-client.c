@@ -548,6 +548,20 @@ gssdp_client_get_host_ip (GSSDPClient *client)
 }
 
 /**
+ * gssdp_client_get_active
+ * @client: A #GSSDPClient
+ *
+ * Return value: %TRUE if @client is active, %FALSE otherwise.
+ **/
+gboolean
+gssdp_client_get_active (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), FALSE);
+
+        return client->priv->active;
+}
+
+/**
  * _gssdp_client_send_message
  * @client: A #GSSDPClient
  * @dest_ip: The destination IP address, or NULL to broadcast

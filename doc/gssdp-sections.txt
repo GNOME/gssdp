@@ -8,6 +8,7 @@ gssdp_client_set_server_id
 gssdp_client_get_server_id
 gssdp_client_get_interface
 gssdp_client_get_host_ip
+gssdp_client_get_active
 <SUBSECTION Standard>
 GSSDP_CLIENT
 GSSDP_IS_CLIENT

@@ -94,6 +94,9 @@ gssdp_client_get_interface    (GSSDPClient  *client);
 const char *
 gssdp_client_get_host_ip      (GSSDPClient  *client);
 
+gboolean
+gssdp_client_get_active       (GSSDPClient  *client);
+
 G_END_DECLS
 
 #endif /* __GSSDP_CLIENT_H__ */
