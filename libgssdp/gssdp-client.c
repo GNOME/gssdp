@@ -711,6 +711,9 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
         struct sockaddr_in addr;
         socklen_t addr_size;
         SoupMessageHeaders *headers;
+        struct in_addr our_addr;
+        in_addr_t our_network;
+        in_addr_t recv_network;
 
         /* Get FD */
         fd = gssdp_socket_source_get_fd (socket);
@@ -724,6 +727,18 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
                           MSG_TRUNC,
                           (struct sockaddr *) &addr,
                           &addr_size);
+
+        /* We need the following lines to make sure the right client received
+         * the packet. We won't need to do this if there was any way to tell
+         * Mr. Unix that we are only interested in receiving multicast packets
+         * on this socket from a particular interface but AFAIK that is not
+         * possible, at least not in a portable way.
+         */
+        recv_network = inet_netof (addr.sin_addr);
+        our_addr.s_addr = inet_addr (gssdp_client_get_host_ip (client));
+        our_network = inet_netof (our_addr);
+        if (recv_network != our_network)
+                return TRUE;
 
         if (bytes >= BUF_SIZE) {
                 g_warning ("Received packet of %u bytes, but the maximum "
