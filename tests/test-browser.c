@@ -68,10 +68,6 @@ main (int    argc,
                 return EXIT_FAILURE;
         }
 
-        g_print ("attaching to %s (%s)\n",
-                 gssdp_client_get_interface (client),
-                 gssdp_client_get_host_ip (client));
-
         resource_browser = gssdp_resource_browser_new (client,
                                                        GSSDP_ALL_RESOURCES);
 
