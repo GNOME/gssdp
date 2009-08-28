@@ -1,3 +1,41 @@
+0.7
+===
+
+- Join the multicast group on the specified interface.
+- Put the message src timeout in the specified GMainContext.
+- "host-ip" property moved from GUPnPContext to parent GSSDPClient.
+- Use inet_aton instead of inet_addr and handle the error from it.
+- gssdp-device-sniffer ported to GtkBuilder.
+- Version-independent target match. This makes client forward and backward
+  compatible with resources that implement different version of the specs than
+  the client.
+- Version-independent M-SEARCH response. This has the same effect as above but
+  only the other way around.
+- GSSDPClient now binds to interface rather than IP.
+- No need to find the default route.
+- Add "active" property to GSSDPClient.
+- Fix pkg-config paths.
+- Add basic .gitignore.
+- Other minor/internal changes.
+
+Bugs fixed:
+
+1621 - new gssdp timeout not added to the specific maincontext
+1570 - gupnp doesn't set the pkgconfig lib dir correctly in 64 bit env
+
+Dependencies dropped:
+
+- libglade
+
+All contributors:
+
+Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+Ross Burton <ross@linux.intel.com>
+Jens Georg <mail@jensge.org>
+Olivier Crête <olivier.crete@collabora.co.uk>
+
+WARNING: This release is API and ABI incompatible with previous releases.
+
 0.6.4
 =====
 
