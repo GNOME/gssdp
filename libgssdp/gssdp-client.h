@@ -73,11 +73,6 @@ gssdp_client_new              (GMainContext *main_context,
                                const char   *interface,
                                GError      **error);
 
-GSSDPClient *
-gssdp_client_new_full         (GMainContext *main_context,
-                               const char   *host_ip,
-                               GError      **error);
-
 GMainContext *
 gssdp_client_get_main_context (GSSDPClient  *client);
 
