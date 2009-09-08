@@ -230,6 +230,9 @@ gssdp_resource_browser_finalize (GObject *object)
 
         resource_browser = GSSDP_RESOURCE_BROWSER (object);
 
+        if (resource_browser->priv->target_regex)
+                g_regex_unref (resource_browser->priv->target_regex);
+
         g_free (resource_browser->priv->target);
 
         g_hash_table_destroy (resource_browser->priv->resources);
