@@ -845,6 +845,8 @@ get_host_ip (char **interface)
                         continue;
                 else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
+		else if ((ifa->ifa_flags & IFF_POINTOPOINT))
+			continue;
 
                 /* Loopback and IPv6 interfaces go at the bottom on the list */
                 if (ifa->ifa_flags & IFF_LOOPBACK ||
