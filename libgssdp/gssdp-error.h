@@ -32,6 +32,7 @@ gssdp_error_quark (void) G_GNUC_CONST;
 #define GSSDP_ERROR (gssdp_error_quark ())
 
 typedef enum {
+        GSSDP_ERROR_NO_IP_ADDRESS,
         GSSDP_ERROR_FAILED
 } GSSDPError;
 

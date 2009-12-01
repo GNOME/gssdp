@@ -920,7 +920,7 @@ init_network_info (GSSDPClient *client)
                 if (client->priv->error)
                         g_set_error (client->priv->error,
                                      GSSDP_ERROR,
-                                     GSSDP_ERROR_FAILED,
+                                     GSSDP_ERROR_NO_IP_ADDRESS,
                                      "Failed to find IP of interface %s",
                                      client->priv->interface);
 
