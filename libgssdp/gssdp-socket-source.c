@@ -126,7 +126,11 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                 /* Allow multiple sockets to use the same PORT number */
                 res = setsockopt (socket_source->poll_fd.fd,
                                   SOL_SOCKET,
+#ifdef SO_REUSEPORT 
+                                  SO_REUSEPORT,
+#else
                                   SO_REUSEADDR,
+#endif
                                   &boolean,
                                   sizeof (boolean));
                 if (res == -1)
