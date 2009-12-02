@@ -137,6 +137,8 @@ gssdp_client_constructed (GObject *object)
                          request_socket_source_cb,
                          client,
                          NULL);
+        } else {
+          goto errors;
         }
 
         client->priv->multicast_socket =
@@ -150,12 +152,13 @@ gssdp_client_constructed (GObject *object)
                          NULL);
         }
 
+ errors:
         if (!client->priv->request_socket || !client->priv->multicast_socket) {
                 if (client->priv->error)
                         g_set_error_literal (client->priv->error,
                                              GSSDP_ERROR,
                                              GSSDP_ERROR_FAILED,
-                                             strerror (errno));
+                                             g_strerror (errno));
 
                 return;
         }
