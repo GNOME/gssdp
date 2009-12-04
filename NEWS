@@ -1,3 +1,29 @@
+0.7.1
+=====
+
+- Don't leak target regex.
+- Make GSSDPClient ignore Point to Point interfaces.
+- Use SO_REUSEPORT if present. Darwin and some BSDs don't have SO_REUSEADDR, but
+  SO_REUSEPORT.
+- If we can't create a request socket don't try to create a multicast socket.
+- Have specific GError code for interfaces without an IP address.
+- Actually remove gssdp_client_new_full().
+
+Bugs fixed:
+
+1898 - GSSDPClient keeps autoselecting my VPN
+1810 - Not possible to run multiple ssdp clients on darwin
+1800 - leak of a gregex in gssdp-resource-browser
+1796 - gssdp_client_new_full is declared in header but not implemented
+
+All contributors:
+
+Olivier Crête <olivier.crete@collabora.co.uk>
+Ross Burton <ross@linux.intel.com>
+Iain Holmes <iain@linux.intel.com>
+Mattias Wadman <mattias.wadman@gmail.com>
+Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+
 0.7
 ===
 
