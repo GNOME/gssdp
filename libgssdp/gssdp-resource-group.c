@@ -1061,7 +1061,7 @@ create_target_regex (const char *target, GError **error)
         char *version;
         char *version_pattern;
 
-        version_pattern = "[0-9]+";
+        version_pattern = "[0-9]+$";
         /* Make sure we have enough room for version pattern */
         pattern = g_strndup (target,
                              strlen (target) + strlen (version_pattern));
