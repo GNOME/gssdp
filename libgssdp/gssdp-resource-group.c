@@ -1061,6 +1061,11 @@ create_target_regex (const char *target, GError **error)
         char *version;
         char *version_pattern;
 
+        if (strncmp (target, "urn:", 4) != 0) {
+                /* target is not a URN, No need to deal with version. */
+                return g_regex_new (target, 0, 0, error);
+        }
+
         version_pattern = "[0-9]+$";
         /* Make sure we have enough room for version pattern */
         pattern = g_strndup (target,
