@@ -46,6 +46,35 @@ libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
 
 EXTRA_DIST = gssdp-marshal.list
 
-CLEANFILES = $(BUILT_SOURCES)
+
+if HAVE_INTROSPECTION
+
+GSSDP-1.0.gir: libgssdp-1.0.la $(INTROSPECTION_SCANNER)
+	$(INTROSPECTION_SCANNER) -v \
+		--namespace=GSSDP --nsversion=1.0 \
+                --include=GObject-2.0 \
+		--library=$< \
+		--libtool="$(top_builddir)/libtool" \
+		--pkg gobject-2.0 \
+		--output $@ \
+		-I$(top_srcdir) \
+		$(libgssdpinc_HEADERS) \
+		$(libgssdp_1_0_la_SOURCES)
+
+girdir = $(datadir)/gir-1.0
+gir_DATA = GSSDP-1.0.gir
+
+typelibdir = $(libdir)/girepository-1.0/
+typelib_DATA = $(gir_DATA:.gir=.typelib)
+
+%.typelib: %.gir $(INTROSPECTION_COMPILER)
+	$(INTROSPECTION_COMPILER) \
+		--includedir=$(srcdir) \
+		--includedir=. \
+		$(INTROSPECTION_COMPILER_OPTS) $< -o $(@F)
+
+endif
+
+CLEANFILES = $(BUILT_SOURCES) $(gir_DATA) $(typelib_DATA)
 DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
