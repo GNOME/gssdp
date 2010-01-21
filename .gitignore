@@ -4,6 +4,8 @@ Makefile
 *.o
 *.lo
 *.la
+*.gir
+*.typelib
 .libs
 .deps
 config.*
