@@ -23,9 +23,11 @@ libgssdpinc_HEADERS = 	gssdp-client.h		 \
 			gssdp.h
 
 gssdp-marshal.c: gssdp-marshal.list
+	$(AM_V_GEN) \
 	$(GLIB_GENMARSHAL) --prefix=gssdp_marshal $(srcdir)/gssdp-marshal.list --header --body > gssdp-marshal.c
 
 gssdp-marshal.h: gssdp-marshal.list
+	$(AM_V_GEN) \
 	$(GLIB_GENMARSHAL) --prefix=gssdp_marshal $(srcdir)/gssdp-marshal.list --header > gssdp-marshal.h
 
 BUILT_SOURCES = gssdp-marshal.c gssdp-marshal.h
@@ -50,6 +52,7 @@ EXTRA_DIST = gssdp-marshal.list
 if HAVE_INTROSPECTION
 
 GSSDP-1.0.gir: libgssdp-1.0.la $(INTROSPECTION_SCANNER)
+	$(AM_V_GEN) \
 	$(INTROSPECTION_SCANNER) -v \
 		--namespace=GSSDP --nsversion=1.0 \
                 --include=GObject-2.0 \
@@ -68,6 +71,7 @@ typelibdir = $(libdir)/girepository-1.0/
 typelib_DATA = $(gir_DATA:.gir=.typelib)
 
 %.typelib: %.gir $(INTROSPECTION_COMPILER)
+	$(AM_V_GEN) \
 	$(INTROSPECTION_COMPILER) \
 		--includedir=$(srcdir) \
 		--includedir=. \

@@ -3,7 +3,8 @@ AC_INIT(gssdp, 0.7.1, http://www.gupnp.org/)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR(libgssdp/gssdp-client.c)
 AM_CONFIG_HEADER(config.h)
-AM_MAINTAINER_MODE
+
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],)
 
 AC_ISC_POSIX
 AC_PROG_CC
