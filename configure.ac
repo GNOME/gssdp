@@ -10,6 +10,7 @@ AC_ISC_POSIX
 AC_PROG_CC
 AC_STDC_HEADERS
 AC_PROG_LIBTOOL
+AC_CONFIG_MACRO_DIR([m4])
 
 PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.18 \
                             gobject-2.0 >= 2.18 \
