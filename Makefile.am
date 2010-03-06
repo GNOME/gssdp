@@ -6,6 +6,8 @@ endif
 
 SUBDIRS = libgssdp $(TOOLS_DIR) tests doc
 
+ACLOCAL_AMFLAGS=${ACLOCAL_FLAGS}
+
 pkgconfig_DATA= gssdp-1.0.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
