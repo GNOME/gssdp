@@ -62,7 +62,11 @@ GSSDP-1.0.gir: libgssdp-1.0.la $(INTROSPECTION_SCANNER)
 		--output $@ \
 		-I$(top_srcdir) \
 		$(libgssdpinc_HEADERS) \
-		$(libgssdp_1_0_la_SOURCES)
+                gssdp-client.c \
+		gssdp-error.c \
+		gssdp-protocol.h \
+		gssdp-resource-browser.c \
+		gssdp-resource-group.c
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = GSSDP-1.0.gir
