@@ -1,3 +1,26 @@
+0.7.2
+=====
+
+- Provide gobject-introspection GIR and typelib.
+- Use silent build rules.
+- Fix issues with version-independence magic in SSDP code.
+- Fix build issues in jhbuild environment.
+
+Bugs fixed in this release:
+
+2025 - autogen.sh fails to find autoconf macros when they're installed in a
+       non-standard location
+1927 - gssdp fails to answer M-SEARCH sometimes
+1921 - GObject Introspection Makefile for GSSDP
+
+All Contributors:
+
+Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+Zach Goldberg <zach@zachgoldberg.com>
+Jens Georg <mail@jensge.org>
+Neil Roberts <neil@linux.intel.com>
+Ross Burton <ross@linux.intel.com>
+
 0.7.1
 =====
 
