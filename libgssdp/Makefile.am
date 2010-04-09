@@ -61,12 +61,12 @@ GSSDP-1.0.gir: libgssdp-1.0.la $(INTROSPECTION_SCANNER)
 		--pkg gobject-2.0 \
 		--output $@ \
 		-I$(top_srcdir) \
-		$(libgssdpinc_HEADERS) \
-                gssdp-client.c \
-		gssdp-error.c \
-		gssdp-protocol.h \
-		gssdp-resource-browser.c \
-		gssdp-resource-group.c
+		$(addprefix $(top_srcdir)/libgssdp/, $(libgssdpinc_HEADERS)) \
+		$(top_srcdir)/libgssdp/gssdp-client.c \
+		$(top_srcdir)/libgssdp/gssdp-error.c \
+		$(top_srcdir)/libgssdp/gssdp-protocol.h \
+		$(top_srcdir)/libgssdp/gssdp-resource-browser.c \
+		$(top_srcdir)/libgssdp/gssdp-resource-group.c
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = GSSDP-1.0.gir
