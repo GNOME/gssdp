@@ -22,7 +22,7 @@ AC_ARG_WITH( gtk,
   AC_HELP_STRING([--without-gtk],[compile without gtk+ support]),
   try_gtk=$withval, try_gtk=yes )
 
-HAVE_LIBGGTK=no
+HAVE_LIBGTK=no
 if test x$try_gtk = xyes ; then
     dnl check for gtk+
     PKG_CHECK_MODULES(LIBGTK, gtk+-2.0 >= $LIBGTK_REQUIRED ,
