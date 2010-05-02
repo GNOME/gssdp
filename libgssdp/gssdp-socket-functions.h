@@ -45,4 +45,10 @@ gssdp_socket_mcast_group_join    (GSocket       *socket,
                                   GInetAddress  *group,
                                   GInetAddress  *iface,
                                   GError       **error);
+#ifdef G_OS_WIN32
+G_GNUC_INTERNAL gboolean
+gssdp_socket_reuse_address       (GSocket *socket,
+                                  gboolean enable,
+                                  GError **error);
+#endif
 #endif

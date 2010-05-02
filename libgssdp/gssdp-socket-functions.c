@@ -143,6 +143,21 @@ gssdp_socket_mcast_interface_set (GSocket      *socket,
                                         error);
 }
 
+#ifdef G_OS_WIN32
+gboolean
+gssdp_socket_reuse_address (GSocket *socket,
+                            gboolean enable,
+                            GError **error) {
+        return gssdp_socket_option_set (socket,
+                                        SOL_SOCKET,
+                                        SO_REUSEADDR,
+                                        (char *) &enable,
+                                        sizeof (enable),
+                                        error);
+}
+#endif
+
+
 /*
  * Iface may be NULL if no special interface is wanted
  */

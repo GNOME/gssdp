@@ -250,6 +250,23 @@ gssdp_socket_source_do_init (GInitable     *initable,
                                                           SSDP_PORT);
         }
 
+#ifdef G_OS_WIN32
+        /* normally g_socket_bind does this, but it is disabled on
+         * windows since SO_REUSEADDR has different semantics
+         * there. Nevertheless, there's no way without for
+         * multicast sockets
+         */
+        if (!gssdp_socket_reuse_address (self->priv->socket,
+                                         TRUE,
+                                         &inner_error)) {
+                g_propagate_prefixed_error (
+                                error,
+                                inner_error,
+                                "Failed to enable reuse");
+
+                goto error;
+        }
+#endif
         /* Bind to requested port and address */
         if (!g_socket_bind (self->priv->socket,
                             bind_address,
