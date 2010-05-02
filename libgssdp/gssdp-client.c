@@ -39,8 +39,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #else
+#define _WIN32_WINNT 0x502
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <iphlpapi.h>
 typedef int socklen_t;
 /* from the return value of inet_addr */
 typedef unsigned long in_addr_t;
@@ -62,6 +64,10 @@ typedef unsigned long in_addr_t;
 #include "gssdp-socket-source.h"
 #include "gssdp-marshal.h"
 #include "gssdp-protocol.h"
+
+#ifndef INET6_ADDRSTRLEN
+#define INET6_ADDRSTRLEN 46
+#endif
 
 /* Size of the buffer used for reading from the socket */
 #define BUF_SIZE 1024
@@ -899,6 +905,18 @@ multicast_socket_source_cb (GIOChannel  *source,
         return socket_source_cb (client->priv->multicast_socket, client);
 }
 
+#ifdef G_OS_WIN32
+static gboolean
+is_primary_adapter (PIP_ADAPTER_ADDRESSES adapter)
+{
+        int family =
+                adapter->FirstUnicastAddress->Address.lpSockaddr->sa_family;
+
+        return !(adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK ||
+                 family == AF_INET6);
+}
+#endif
+
 /*
  * Get the host IP for the specified interface. If no interface is specified,
  * it gets the IP of the first up & running interface and sets @interface
@@ -908,7 +926,97 @@ static char *
 get_host_ip (char **iface)
 {
 #ifdef G_OS_WIN32
-        return g_strdup ("127.0.0.1");
+        char *addr = NULL;
+        GList *up_ifaces = NULL, *ifaceptr = NULL;
+        ULONG flags = GAA_FLAG_INCLUDE_PREFIX |
+                      GAA_FLAG_SKIP_DNS_SERVER |
+                      GAA_FLAG_SKIP_MULTICAST;
+        DWORD size = 15360; /* Use 15k buffer initially as documented in MSDN */
+        DWORD ret;
+        PIP_ADAPTER_ADDRESSES adapters_addresses;
+        PIP_ADAPTER_ADDRESSES adapter;
+
+        do {
+                adapters_addresses = (PIP_ADAPTER_ADDRESSES) g_malloc0 (size);
+                ret = GetAdaptersAddresses (AF_UNSPEC,
+                                            flags,
+                                            NULL,
+                                            adapters_addresses,
+                                            &size);
+                if (ret == ERROR_BUFFER_OVERFLOW)
+                        g_free (adapters_addresses);
+        } while (ret == ERROR_BUFFER_OVERFLOW);
+
+        if (ret == ERROR_SUCCESS)
+                for (adapter = adapters_addresses;
+                     adapter != NULL;
+                     adapter = adapter->Next) {
+                        if (adapter->FirstUnicastAddress == NULL)
+                                continue;
+                        if (adapter->OperStatus != IfOperStatusUp)
+                                continue;
+                        /* skip Point-to-Point devices */
+                        if (adapter->IfType == IF_TYPE_PPP)
+                                continue;
+
+                        if (*iface != NULL &&
+                            strcmp (*iface, adapter->AdapterName) != 0)
+                                continue;
+
+                        /* I think that IPv6 is done via pseudo-adapters, so
+                         * that there are either IPv4 or IPv6 addresses defined
+                         * on the adapter.
+                         * Loopback-Devices and IPv6 go to the end of the list,
+                         * IPv4 to the front
+                         */
+                        if (is_primary_adapter (adapter))
+                                up_ifaces = g_list_prepend (up_ifaces, adapter);
+                        else
+                                up_ifaces = g_list_append (up_ifaces, adapter);
+                }
+
+        for (ifaceptr = up_ifaces;
+             ifaceptr != NULL;
+             ifaceptr = ifaceptr->next) {
+                char ip[INET6_ADDRSTRLEN];
+                DWORD len = INET6_ADDRSTRLEN;
+                const char *p = NULL;
+                PIP_ADAPTER_ADDRESSES adapter;
+                SOCKET_ADDRESS unicast_address;
+
+                adapter = (PIP_ADAPTER_ADDRESSES) ifaceptr->data;
+                unicast_address = adapter->FirstUnicastAddress->Address;
+
+                switch (unicast_address.lpSockaddr->sa_family) {
+                        case AF_INET:
+                        case AF_INET6:
+                                ret = WSAAddressToStringA (
+                                        unicast_address.lpSockaddr,
+                                        unicast_address.iSockaddrLength,
+                                        NULL,
+                                        ip,
+                                        &len);
+                                if (ret == 0)
+                                        p = ip;
+
+                                break;
+                        default:
+                                continue;
+                }
+
+                if (p != NULL) {
+                        addr = g_strdup (p);
+                        if (*iface == NULL)
+                                *iface = g_strdup (adapter->AdapterName);
+
+                        break;
+                }
+
+        }
+        g_list_free (up_ifaces);
+        g_free (adapters_addresses);
+
+        return addr;
 #else
         struct ifaddrs *ifa_list, *ifa;
         char *ret;

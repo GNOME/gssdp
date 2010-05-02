@@ -50,7 +50,7 @@ libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
 
 if OS_WIN32
 
-libgssdp_1_0_la_LIBADD += -lws2_32
+libgssdp_1_0_la_LIBADD += -lws2_32 -liphlpapi
 libgssdp_1_0_la_LDFLAGS += -no-undefined
 endif
 
