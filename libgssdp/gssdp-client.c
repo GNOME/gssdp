@@ -98,9 +98,13 @@ gssdp_client_set_main_context (GSSDPClient  *client,
 static char *
 make_server_id                (void);
 static gboolean
-request_socket_source_cb      (gpointer      user_data);
+request_socket_source_cb      (GIOChannel   *source,
+                               GIOCondition  condition,
+                               gpointer      user_data);
 static gboolean
-multicast_socket_source_cb    (gpointer      user_data);
+multicast_socket_source_cb    (GIOChannel   *source,
+                               GIOCondition  condition,
+                               gpointer      user_data);
 static gboolean
 init_network_info             (GSSDPClient  *client);
 
@@ -122,6 +126,7 @@ static void
 gssdp_client_constructed (GObject *object)
 {
         GSSDPClient *client = GSSDP_CLIENT (object);
+        GError *error = NULL;
 
         /* Make sure all network info is available to us */
         if (!init_network_info (client))
@@ -130,11 +135,12 @@ gssdp_client_constructed (GObject *object)
         /* Set up sockets (Will set errno if it failed) */
         client->priv->request_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                                         gssdp_client_get_host_ip (client));
+                                         gssdp_client_get_host_ip (client),
+                                         &error);
         if (client->priv->request_socket != NULL) {
                 g_source_set_callback
-                        ((GSource *) client->priv->request_socket,
-                         request_socket_source_cb,
+                        (client->priv->request_socket->source,
+                         (GSourceFunc) request_socket_source_cb,
                          client,
                          NULL);
         } else {
@@ -143,33 +149,31 @@ gssdp_client_constructed (GObject *object)
 
         client->priv->multicast_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
-                                         gssdp_client_get_host_ip (client));
+                                         gssdp_client_get_host_ip (client),
+                                         &error);
         if (client->priv->multicast_socket != NULL) {
                 g_source_set_callback
-                        ((GSource *) client->priv->multicast_socket,
-                         multicast_socket_source_cb,
+                        (client->priv->multicast_socket->source,
+                         (GSourceFunc) multicast_socket_source_cb,
                          client,
                          NULL);
         }
 
  errors:
         if (!client->priv->request_socket || !client->priv->multicast_socket) {
-                if (client->priv->error)
-                        g_set_error_literal (client->priv->error,
-                                             GSSDP_ERROR,
-                                             GSSDP_ERROR_FAILED,
-                                             g_strerror (errno));
-
+                if (client->priv->error) {
+                        g_propagate_error (client->priv->error, error);
+                }
                 return;
         }
 
-        g_source_attach ((GSource *) client->priv->request_socket,
+        g_source_attach (client->priv->request_socket->source,
                          client->priv->main_context);
-        g_source_unref ((GSource *) client->priv->request_socket);
+        g_source_unref (client->priv->request_socket->source);
 
-        g_source_attach ((GSource *) client->priv->multicast_socket,
+        g_source_attach (client->priv->multicast_socket->source,
                          client->priv->main_context);
-        g_source_unref ((GSource *) client->priv->multicast_socket);
+        g_source_unref (client->priv->multicast_socket->source);
 }
 
 static void
@@ -254,12 +258,12 @@ gssdp_client_dispose (GObject *object)
 
         /* Destroy the SocketSources */
         if (client->priv->request_socket) {
-                g_source_destroy ((GSource *) client->priv->request_socket);
+                gssdp_socket_source_destroy (client->priv->request_socket);
                 client->priv->request_socket = NULL;
         }
 
         if (client->priv->multicast_socket) {
-                g_source_destroy ((GSource *) client->priv->multicast_socket);
+                gssdp_socket_source_destroy (client->priv->multicast_socket);
                 client->priv->multicast_socket = NULL;
         }
 
@@ -583,8 +587,11 @@ _gssdp_client_send_message (GSSDPClient *client,
                             gushort      dest_port,
                             const char  *message)
 {
-        struct sockaddr_in addr;
-        int socket_fd, res;
+        gssize res;
+        GError *error = NULL;
+        GSocket *socket = NULL;
+        GInetAddress *inet_address = NULL;
+        GSocketAddress *address = NULL;
 
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         g_return_if_fail (message != NULL);
@@ -601,25 +608,24 @@ _gssdp_client_send_message (GSSDPClient *client,
         if (dest_port == 0)
                 dest_port = SSDP_PORT;
 
-        socket_fd = gssdp_socket_source_get_fd (client->priv->request_socket);
-
-        memset (&addr, 0, sizeof (addr));
-
-        addr.sin_family      = AF_INET;
-        addr.sin_port        = htons (dest_port);
-        addr.sin_addr.s_addr = inet_addr (dest_ip);
-
-        res = sendto (socket_fd,
-                      message,
-                      strlen (message),
-                      0,
-                      (struct sockaddr *) &addr,
-                      sizeof (addr));
+        inet_address = g_inet_address_new_from_string (dest_ip);
+        address = g_inet_socket_address_new (inet_address, dest_port);
+        socket = gssdp_socket_source_get_socket (client->priv->request_socket);
+        res = g_socket_send_to (socket,
+                                address,
+                                message,
+                                strlen (message),
+                                NULL,
+                                &error);
 
         if (res == -1) {
-                g_warning ("sendto: Error %d sending message: %s",
-                           errno, strerror (errno));
+                g_warning ("g_socket_sendto: Error sending message %s: %s",
+                           message, error->message);
+                g_error_free (error);
         }
+
+        g_object_unref (address);
+        g_object_unref (inet_address);
 }
 
 /**
@@ -710,34 +716,35 @@ parse_http_response (char                *buf,
  * Called when data can be read from the socket
  **/
 static gboolean
-socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
+socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
 {
-        int fd, type, len;
-        ssize_t bytes;
+        int type, len;
         char buf[BUF_SIZE], *end;
-        struct sockaddr_in addr;
-        socklen_t addr_size;
         SoupMessageHeaders *headers;
-        struct in_addr our_addr;
-        in_addr_t our_network;
+        GSocket *socket;
+        GSocketAddress *address = NULL;
+        gssize bytes;
+        GInetAddress *inetaddr;
+        char *ip_string;
+        guint16 port;
+        GError *error = NULL;
         in_addr_t recv_network;
+        in_addr_t our_network;
+        struct in_addr our_addr;
+        struct sockaddr_in addr;
 
-        /* Get FD */
-        fd = gssdp_socket_source_get_fd (socket);
-
-        /* Read data */
-        addr_size = sizeof (addr);
-        
-        bytes = recvfrom (fd,
-                          buf,
-                          BUF_SIZE - 1, /* Leave space for trailing \0 */
-                          MSG_TRUNC,
-                          (struct sockaddr *) &addr,
-                          &addr_size);
+        /* Get Socket */
+        socket = gssdp_socket_source_get_socket (socket_source);
+        bytes = g_socket_receive_from (socket,
+                                       &address,
+                                       buf,
+                                       BUF_SIZE - 1,
+                                       NULL,
+                                       &error);
         if (bytes == -1) {
-                g_warning ("Failed to read from socket: %d (%s)",
-                           errno,
-                           strerror (errno));
+                g_warning ("Failed to receive from socket: %s",
+                           error->message);
+                g_error_free (error);
 
                 return TRUE;
         }
@@ -748,6 +755,18 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
          * on this socket from a particular interface but AFAIK that is not
          * possible, at least not in a portable way.
          */
+
+        if (!g_socket_address_to_native (address,
+                                         &addr,
+                                         sizeof (struct sockaddr_in),
+                                         &error)) {
+                g_warning ("Could not convert address to native: %s",
+                           error->message);
+                g_error_free (error);
+
+                return TRUE;
+        }
+
         recv_network = inet_netof (addr.sin_addr);
         our_addr.s_addr = inet_addr (gssdp_client_get_host_ip (client));
         our_network = inet_netof (our_addr);
@@ -755,6 +774,7 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
                 return TRUE;
 
         if (bytes >= BUF_SIZE) {
+                g_object_unref (address);
                 g_warning ("Received packet of %u bytes, but the maximum "
                            "buffer size is %d. Packed dropped.",
                            (unsigned int) bytes, BUF_SIZE);
@@ -768,6 +788,7 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
         /* Find length */
         end = strstr (buf, "\r\n\r\n");
         if (!end) {
+                g_object_unref (address);
                 g_warning ("Received packet lacks \"\\r\\n\\r\\n\" sequence. "
                            "Packed dropped.");
 
@@ -793,24 +814,36 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
         }
         
         /* Emit signal if parsing succeeded */
+        inetaddr = g_inet_socket_address_get_address (
+                                        G_INET_SOCKET_ADDRESS (address));
+        ip_string = g_inet_address_to_string (inetaddr);
+        port = g_inet_socket_address_get_port (
+                                        G_INET_SOCKET_ADDRESS (address));
         if (type >= 0) {
                 g_signal_emit (client,
                                signals[MESSAGE_RECEIVED],
                                0,
-                               inet_ntoa (addr.sin_addr),
-                               ntohs (addr.sin_port),
+                               ip_string,
+                               port,
                                type,
                                headers);
         }
 
+        if (ip_string)
+                g_free (ip_string);
+
         if (headers)
                 soup_message_headers_free (headers);
+
+        g_object_unref (address);
 
         return TRUE;
 }
 
 static gboolean
-request_socket_source_cb (gpointer user_data)
+request_socket_source_cb (GIOChannel  *source,
+                          GIOCondition condition,
+                          gpointer     user_data)
 {
         GSSDPClient *client;
 
@@ -820,7 +853,9 @@ request_socket_source_cb (gpointer user_data)
 }
 
 static gboolean
-multicast_socket_source_cb (gpointer user_data)
+multicast_socket_source_cb (GIOChannel  *source,
+                            GIOCondition condition,
+                            gpointer     user_data)
 {
         GSSDPClient *client;
 

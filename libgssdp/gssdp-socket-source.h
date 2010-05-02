@@ -1,7 +1,9 @@
 /* 
  * Copyright (C) 2006, 2007, 2008 OpenedHand Ltd.
+ * Copyright (C) 2010 Jens Georg <mail@jensge.org>
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
+ *         Jens Georg <mail@jensge.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -22,7 +24,14 @@
 #ifndef __GSSDP_SOCKET_SOURCE_H__
 #define __GSSDP_SOCKET_SOURCE_H__
 
+#include <gio/gio.h>
+
 G_BEGIN_DECLS
+
+struct _GSSDPSocketSource {
+        GSource    *source;
+        GSocket    *socket;
+};
 
 typedef struct _GSSDPSocketSource GSSDPSocketSource;
 
@@ -32,11 +41,14 @@ typedef enum {
 } GSSDPSocketSourceType;
 
 G_GNUC_INTERNAL GSSDPSocketSource *
-gssdp_socket_source_new    (GSSDPSocketSourceType type,
-                            const char           *host_ip);
+gssdp_socket_source_new        (GSSDPSocketSourceType  type,
+                                const char            *host_ip,
+                                GError               **error);
+G_GNUC_INTERNAL void
+gssdp_socket_source_destroy    (GSSDPSocketSource     *socket_source);
 
-G_GNUC_INTERNAL int
-gssdp_socket_source_get_fd (GSSDPSocketSource    *socket_source);
+G_GNUC_INTERNAL GSocket*
+gssdp_socket_source_get_socket (GSSDPSocketSource     *socket_source);
 
 G_END_DECLS
 
