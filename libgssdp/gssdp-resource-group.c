@@ -264,6 +264,8 @@ gssdp_resource_group_dispose (GObject *object)
                 g_object_unref (priv->client);
                 priv->client = NULL;
         }
+
+        G_OBJECT_CLASS (gssdp_resource_group_parent_class)->dispose (object);
 }
 
 static void

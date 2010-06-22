@@ -221,6 +221,8 @@ gssdp_resource_browser_dispose (GObject *object)
         }
 
         clear_cache (resource_browser);
+
+        G_OBJECT_CLASS (gssdp_resource_browser_parent_class)->dispose (object);
 }
 
 static void
@@ -236,6 +238,8 @@ gssdp_resource_browser_finalize (GObject *object)
         g_free (resource_browser->priv->target);
 
         g_hash_table_destroy (resource_browser->priv->resources);
+
+        G_OBJECT_CLASS (gssdp_resource_browser_parent_class)->finalize (object);
 }
 
 static void

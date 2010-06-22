@@ -268,6 +268,8 @@ gssdp_client_dispose (GObject *object)
                 g_main_context_unref (client->priv->main_context);
                 client->priv->main_context = NULL;
         }
+
+        G_OBJECT_CLASS (gssdp_client_parent_class)->dispose (object);
 }
 
 static void
@@ -280,6 +282,8 @@ gssdp_client_finalize (GObject *object)
         g_free (client->priv->server_id);
         g_free (client->priv->interface);
         g_free (client->priv->host_ip);
+
+        G_OBJECT_CLASS (gssdp_client_parent_class)->finalize (object);
 }
 
 static void
