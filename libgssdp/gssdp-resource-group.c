@@ -755,7 +755,7 @@ message_received_cb (GSSDPClient        *client,
                 return;
 
         /* Extract target */
-        target = soup_message_headers_get (headers, "ST");
+        target = soup_message_headers_get_one (headers, "ST");
         if (!target) {
                 g_warning ("Discovery request did not have an ST header");
 
@@ -766,7 +766,7 @@ message_received_cb (GSSDPClient        *client,
         want_all = (strcmp (target, GSSDP_ALL_RESOURCES) == 0);
 
         /* Extract MX */
-        mx_str = soup_message_headers_get (headers, "MX");
+        mx_str = soup_message_headers_get_one (headers, "MX");
         if (mx_str)
                 mx = atoi (mx_str);
         else

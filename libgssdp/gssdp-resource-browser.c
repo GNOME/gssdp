@@ -607,7 +607,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         GList *locations;
         GMainContext *context;
 
-        usn = soup_message_headers_get (headers, "USN");
+        usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
 
@@ -633,7 +633,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         }
 
         /* Calculate new timeout */
-        header = soup_message_headers_get (headers, "Cache-Control");
+        header = soup_message_headers_get_one (headers, "Cache-Control");
         if (header) {
                 GSList *list;
                 int res;
@@ -664,7 +664,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         } else {
                 const char *expires;
 
-                expires = soup_message_headers_get (headers, "Expires");
+                expires = soup_message_headers_get_one (headers, "Expires");
                 if (expires) {
                         SoupDate *soup_exp_time;
                         time_t exp_time, cur_time;
@@ -714,11 +714,11 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         /* Build list of locations */
         locations = NULL;
 
-        header = soup_message_headers_get (headers, "Location");
+        header = soup_message_headers_get_one (headers, "Location");
         if (header)
                 locations = g_list_append (locations, g_strdup (header));
 
-        header = soup_message_headers_get (headers, "AL");
+        header = soup_message_headers_get_one (headers, "AL");
         if (header) {
                 /* Parse AL header. The format is:
                  * <uri1><uri2>... */
@@ -763,7 +763,7 @@ resource_unavailable (GSSDPResourceBrowser *resource_browser,
 {
         const char *usn;
 
-        usn = soup_message_headers_get (headers, "USN");
+        usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
 
@@ -797,7 +797,7 @@ received_discovery_response (GSSDPResourceBrowser *resource_browser,
 {
         const char *st;
 
-        st = soup_message_headers_get (headers, "ST");
+        st = soup_message_headers_get_one (headers, "ST");
         if (!st)
                 return; /* No target specified */
 
@@ -813,14 +813,14 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
 {
         const char *header;
 
-        header = soup_message_headers_get (headers, "NT");
+        header = soup_message_headers_get_one (headers, "NT");
         if (!header)
                 return; /* No target specified */
 
         if (!check_target_compat (resource_browser, header))
                 return; /* Target doesn't match */
 
-        header = soup_message_headers_get (headers, "NTS");
+        header = soup_message_headers_get_one (headers, "NTS");
         if (!header)
                 return; /* No announcement type specified */
 
