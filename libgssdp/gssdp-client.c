@@ -713,7 +713,7 @@ static gboolean
 socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
 {
         int fd, type, len;
-        size_t bytes;
+        ssize_t bytes;
         char buf[BUF_SIZE], *end;
         struct sockaddr_in addr;
         socklen_t addr_size;
@@ -734,6 +734,13 @@ socket_source_cb (GSSDPSocketSource *socket, GSSDPClient *client)
                           MSG_TRUNC,
                           (struct sockaddr *) &addr,
                           &addr_size);
+        if (bytes == -1) {
+                g_warning ("Failed to read from socket: %d (%s)",
+                           errno,
+                           strerror (errno));
+
+                return TRUE;
+        }
 
         /* We need the following lines to make sure the right client received
          * the packet. We won't need to do this if there was any way to tell
