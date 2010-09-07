@@ -24,31 +24,67 @@
 #ifndef __GSSDP_SOCKET_SOURCE_H__
 #define __GSSDP_SOCKET_SOURCE_H__
 
+#include <glib-object.h>
+
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
 
-struct _GSSDPSocketSource {
-        GSource    *source;
-        GSocket    *socket;
-};
+#define GSSDP_TYPE_SOCKET_SOURCE \
+                (gssdp_socket_source_get_type ())
+#define GSSDP_SOCKET_SOURCE(obj) \
+                (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
+                 GSSDP_TYPE_SOCKET_SOURCE, \
+                 GSSDPSocketSource))
+#define GSSDP_SOCKET_SOURCE_CLASS(klass) \
+                (G_TYPE_CHECK_CLASS_CAST ((klass), \
+                 GSSDP_TYPE_SOCKET_SOURCE, \
+                 GSSDPSocketSourceClass))
+#define GSSDP_IS_SOCKET_SOURCE(obj) \
+                (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
+                 GSSDP_TYPE_SOCKET_SOURCE))
+#define GSSDP_IS_SOCKET_SOURCE_CLASS(klass) \
+                (G_TYPE_CHECK_CLASS_TYPE ((klass), \
+                 GSSDP_TYPE_SOCKET_SOURCE))
+#define GSSDP_SOCKET_SOURCE_GET_CLASS(obj) \
+                (G_TYPE_INSTANCE_GET_CLASS ((obj), \
+                 GSSDP_TYPE_SOCKET_SOURCE, \
+                 GSSDPSocketSourceClass))
 
-typedef struct _GSSDPSocketSource GSSDPSocketSource;
+typedef struct _GSSDPSocketSourcePrivate GSSDPSocketSourcePrivate;
 
 typedef enum {
         GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
         GSSDP_SOCKET_SOURCE_TYPE_MULTICAST
 } GSSDPSocketSourceType;
 
+
+
+typedef struct _GSSDPSocketSource {
+        GObject                   parent;
+
+        GSSDPSocketSourcePrivate *priv;
+} GSSDPSocketSource;
+
+typedef struct _GSSDPSocketSourceClass {
+        GObjectClass parent_class;
+} GSSDPSocketSourceClass;
+
 G_GNUC_INTERNAL GSSDPSocketSource *
 gssdp_socket_source_new        (GSSDPSocketSourceType  type,
                                 const char            *host_ip,
                                 GError               **error);
-G_GNUC_INTERNAL void
-gssdp_socket_source_destroy    (GSSDPSocketSource     *socket_source);
-
 G_GNUC_INTERNAL GSocket*
 gssdp_socket_source_get_socket (GSSDPSocketSource     *socket_source);
+
+G_GNUC_INTERNAL void
+gssdp_socket_source_set_callback (GSSDPSocketSource   *socket_source,
+                                  GSourceFunc          callback,
+                                  gpointer             user_data);
+
+G_GNUC_INTERNAL void
+gssdp_socket_source_attach       (GSSDPSocketSource   *socket_source,
+                                  GMainContext        *context);
 
 G_END_DECLS
 
