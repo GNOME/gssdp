@@ -27,7 +27,7 @@ G_BEGIN_DECLS
 typedef struct _GSSDPSocketSource GSSDPSocketSource;
 
 typedef enum {
-        GSSPP_SOCKET_SOURCE_TYPE_REQUEST,
+        GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
         GSSDP_SOCKET_SOURCE_TYPE_MULTICAST
 } GSSDPSocketSourceType;
 

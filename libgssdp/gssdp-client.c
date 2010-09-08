@@ -129,7 +129,7 @@ gssdp_client_constructed (GObject *object)
 
         /* Set up sockets (Will set errno if it failed) */
         client->priv->request_socket =
-                gssdp_socket_source_new (GSSPP_SOCKET_SOURCE_TYPE_REQUEST,
+                gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
                                          gssdp_client_get_host_ip (client));
         if (client->priv->request_socket != NULL) {
                 g_source_set_callback
