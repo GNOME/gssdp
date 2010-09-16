@@ -1,3 +1,25 @@
+0.8.0
+=====
+
+- Chain up in dispose() and finalize() all classes.
+- Flag string arg of GSSDPClient signal as static.
+- Don't use deprecated libsoup API.
+- Properly catch errors in recvfrom syscall.
+- Fix some typos.
+
+Bugs fixed in this release:
+
+2194 - Typo in gssdp_socket_source
+2193 - Errors caught in recvfrom by pure luck
+2090 - 0.7.2 Typo in configure.ac
+
+All Contributors:
+
+Sven Neumann <s.neumann@raumfeld.com>
+Jens Georg <mail@jensge.org>
+Ross Burton <ross@linux.intel.com>
+Berrie Bloem <berrie@codevio.com>
+
 0.7.2
 =====
 
