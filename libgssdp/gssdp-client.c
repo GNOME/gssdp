@@ -138,7 +138,7 @@ gssdp_client_constructed (GObject *object)
                          client,
                          NULL);
         } else {
-          goto errors;
+                goto errors;
         }
 
         client->priv->multicast_socket =
