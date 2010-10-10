@@ -648,8 +648,9 @@ _gssdp_client_send_message (GSSDPClient *client,
                                 &error);
 
         if (res == -1) {
-                g_warning ("g_socket_sendto: Error sending message %s: %s",
-                           message, error->message);
+                g_warning ("Error sending SSDP packet to %s: %s",
+                           dest_ip,
+                           error->message);
                 g_error_free (error);
         }
 
