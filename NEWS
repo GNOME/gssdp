@@ -1,3 +1,18 @@
+0.8.1
+=====
+
+- Fix build rules of test application for gold linker.
+- Don't include private header in a public header.
+
+Bugs fixed in this release:
+
+2196 - gssdp fails to link with the gold linker.
+
+All Contributors:
+
+Ross Burton <ross@linux.intel.com>
+Zeeshan Ali <zeeshanak@gnome.org>
+
 0.8.0
 =====
 
