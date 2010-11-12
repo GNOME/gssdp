@@ -22,8 +22,6 @@
 #ifndef __GSSDP_PROTOCOL_H__
 #define __GSSDP_PROTOCOL_H__
 
-#include <config.h>
-
 G_BEGIN_DECLS
 
 #define SSDP_ADDR "239.255.255.250"
