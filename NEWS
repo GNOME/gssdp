@@ -1,3 +1,20 @@
+0.9.0
+=====
+
+This release marks the beginning of the new unstable 0.9.x release cycle.
+Changes after 0.8.0 that were not included in the subsequent stable release:
+
+- Port to GIO/GSocket.
+- Port to Windows.
+- Don't print the whole packet on failure to send it.
+- Some other non-functional improvements and fixes.
+
+All Contributors:
+
+Jens Georg <mail@jensge.org>
+Ross Burton <ross@linux.intel.com>
+Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+
 0.8.0
 =====
 
