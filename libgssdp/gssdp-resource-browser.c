@@ -581,16 +581,23 @@ static gboolean
 resource_expire (gpointer user_data)
 {
         Resource *resource;
+        char *usn;
 
         resource = user_data;
-        
+
+        /* Steal the USN pointer from the resource as we need it for the signal
+         * emission.
+         */
+        usn = resource->usn;
+        resource->usn = NULL;
+
+        g_hash_table_remove (resource->resource_browser->priv->resources, usn);
+
         g_signal_emit (resource->resource_browser,
                        signals[RESOURCE_UNAVAILABLE],
                        0,
-                       resource->usn);
-
-        g_hash_table_remove (resource->resource_browser->priv->resources,
-                             resource->usn);
+                       usn);
+        g_free (usn);
 
         return FALSE;
 }
