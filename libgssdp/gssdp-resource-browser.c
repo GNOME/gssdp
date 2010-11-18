@@ -778,12 +778,12 @@ resource_unavailable (GSSDPResourceBrowser *resource_browser,
         if (!g_hash_table_lookup (resource_browser->priv->resources, usn))
                 return;
 
+        g_hash_table_remove (resource_browser->priv->resources, usn);
+
         g_signal_emit (resource_browser,
                        signals[RESOURCE_UNAVAILABLE],
                        0,
                        usn);
-
-        g_hash_table_remove (resource_browser->priv->resources, usn);
 }
 
 static gboolean
