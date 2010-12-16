@@ -580,10 +580,12 @@ gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser)
 static gboolean
 resource_expire (gpointer user_data)
 {
+        GSSDPResourceBrowser *resource_browser;
         Resource *resource;
         char *usn;
 
         resource = user_data;
+        resource_browser = resource->resource_browser;
 
         /* Steal the USN pointer from the resource as we need it for the signal
          * emission.
@@ -593,7 +595,7 @@ resource_expire (gpointer user_data)
 
         g_hash_table_remove (resource->resource_browser->priv->resources, usn);
 
-        g_signal_emit (resource->resource_browser,
+        g_signal_emit (resource_browser,
                        signals[RESOURCE_UNAVAILABLE],
                        0,
                        usn);
