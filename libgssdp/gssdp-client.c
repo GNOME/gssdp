@@ -778,12 +778,12 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
 {
         int type, len;
         char buf[BUF_SIZE], *end;
-        SoupMessageHeaders *headers;
+        SoupMessageHeaders *headers = NULL;
         GSocket *socket;
         GSocketAddress *address = NULL;
         gssize bytes;
         GInetAddress *inetaddr;
-        char *ip_string;
+        char *ip_string = NULL;
         guint16 port;
         GError *error = NULL;
         in_addr_t recv_network;
@@ -802,9 +802,8 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         if (bytes == -1) {
                 g_warning ("Failed to receive from socket: %s",
                            error->message);
-                g_error_free (error);
 
-                return TRUE;
+                goto out;
         }
 
         /* We need the following lines to make sure the right client received
@@ -820,24 +819,22 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                                          &error)) {
                 g_warning ("Could not convert address to native: %s",
                            error->message);
-                g_error_free (error);
 
-                return TRUE;
+                goto out;
         }
 
         recv_network = inet_netof (addr.sin_addr);
         our_addr.s_addr = inet_addr (gssdp_client_get_host_ip (client));
         our_network = inet_netof (our_addr);
         if (recv_network != our_network)
-                return TRUE;
+                goto out;
 
         if (bytes >= BUF_SIZE) {
-                g_object_unref (address);
                 g_warning ("Received packet of %u bytes, but the maximum "
                            "buffer size is %d. Packed dropped.",
                            (unsigned int) bytes, BUF_SIZE);
 
-                return TRUE;
+                goto out;
         }
 
         /* Add trailing \0 */
@@ -846,11 +843,10 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         /* Find length */
         end = strstr (buf, "\r\n\r\n");
         if (!end) {
-                g_object_unref (address);
                 g_warning ("Received packet lacks \"\\r\\n\\r\\n\" sequence. "
                            "Packed dropped.");
 
-                return TRUE;
+                goto out;
         }
 
         len = end - buf + 2;
@@ -887,13 +883,18 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                                headers);
         }
 
+out:
+        if (error)
+                g_error_free (error);
+
         if (ip_string)
                 g_free (ip_string);
 
         if (headers)
                 soup_message_headers_free (headers);
 
-        g_object_unref (address);
+        if (address)
+                g_object_unref (address);
 
         return TRUE;
 }
