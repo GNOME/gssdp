@@ -64,9 +64,11 @@ GSSDP-1.0.gir: libgssdp-1.0.la $(INTROSPECTION_SCANNER)
 	$(INTROSPECTION_SCANNER) -v \
 		--namespace=GSSDP --nsversion=1.0 \
                 --include=GObject-2.0 \
+                --include=Gio-2.0 \
 		--library=$< \
 		--libtool="$(top_builddir)/libtool" \
 		--pkg gobject-2.0 \
+		--pkg gio-2.0 \
 		--output $@ \
 		-I$(top_srcdir) \
 		$(addprefix $(top_srcdir)/libgssdp/, $(libgssdpinc_HEADERS)) \

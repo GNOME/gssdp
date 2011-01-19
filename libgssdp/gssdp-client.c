@@ -72,9 +72,17 @@ typedef unsigned long in_addr_t;
 /* Size of the buffer used for reading from the socket */
 #define BUF_SIZE 1024
 
-G_DEFINE_TYPE (GSSDPClient,
-               gssdp_client,
-               G_TYPE_OBJECT);
+static void
+gssdp_client_initable_iface_init (gpointer g_iface,
+                                  gpointer iface_data);
+
+G_DEFINE_TYPE_EXTENDED (GSSDPClient,
+                        gssdp_client,
+                        G_TYPE_OBJECT,
+                        0,
+                        G_IMPLEMENT_INTERFACE
+                                (G_TYPE_INITABLE,
+                                 gssdp_client_initable_iface_init));
 
 struct _GSSDPClientPrivate {
         GMainContext      *main_context;
@@ -83,8 +91,6 @@ struct _GSSDPClientPrivate {
         char              *iface;
         char              *host_ip;
         char              *network;
-
-        GError            **error;
 
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
@@ -99,8 +105,7 @@ enum {
         PROP_IFACE,
         PROP_NETWORK,
         PROP_HOST_IP,
-        PROP_ACTIVE,
-        PROP_ERROR
+        PROP_ACTIVE
 };
 
 enum {
@@ -125,7 +130,13 @@ multicast_socket_source_cb    (GIOChannel   *source,
                                GIOCondition  condition,
                                gpointer      user_data);
 static gboolean
-init_network_info             (GSSDPClient  *client);
+init_network_info             (GSSDPClient  *client,
+                               GError      **error);
+
+static gboolean
+gssdp_client_initable_init    (GInitable     *initable,
+                               GCancellable  *cancellable,
+                               GError       **error);
 
 static void
 gssdp_client_init (GSSDPClient *client)
@@ -142,33 +153,45 @@ gssdp_client_init (GSSDPClient *client)
 }
 
 static void
-gssdp_client_constructed (GObject *object)
+gssdp_client_initable_iface_init (gpointer g_iface,
+                                  gpointer iface_data)
 {
-        GSSDPClient *client = GSSDP_CLIENT (object);
-        GError *error = NULL;
+        GInitableIface *iface = (GInitableIface *)g_iface;
+        iface->init = gssdp_client_initable_init;
+}
+
+static gboolean
+gssdp_client_initable_init (GInitable     *initable,
+                            GCancellable  *cancellable,
+                            GError       **error)
+{
+        GSSDPClient *client = GSSDP_CLIENT (initable);
+        GError *internal_error = NULL;
 #ifdef G_OS_WIN32
         WSADATA wsaData = {0};
         if (WSAStartup (MAKEWORD (2,2), &wsaData) != 0) {
                 gchar *message;
 
                 message = g_win32_error_message (WSAGetLastError ());
-                g_set_error_literal (client->priv->error,
+                g_set_error_literal (error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_FAILED,
                                      message);
                 g_free (message);
+
+                return FALSE;
         }
 #endif
 
         /* Make sure all network info is available to us */
-        if (!init_network_info (client))
-                return;
+        if (!init_network_info (client, &internal_error))
+                goto errors;
 
         /* Set up sockets (Will set errno if it failed) */
         client->priv->request_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
                                          gssdp_client_get_host_ip (client),
-                                         &error);
+                                         &internal_error);
         if (client->priv->request_socket != NULL) {
                 gssdp_socket_source_set_callback
                         (client->priv->request_socket,
@@ -181,7 +204,7 @@ gssdp_client_constructed (GObject *object)
         client->priv->multicast_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
                                          gssdp_client_get_host_ip (client),
-                                         &error);
+                                         &internal_error);
         if (client->priv->multicast_socket != NULL) {
                 gssdp_socket_source_set_callback
                         (client->priv->multicast_socket,
@@ -191,8 +214,9 @@ gssdp_client_constructed (GObject *object)
 
  errors:
         if (!client->priv->request_socket || !client->priv->multicast_socket) {
-                        g_propagate_error (client->priv->error, error);
-                return;
+                g_propagate_error (error, internal_error);
+
+                return FALSE;
         }
 
         gssdp_socket_source_attach (client->priv->request_socket,
@@ -200,6 +224,8 @@ gssdp_client_constructed (GObject *object)
 
         gssdp_socket_source_attach (client->priv->multicast_socket,
                                     client->priv->main_context);
+
+        return TRUE;
 }
 
 static void
@@ -263,9 +289,6 @@ gssdp_client_set_property (GObject      *object,
         case PROP_MAIN_CONTEXT:
                 gssdp_client_set_main_context (client,
                                                g_value_get_pointer (value));
-                break;
-        case PROP_ERROR:
-                client->priv->error = g_value_get_pointer (value);
                 break;
         case PROP_IFACE:
                 client->priv->iface = g_value_dup_string (value);
@@ -334,7 +357,6 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 
 	object_class = G_OBJECT_CLASS (klass);
 
-	object_class->constructed = gssdp_client_constructed;
 	object_class->set_property = gssdp_client_set_property;
 	object_class->get_property = gssdp_client_get_property;
 	object_class->dispose      = gssdp_client_dispose;
@@ -372,25 +394,6 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           "Main context",
                           "The associated GMainContext.",
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
-                          G_PARAM_STATIC_BLURB));
-
-        /**
-         * GSSDPClient:error
-         *
-         * Internal property.
-         *
-         * Stability: Private
-         **/
-        g_object_class_install_property
-                (object_class,
-                 PROP_ERROR,
-                 g_param_spec_pointer
-                         ("error",
-                          "Error",
-                          "Location where to store the constructor GError, "
-                          "if any.",
-                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
@@ -512,11 +515,12 @@ gssdp_client_new (GMainContext *main_context,
                   const char   *iface,
                   GError      **error)
 {
-        return g_object_new (GSSDP_TYPE_CLIENT,
-                             "main-context", main_context,
-                             "interface", iface,
-                             "error", error,
-                             NULL);
+        return g_initable_new (GSSDP_TYPE_CLIENT,
+                               NULL,
+                               error,
+                               "main-context", main_context,
+                               "interface", iface,
+                               NULL);
 }
 
 /**
@@ -1239,7 +1243,7 @@ get_host_ip (char **iface, char **network)
 }
 
 static gboolean
-init_network_info (GSSDPClient *client)
+init_network_info (GSSDPClient *client, GError **error)
 {
         gboolean ret = TRUE;
 
@@ -1249,14 +1253,14 @@ init_network_info (GSSDPClient *client)
                                      &client->priv->network);
 
         if (client->priv->iface == NULL) {
-                g_set_error_literal (client->priv->error,
+                g_set_error_literal (error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_FAILED,
                                      "No default route?");
 
                 ret = FALSE;
         } else if (client->priv->host_ip == NULL) {
-                        g_set_error (client->priv->error,
+                        g_set_error (error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_NO_IP_ADDRESS,
                                      "Failed to find IP of interface %s",
