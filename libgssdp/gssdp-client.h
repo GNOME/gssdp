@@ -89,6 +89,13 @@ gssdp_client_get_interface    (GSSDPClient  *client);
 const char *
 gssdp_client_get_host_ip      (GSSDPClient  *client);
 
+void
+gssdp_client_set_network      (GSSDPClient  *client,
+                               const char   *network);
+
+const char *
+gssdp_client_get_network      (GSSDPClient  *client);
+
 gboolean
 gssdp_client_get_active       (GSSDPClient  *client);
 

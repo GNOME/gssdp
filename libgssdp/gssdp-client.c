@@ -82,6 +82,7 @@ struct _GSSDPClientPrivate {
         char              *server_id;
         char              *iface;
         char              *host_ip;
+        char              *network;
 
         GError            **error;
 
@@ -96,6 +97,7 @@ enum {
         PROP_MAIN_CONTEXT,
         PROP_SERVER_ID,
         PROP_IFACE,
+        PROP_NETWORK,
         PROP_HOST_IP,
         PROP_ACTIVE,
         PROP_ERROR
@@ -228,6 +230,10 @@ gssdp_client_get_property (GObject    *object,
                 g_value_set_string (value,
                                     gssdp_client_get_interface (client));
                 break;
+        case PROP_NETWORK:
+                g_value_set_string (value,
+                                    gssdp_client_get_network (client));
+                break;
         case PROP_HOST_IP:
                 g_value_set_string (value,
                                     gssdp_client_get_host_ip (client));
@@ -265,6 +271,9 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_IFACE:
                 client->priv->iface = g_value_dup_string (value);
+                break;
+        case PROP_NETWORK:
+                client->priv->network = g_value_dup_string (value);
                 break;
         case PROP_ACTIVE:
                 client->priv->active = g_value_get_boolean (value);
@@ -315,6 +324,7 @@ gssdp_client_finalize (GObject *object)
         g_free (client->priv->server_id);
         g_free (client->priv->iface);
         g_free (client->priv->host_ip);
+        g_free (client->priv->network);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->finalize (object);
 }
@@ -402,6 +412,30 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           NULL,
                           G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_NAME |
+                          G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
+
+        /**
+         * GSSDPClient:network
+         *
+         * The network this client is currently connected to. You could set this
+         * to anything you want to identify the network this client is
+         * associated with. If you are using #GUPnPContextManager and associated
+         * interface is a WiFi interface, this property is set to the ESSID of
+         * the network. Otherwise, expect this to be the network IP address by
+         * default.
+         **/
+        g_object_class_install_property
+                (object_class,
+                 PROP_NETWORK,
+                 g_param_spec_string
+                         ("network",
+                          "Network ID",
+                          "The network this client is currently connected to.",
+                          NULL,
+                          G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT |
                           G_PARAM_STATIC_NAME |
                           G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
@@ -585,6 +619,46 @@ gssdp_client_get_host_ip (GSSDPClient *client)
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
 
         return client->priv->host_ip;
+}
+
+/**
+ * gssdp_client_set_network
+ * @client: A #GSSDPClient
+ * @network: The string identifying the network
+ *
+ * Sets the network identification of @client to @network.
+ **/
+void
+gssdp_client_set_network (GSSDPClient *client,
+                          const char  *network)
+{
+        g_return_if_fail (GSSDP_IS_CLIENT (client));
+
+        if (client->priv->network) {
+                g_free (client->priv->network);
+                client->priv->network = NULL;
+        }
+
+        if (network)
+                client->priv->network = g_strdup (network);
+
+        g_object_notify (G_OBJECT (client), "network");
+}
+
+/**
+ * gssdp_client_get_network
+ * @client: A #GSSDPClient
+ *
+ * Get the network this client is associated with.
+ *
+ * Return value: The network identification. This string should not be freed.
+ **/
+const char *
+gssdp_client_get_network (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+
+        return client->priv->network;
 }
 
 /**
@@ -941,7 +1015,7 @@ is_primary_adapter (PIP_ADAPTER_ADDRESSES adapter)
  * appropriately.
  */
 static char *
-get_host_ip (char **iface)
+get_host_ip (char **iface, char **network)
 {
 #ifdef G_OS_WIN32
         char *addr = NULL;
@@ -1073,9 +1147,11 @@ get_host_ip (char **iface)
              ifaceptr != NULL;
              ifaceptr = ifaceptr->next) {
                 char ip[INET6_ADDRSTRLEN];
-                const char *p;
-                struct sockaddr_in *s4;
-                struct sockaddr_in6 *s6;
+                char net[INET6_ADDRSTRLEN];
+                const char *p, *q;
+                struct sockaddr_in *s4, *s4_mask;
+                struct sockaddr_in6 *s6, *s6_mask;
+                struct in_addr net_addr;
 
                 p = NULL;
 
@@ -1086,11 +1162,20 @@ get_host_ip (char **iface)
                         s4 = (struct sockaddr_in *) ifa->ifa_addr;
                         p = inet_ntop (AF_INET,
                                        &s4->sin_addr, ip, sizeof (ip));
+                        s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
+                        net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
+                                          (in_addr_t) s4_mask->sin_addr.s_addr;
+                        q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
                         break;
                 case AF_INET6:
                         s6 = (struct sockaddr_in6 *) ifa->ifa_addr;
                         p = inet_ntop (AF_INET6,
                                        &s6->sin6_addr, ip, sizeof (ip));
+                        s6_mask = (struct sockaddr_in6 *) ifa->ifa_netmask;
+                        net_addr.s_addr =
+                                (in_addr_t) s6->sin6_addr.s6_addr &
+                                (in_addr_t) s6_mask->sin6_addr.s6_addr;
+                        q = inet_ntop (AF_INET6, &net_addr, net, sizeof (net));
                         break;
                 default:
                         continue; /* Unknown: ignore */
@@ -1101,6 +1186,8 @@ get_host_ip (char **iface)
 
                         if (*iface == NULL)
                                 *iface = g_strdup (ifa->ifa_name);
+                        if (*network == NULL)
+                                *network = g_strdup (q);
                         break;
                 }
         }
@@ -1119,7 +1206,8 @@ init_network_info (GSSDPClient *client)
 
         if (client->priv->iface == NULL || client->priv->host_ip == NULL)
                 client->priv->host_ip =
-                        get_host_ip (&client->priv->iface);
+                        get_host_ip (&client->priv->iface,
+                                     &client->priv->network);
 
         if (client->priv->iface == NULL) {
                 if (client->priv->error)
