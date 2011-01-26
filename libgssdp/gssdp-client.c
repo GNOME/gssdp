@@ -1007,6 +1007,38 @@ is_primary_adapter (PIP_ADAPTER_ADDRESSES adapter)
         return !(adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK ||
                  family == AF_INET6);
 }
+
+static gboolean
+extract_address_and_prefix (PIP_ADAPTER_UNICAST_ADDRESS  adapter,
+                            PIP_ADAPTER_PREFIX           prefix,
+                            char                        *iface,
+                            char                        *network) {
+        DWORD ret = 0;
+        DWORD len = INET6_ADDRSTRLEN;
+
+        ret = WSAAddressToStringA (adapter->Address.lpSockaddr,
+                                   adapter->Address.iSockaddrLength,
+                                   NULL,
+                                   iface,
+                                   &len);
+        if (ret != 0)
+                return FALSE;
+
+        if (prefix) {
+                ret = WSAAddressToStringA (prefix->Address.lpSockaddr,
+                                           prefix->Address.iSockaddrLength,
+                                           NULL,
+                                           network,
+                                           &len);
+                if (ret != 0)
+                        return FALSE;
+        } else if (strcmp (iface, "127.0.0.1"))
+                strcpy (network, "127.0.0.0");
+        else
+                return FALSE;
+
+        return TRUE;
+}
 #endif
 
 /*
@@ -1014,6 +1046,7 @@ is_primary_adapter (PIP_ADAPTER_ADDRESSES adapter)
  * it gets the IP of the first up & running interface and sets @interface
  * appropriately.
  */
+
 static char *
 get_host_ip (char **iface, char **network)
 {
@@ -1071,26 +1104,27 @@ get_host_ip (char **iface, char **network)
              ifaceptr != NULL;
              ifaceptr = ifaceptr->next) {
                 char ip[INET6_ADDRSTRLEN];
-                DWORD len = INET6_ADDRSTRLEN;
-                const char *p = NULL;
+                char prefix[INET6_ADDRSTRLEN];
+                const char *p, *q;
                 PIP_ADAPTER_ADDRESSES adapter;
-                SOCKET_ADDRESS unicast_address;
+                PIP_ADAPTER_UNICAST_ADDRESS address;
+
+                p = NULL;
 
                 adapter = (PIP_ADAPTER_ADDRESSES) ifaceptr->data;
-                unicast_address = adapter->FirstUnicastAddress->Address;
+                address = adapter->FirstUnicastAddress;
 
-                switch (unicast_address.lpSockaddr->sa_family) {
+                switch (address->Address.lpSockaddr->sa_family) {
                         case AF_INET:
                         case AF_INET6:
-                                ret = WSAAddressToStringA (
-                                        unicast_address.lpSockaddr,
-                                        unicast_address.iSockaddrLength,
-                                        NULL,
-                                        ip,
-                                        &len);
-                                if (ret == 0)
+                                if (extract_address_and_prefix (
+                                         address,
+                                         adapter->FirstPrefix,
+                                         ip,
+                                         prefix)) {
                                         p = ip;
-
+                                        q = prefix;
+                                }
                                 break;
                         default:
                                 continue;
@@ -1100,7 +1134,8 @@ get_host_ip (char **iface, char **network)
                         addr = g_strdup (p);
                         if (*iface == NULL)
                                 *iface = g_strdup (adapter->AdapterName);
-
+                        if (*network == NULL)
+                                *network = g_strdup (q);
                         break;
                 }
 
