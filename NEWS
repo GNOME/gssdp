@@ -1,3 +1,25 @@
+0.9.2
+=====
+
+- Fix a critical issue in event handling code introduced in last release.
+- Add 'network' property to GSSDPClient. By default its set to network IP
+  address of the interface the client is associated with.
+- Plug some leaks.
+
+Changes in dependencies:
+
+- Explicitly require libsoup >= 2.26.1.
+
+Bugs fixed in this release:
+
+2210 - Socket address leaking in socket_source_cb
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+Sven Neumann <s.neumann@raumfeld.com>
+Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+
 0.9.1
 =====
 
