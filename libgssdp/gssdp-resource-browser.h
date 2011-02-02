@@ -51,14 +51,16 @@ gssdp_resource_browser_get_type (void) G_GNUC_CONST;
                  GSSDPResourceBrowserClass))
 
 typedef struct _GSSDPResourceBrowserPrivate GSSDPResourceBrowserPrivate;
+typedef struct _GSSDPResourceBrowser GSSDPResourceBrowser;
+typedef struct _GSSDPResourceBrowserClass GSSDPResourceBrowserClass;
 
-typedef struct {
+struct _GSSDPResourceBrowser {
         GObject parent;
 
         GSSDPResourceBrowserPrivate *priv;
-} GSSDPResourceBrowser;
+};
 
-typedef struct {
+struct _GSSDPResourceBrowserClass {
         GObjectClass parent_class;
 
         /* signals */
@@ -74,7 +76,7 @@ typedef struct {
         void (* _gssdp_reserved2) (void);
         void (* _gssdp_reserved3) (void);
         void (* _gssdp_reserved4) (void);
-} GSSDPResourceBrowserClass;
+};
 
 /**
  * GSSDP_ALL_RESOURCES

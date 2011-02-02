@@ -51,14 +51,16 @@ gssdp_client_get_type (void) G_GNUC_CONST;
                  GSSDPClientClass))
 
 typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
+typedef struct _GSSDPClient GSSDPClient;
+typedef struct _GSSDPClientClass GSSDPClientClass;
 
-typedef struct {
+struct _GSSDPClient {
         GObject parent;
 
         GSSDPClientPrivate *priv;
-} GSSDPClient;
+};
 
-typedef struct {
+struct _GSSDPClientClass {
         GObjectClass parent_class;
 
         /* future padding */
@@ -66,7 +68,7 @@ typedef struct {
         void (* _gssdp_reserved2) (void);
         void (* _gssdp_reserved3) (void);
         void (* _gssdp_reserved4) (void);
-} GSSDPClientClass;
+};
 
 GSSDPClient *
 gssdp_client_new              (GMainContext *main_context,

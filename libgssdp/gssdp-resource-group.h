@@ -51,14 +51,16 @@ gssdp_resource_group_get_type (void) G_GNUC_CONST;
                  GSSDPResourceGroupClass))
 
 typedef struct _GSSDPResourceGroupPrivate GSSDPResourceGroupPrivate;
+typedef struct _GSSDPResourceGroup GSSDPResourceGroup;
+typedef struct _GSSDPResourceGroupClass GSSDPResourceGroupClass;
 
-typedef struct {
+struct _GSSDPResourceGroup {
         GObject parent;
 
         GSSDPResourceGroupPrivate *priv;
-} GSSDPResourceGroup;
+};
 
-typedef struct {
+struct _GSSDPResourceGroupClass {
         GObjectClass parent_class;
 
         /* future padding */
@@ -66,7 +68,7 @@ typedef struct {
         void (* _gssdp_reserved2) (void);
         void (* _gssdp_reserved3) (void);
         void (* _gssdp_reserved4) (void);
-} GSSDPResourceGroupClass;
+};
 
 GSSDPResourceGroup *
 gssdp_resource_group_new                 (GSSDPClient        *client);
