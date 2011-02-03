@@ -503,10 +503,15 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                 GMainContext *context;
                 int timeout;
 
-                /* We want to re-announce before actually timing out */
+                /* We want to re-announce at least 3 times before the resource
+                 * group expires to cope with the unrelialble nature of UDP.
+                 *
+                 * Read the paragraphs about 'CACHE-CONTROL' on pages 21-22 of
+                 * UPnP Device Architecture Document v1.1 for further details.
+                 * */
                 timeout = resource_group->priv->max_age;
-                if (timeout > 2)
-                        timeout = timeout / 2 - 1;
+                if (G_LIKELY (timeout > 6))
+                        timeout = (timeout / 3) - 1;
 
                 /* Add re-announcement timer */
                 resource_group->priv->timeout_src =
