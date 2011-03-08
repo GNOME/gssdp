@@ -982,14 +982,67 @@ queue_message (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * Send ssdp:alive message for @resource
+ * Add ssdp:alive messages for the given resource to sending queue
+ **/
+static void
+queue_alive_messages (GSSDPResourceGroup *resource_group,
+                      guint               max_age,
+                      const char         *location,
+                      const char         *al,
+                      const char         *server_id,
+                      const char         *target,
+                      const char         *usn)
+{
+        char *version_str;
+        char *message;
+
+        version_str = get_version_for_target ((char *) target);
+        if (version_str != NULL) {
+                char *_target;
+                int version;
+
+                version = atoi (version_str);
+                _target = g_strndup (target, version_str - target);
+
+                while (version > 0) {
+                        message = g_strdup_printf
+                                              (SSDP_ALIVE_MESSAGE_WITH_VERSION,
+                                               max_age,
+                                               location,
+                                               al,
+                                               server_id,
+                                               _target,
+                                               version,
+                                               usn);
+
+                        queue_message (resource_group, message);
+
+                        version--;
+                }
+
+                g_free (_target);
+        } else {
+                message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
+                                           max_age,
+                                           location,
+                                           al,
+                                           server_id,
+                                           target,
+                                           usn);
+
+                queue_message (resource_group, message);
+        }
+}
+
+/**
+ * Send ssdp:alive messages for @resource
  **/
 static void
 resource_alive (Resource *resource)
 {
         GSSDPClient *client;
         guint max_age;
-        char *al, *message;
+        char *al;
 
         if (!resource->initial_alive_sent) {
                 /* Unannounce before first announce. This is done to
@@ -1007,15 +1060,13 @@ resource_alive (Resource *resource)
 
         al = construct_al (resource);
 
-        message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
-                                   max_age,
-                                   (char *) resource->locations->data,
-                                   al ? al : "",
-                                   gssdp_client_get_server_id (client),
-                                   resource->target,
-                                   resource->usn);
-
-        queue_message (resource->resource_group, message);
+        queue_alive_messages (resource->resource_group,
+                              max_age,
+                              (const char *) resource->locations->data,
+                              al ? al : "",
+                              gssdp_client_get_server_id (client),
+                              resource->target,
+                              resource->usn);
 
         g_free (al);
 }
@@ -1026,14 +1077,38 @@ resource_alive (Resource *resource)
 static void
 resource_byebye (Resource *resource)
 {
+        char *version_str;
         char *message;
 
-        /* Queue message */
-        message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
-                                   resource->target,
-                                   resource->usn);
-        
-        queue_message (resource->resource_group, message);
+        version_str = get_version_for_target (resource->target);
+        if (version_str != NULL) {
+                char *_target;
+                int version;
+
+                version = atoi (version_str);
+                _target = g_strndup (resource->target,
+                                     version_str - resource->target);
+
+                while (version > 0) {
+                        message = g_strdup_printf
+                                              (SSDP_BYEBYE_MESSAGE_WITH_VERSION,
+                                               _target,
+                                               version,
+                                               resource->usn);
+
+                        queue_message (resource->resource_group, message);
+
+                        version--;
+                }
+
+                g_free (_target);
+        } else {
+                message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
+                                           resource->target,
+                                           resource->usn);
+
+                queue_message (resource->resource_group, message);
+        }
 }
 
 /**
