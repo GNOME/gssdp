@@ -97,6 +97,7 @@ typedef struct {
 } DiscoveryResponse;
 
 #define DEFAULT_MESSAGE_DELAY 20 
+#define VERSION_PATTERN "[0-9]+$"
 
 /* Function prototypes */
 static void
@@ -123,6 +124,8 @@ static void
 discovery_response_free         (DiscoveryResponse  *response);
 static gboolean
 process_queue                   (gpointer            data);
+static char *
+get_version_for_target          (char *target);
 static GRegex *
 create_target_regex             (const char         *target,
                                  GError            **error);
@@ -1060,29 +1063,39 @@ resource_free (Resource *resource)
         g_slice_free (Resource, resource);
 }
 
+/* Gets you the pointer to the version part in the target string */
+static char *
+get_version_for_target (char *target)
+{
+        char *version;
+
+        if (strncmp (target, "urn:", 4) != 0) {
+                /* target is not a URN so no version. */
+                return NULL;
+        }
+
+        version = g_strrstr (target, ":") + 1;
+        if (version == NULL ||
+            !g_regex_match_simple (VERSION_PATTERN, version, 0, 0))
+                return NULL;
+
+        return version;
+}
+
 static GRegex *
 create_target_regex (const char *target, GError **error)
 {
         GRegex *regex;
         char *pattern;
         char *version;
-        char *version_pattern;
 
-        if (strncmp (target, "urn:", 4) != 0) {
-                /* target is not a URN, No need to deal with version. */
-                return g_regex_new (target, 0, 0, error);
-        }
-
-        version_pattern = "[0-9]+$";
         /* Make sure we have enough room for version pattern */
         pattern = g_strndup (target,
-                             strlen (target) + strlen (version_pattern));
+                             strlen (target) + strlen (VERSION_PATTERN));
 
-        version = g_strrstr (pattern, ":") + 1;
-        if (version != NULL &&
-            g_regex_match_simple (version_pattern, version, 0, 0)) {
-                strcpy (version, version_pattern);
-        }
+        version = get_version_for_target (pattern);
+        if (version != NULL)
+                strcpy (version, VERSION_PATTERN);
 
         regex = g_regex_new (pattern, 0, 0, error);
 
