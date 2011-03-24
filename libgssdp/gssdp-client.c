@@ -1184,9 +1184,11 @@ get_host_ip (char **iface, char **network)
                 char ip[INET6_ADDRSTRLEN];
                 char net[INET6_ADDRSTRLEN];
                 const char *p, *q;
+                int i = 0;
                 struct sockaddr_in *s4, *s4_mask;
                 struct sockaddr_in6 *s6, *s6_mask;
                 struct in_addr net_addr;
+                struct in6_addr net6_addr;
 
                 p = NULL;
 
@@ -1207,10 +1209,14 @@ get_host_ip (char **iface, char **network)
                         p = inet_ntop (AF_INET6,
                                        &s6->sin6_addr, ip, sizeof (ip));
                         s6_mask = (struct sockaddr_in6 *) ifa->ifa_netmask;
-                        net_addr.s_addr =
-                                (in_addr_t) s6->sin6_addr.s6_addr &
-                                (in_addr_t) s6_mask->sin6_addr.s6_addr;
-                        q = inet_ntop (AF_INET6, &net_addr, net, sizeof (net));
+                        /* FIXME: Is this the right way to calculate this? */
+                        /* FIXME: Does this work on big endian machines? */
+                        for (i = 0; i < 16; ++i) {
+                                net6_addr.s6_addr[i] =
+                                        s6->sin6_addr.s6_addr[i] &
+                                        s6_mask->sin6_addr.s6_addr[i];
+                        }
+                        q = inet_ntop (AF_INET6, &net6_addr, net, sizeof (net));
                         break;
                 default:
                         continue; /* Unknown: ignore */
