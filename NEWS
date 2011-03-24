@@ -1,3 +1,17 @@
+0.10.0
+======
+
+- Improve interoperability by also announcing lower versions of the service.
+- More reliable announcements by announcing at least 3 times.
+- Drop ChangeLog in favour of git history.
+- Fix IPv6 network calculation.
+
+All contributors to this release:
+
+Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+Luis de Bethencourt <luis@debethencourt.com>
+Jens Georg <mail@jensge.org>
+
 0.9.2
 =====
 
