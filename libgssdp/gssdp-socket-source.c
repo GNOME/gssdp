@@ -308,11 +308,11 @@ error:
         if (group != NULL)
                 g_object_unref (group);
         if (inner_error != NULL) {
-                if (error == NULL) {
-                        g_warning ("Failed to create socket source: %s",
-                                   inner_error->message);
-                        g_error_free (inner_error);
-                }
+                /* Be aware that inner_error has already been free'd by
+                 * g_propagate_error(), so we cannot access its contents
+                 * anymore. */
+                if (error == NULL)
+                        g_warning ("Failed to create socket source");
 
                 return FALSE;
         }
