@@ -1249,15 +1249,13 @@ init_network_info (GSSDPClient *client)
                                      &client->priv->network);
 
         if (client->priv->iface == NULL) {
-                if (client->priv->error)
-                        g_set_error (client->priv->error,
+                g_set_error_literal (client->priv->error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_FAILED,
                                      "No default route?");
 
                 ret = FALSE;
         } else if (client->priv->host_ip == NULL) {
-                if (client->priv->error)
                         g_set_error (client->priv->error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_NO_IP_ADDRESS,

@@ -154,12 +154,11 @@ gssdp_socket_source_do_init (GInitable     *initable,
         self = GSSDP_SOCKET_SOURCE (initable);
         iface_address = g_inet_address_new_from_string (self->priv->host_ip);
         if (iface_address == NULL) {
-                if (error != NULL) {
-                        *error = g_error_new (GSSDP_ERROR,
-                                              GSSDP_ERROR_FAILED,
-                                              "Invalid host ip: %s",
-                                              self->priv->host_ip);
-                }
+                g_set_error (error,
+                             GSSDP_ERROR,
+                             GSSDP_ERROR_FAILED,
+                             "Invalid host ip: %s",
+                             self->priv->host_ip);
 
                 goto error;
         }
@@ -169,11 +168,10 @@ gssdp_socket_source_do_init (GInitable     *initable,
         if (family == G_SOCKET_FAMILY_IPV4)
                 group = g_inet_address_new_from_string (SSDP_ADDR);
         else {
-                if (error != NULL) {
-                        *error = g_error_new_literal (GSSDP_ERROR,
-                                                      GSSDP_ERROR_FAILED,
-                                                      "IPv6 address");
-                }
+                g_set_error_literal (error,
+                                     GSSDP_ERROR,
+                                     GSSDP_ERROR_FAILED,
+                                     "IPv6 address");
 
                 goto error;
         }
