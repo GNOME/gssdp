@@ -149,6 +149,7 @@ gssdp_socket_source_do_init (GInitable     *initable,
         GInetAddress *group = NULL;
         GError *inner_error = NULL;
         GSocketFamily family;
+        gboolean success = FALSE;
 
         self = GSSDP_SOCKET_SOURCE (initable);
         iface_address = g_inet_address_new_from_string (self->priv->host_ip);
@@ -158,7 +159,6 @@ gssdp_socket_source_do_init (GInitable     *initable,
                                               GSSDP_ERROR_FAILED,
                                               "Invalid host ip: %s",
                                               self->priv->host_ip);
-                        inner_error = *error;
                 }
 
                 goto error;
@@ -173,7 +173,6 @@ gssdp_socket_source_do_init (GInitable     *initable,
                         *error = g_error_new_literal (GSSDP_ERROR,
                                                       GSSDP_ERROR_FAILED,
                                                       "IPv6 address");
-                        inner_error = *error;
                 }
 
                 goto error;
@@ -300,6 +299,8 @@ gssdp_socket_source_do_init (GInitable     *initable,
         self->priv->source = g_socket_create_source (self->priv->socket,
                                                      G_IO_IN | G_IO_ERR,
                                                      NULL);
+        success = TRUE;
+
 error:
         if (iface_address != NULL)
                 g_object_unref (iface_address);
@@ -307,17 +308,14 @@ error:
                 g_object_unref (bind_address);
         if (group != NULL)
                 g_object_unref (group);
-        if (inner_error != NULL) {
+        if (!success)
                 /* Be aware that inner_error has already been free'd by
                  * g_propagate_error(), so we cannot access its contents
                  * anymore. */
                 if (error == NULL)
                         g_warning ("Failed to create socket source");
 
-                return FALSE;
-        }
-
-        return TRUE;
+        return success;
 }
 
 GSocket *
