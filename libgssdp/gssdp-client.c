@@ -191,9 +191,7 @@ gssdp_client_constructed (GObject *object)
 
  errors:
         if (!client->priv->request_socket || !client->priv->multicast_socket) {
-                if (client->priv->error) {
                         g_propagate_error (client->priv->error, error);
-                }
                 return;
         }
 
