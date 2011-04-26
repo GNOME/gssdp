@@ -83,10 +83,6 @@ gssdp_socket_source_get_property (GObject    *object,
                                   GValue     *value,
                                   GParamSpec *pspec)
 {
-        GSSDPSocketSource *self;
-
-        self = GSSDP_SOCKET_SOURCE (object);
-
         /* All properties are construct-only, write-only */
         switch (property_id) {
         default:
