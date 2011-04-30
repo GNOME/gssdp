@@ -402,7 +402,7 @@ gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
  * gssdp_resource_group_get_client
  * @resource_group: A #GSSDPResourceGroup
  *
- * Return value: The #GSSDPClient @resource_group is associated with.
+ * Return: (transfer none): The #GSSDPClient @resource_group is associated with.
  **/
 GSSDPClient *
 gssdp_resource_group_get_client (GSSDPResourceGroup *resource_group)

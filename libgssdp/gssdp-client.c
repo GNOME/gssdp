@@ -505,7 +505,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 /**
  * gssdp_client_new
  * @main_context: The #GMainContext to associate with, or NULL
- * @interface: The name of the network interface, or %NULL for auto-detection.
+ * @iface: The name of the network interface, or %NULL for auto-detection.
  * @error: Location to store error, or NULL
  *
  * Return value: A new #GSSDPClient object.
@@ -543,7 +543,7 @@ gssdp_client_set_main_context (GSSDPClient  *client,
  * gssdp_client_get_main_context
  * @client: A #GSSDPClient
  *
- * Return value: The #GMainContext @client is associated with, or NULL.
+ * Returns: (transfer none): The #GMainContext @client is associated with, or NULL.
  **/
 GMainContext *
 gssdp_client_get_main_context (GSSDPClient *client)

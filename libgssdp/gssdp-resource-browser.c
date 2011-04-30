@@ -333,7 +333,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
          * @resource_browser: The #GSSDPResourceBrowser that received the
          * signal
          * @usn: The USN of the discovered resource
-         * @locations: A #GList of strings describing the locations of the
+         * @locations: (type GList*) (transfer none) (element-type utf8): A #GList of strings describing the locations of the
          * discovered resource.
          *
          * The ::resource-available signal is emitted whenever a new resource
@@ -416,7 +416,7 @@ gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
  * gssdp_resource_browser_get_client
  * @resource_browser: A #GSSDPResourceBrowser
  *
- * Return value: The #GSSDPClient @resource_browser is associated with.
+ * Returns: (transfer none): The #GSSDPClient @resource_browser is associated with.
  **/
 GSSDPClient *
 gssdp_resource_browser_get_client (GSSDPResourceBrowser *resource_browser)
