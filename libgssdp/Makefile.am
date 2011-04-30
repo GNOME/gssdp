@@ -32,14 +32,16 @@ gssdp-marshal.h: gssdp-marshal.list
 
 BUILT_SOURCES = gssdp-marshal.c gssdp-marshal.h
 
-libgssdp_1_0_la_LDFLAGS = -version-info $(LTVERSION)
+introspection_sources = $(libgssdpinc_HEADERS)	\
+			gssdp-client.c		\
+			gssdp-error.c		\
+			gssdp-resource-browser.c\
+			gssdp-resource-group.c
 
-libgssdp_1_0_la_SOURCES = gssdp-client.c		\
+libgssdp_1_0_la_LDFLAGS = -version-info $(LTVERSION)
+libgssdp_1_0_la_SOURCES = $(introspection_sources)	\
 			  gssdp-client-private.h	\
-			  gssdp-error.c			\
 			  gssdp-protocol.h		\
-			  gssdp-resource-browser.c	\
-			  gssdp-resource-group.c	\
 			  gssdp-socket-source.c		\
 			  gssdp-socket-source.h		\
 			  gssdp-socket-functions.c	\
@@ -56,27 +58,26 @@ endif
 
 EXTRA_DIST = gssdp-marshal.list
 
+CLEANFILES = $(BUILT_SOURCES)
+
+-include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS =
+INTROSPECTION_SCANNER_ARGS = --warn-all				\
+			     --symbol-prefix=gssdp		\
+			     --identifier-prefix=GSSDP		\
+			     --add-include-path=$(top_srcdir)
+INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)
+
 
 if HAVE_INTROSPECTION
-
-GSSDP-1.0.gir: libgssdp-1.0.la $(INTROSPECTION_SCANNER)
-	$(AM_V_GEN) \
-	$(INTROSPECTION_SCANNER) -v \
-		--namespace=GSSDP --nsversion=1.0 \
-                --include=GObject-2.0 \
-                --include=Gio-2.0 \
-		--library=$< \
-		--libtool="$(top_builddir)/libtool" \
-		--pkg gobject-2.0 \
-		--pkg gio-2.0 \
-		--output $@ \
-		-I$(top_srcdir) \
-		$(addprefix $(top_srcdir)/libgssdp/, $(libgssdpinc_HEADERS)) \
-		$(top_srcdir)/libgssdp/gssdp-client.c \
-		$(top_srcdir)/libgssdp/gssdp-error.c \
-		$(top_srcdir)/libgssdp/gssdp-protocol.h \
-		$(top_srcdir)/libgssdp/gssdp-resource-browser.c \
-		$(top_srcdir)/libgssdp/gssdp-resource-group.c
+GSSDP-1.0.gir: libgssdp-1.0.la
+GSSDP_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0
+GSSDP_1_0_gir_CFLAGS = $(INCLUDES)
+GSSDP_1_0_gir_LIBS = libgssdp-1.0.la
+GSSDP_1_0_gir_FILES = $(introspection_sources)
+GSSDP_1_0_gir_NAMESPACE = GSSDP
+GSSDP_1_0_gir_VERSION = 1.0
+INTROSPECTION_GIRS += GSSDP-1.0.gir
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = GSSDP-1.0.gir
@@ -84,15 +85,8 @@ gir_DATA = GSSDP-1.0.gir
 typelibdir = $(libdir)/girepository-1.0/
 typelib_DATA = $(gir_DATA:.gir=.typelib)
 
-%.typelib: %.gir $(INTROSPECTION_COMPILER)
-	$(AM_V_GEN) \
-	$(INTROSPECTION_COMPILER) \
-		--includedir=$(srcdir) \
-		--includedir=. \
-		$(INTROSPECTION_COMPILER_OPTS) $< -o $(@F)
-
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
 endif
 
-CLEANFILES = $(BUILT_SOURCES) $(gir_DATA) $(typelib_DATA)
 DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
