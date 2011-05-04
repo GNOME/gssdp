@@ -458,10 +458,10 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
         pattern = g_strndup (target,
                              strlen (target) + strlen (version_pattern));
 
-        version = g_strrstr (pattern, ":") + 1;
+        version = g_strrstr (pattern, ":");
         if (version != NULL &&
-            g_regex_match_simple (version_pattern, version, 0, 0)) {
-                strcpy (version, version_pattern);
+            g_regex_match_simple (version_pattern, version + 1, 0, 0)) {
+                strcpy (version + 1, version_pattern);
         }
 
         error = NULL;
