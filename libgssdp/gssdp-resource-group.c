@@ -847,6 +847,25 @@ construct_al (Resource *resource)
                 return NULL; 
 }
 
+static char *
+construct_usn (const char *usn, const char *response_target, const char *resource_target)
+{
+        const char *needle;
+        char *prefix;
+        char *st;
+
+        needle = strstr (usn, resource_target);
+        if (needle == NULL)
+                return g_strdup (usn);
+
+        prefix = g_strndup (usn, needle - usn);
+        st = g_strconcat (prefix, response_target, NULL);
+
+        g_free (prefix);
+
+        return st;
+}
+
 /**
  * Send a discovery response
  **/
@@ -858,6 +877,7 @@ discovery_response_timeout (gpointer user_data)
         SoupDate *date;
         char *al, *date_str, *message;
         guint max_age;
+        char *usn;
 
         response = user_data;
 
@@ -867,7 +887,7 @@ discovery_response_timeout (gpointer user_data)
         max_age = response->resource->resource_group->priv->max_age;
 
         al = construct_al (response->resource);
-
+        usn = construct_usn (response->resource->usn, response->target, response->resource->target);
         date = soup_date_new_from_now (0);
         date_str = soup_date_to_string (date, SOUP_DATE_HTTP);
         soup_date_free (date);
@@ -875,7 +895,7 @@ discovery_response_timeout (gpointer user_data)
         message = g_strdup_printf (SSDP_DISCOVERY_RESPONSE,
                                    (char *) response->resource->locations->data,
                                    al ? al : "",
-                                   response->resource->usn,
+                                   usn,
                                    gssdp_client_get_server_id (client),
                                    max_age,
                                    response->target,
@@ -889,6 +909,7 @@ discovery_response_timeout (gpointer user_data)
         g_free (message);
         g_free (date_str);
         g_free (al);
+        g_free (usn);
 
         discovery_response_free (response);
 
