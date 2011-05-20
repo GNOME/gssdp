@@ -59,29 +59,11 @@ G_BEGIN_DECLS
         "NT: %s\r\n"                                \
         "USN: %s\r\n\r\n"
 
-#define SSDP_ALIVE_MESSAGE_WITH_VERSION             \
-        "NOTIFY * HTTP/1.1\r\n"                     \
-        "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
-        "Cache-Control: max-age=%d\r\n"             \
-        "Location: %s\r\n"                          \
-        "%s"                                        \
-        "Server: %s\r\n"                            \
-        "NTS: ssdp:alive\r\n"                       \
-        "NT: %s%d\r\n"                              \
-        "USN: %s\r\n\r\n"
-
 #define SSDP_BYEBYE_MESSAGE                         \
         "NOTIFY * HTTP/1.1\r\n"                     \
         "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
         "NTS: ssdp:byebye\r\n"                     \
         "NT: %s\r\n"                                \
-        "USN: %s\r\n\r\n"
-
-#define SSDP_BYEBYE_MESSAGE_WITH_VERSION            \
-        "NOTIFY * HTTP/1.1\r\n"                     \
-        "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
-        "NTS: ssdp:byebye\r\n"                      \
-        "NT: %s%d\r\n"                              \
         "USN: %s\r\n\r\n"
 
 #define SSDP_SEARCH_METHOD "M-SEARCH"
