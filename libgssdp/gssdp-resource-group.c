@@ -740,9 +740,9 @@ message_received_cb (GSSDPClient        *client,
                      gpointer            user_data)
 {
         GSSDPResourceGroup *resource_group;
-        const char *target, *mx_str;
+        const char *target, *mx_str, *version_str;
         gboolean want_all;
-        int mx;
+        int mx, version;
         GList *l;
 
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
@@ -776,6 +776,13 @@ message_received_cb (GSSDPClient        *client,
  
         mx = atoi (mx_str);
 
+        /* Extract version */
+        version_str = get_version_for_target ((char *) target);
+        if (version_str != NULL)
+                version = atoi (version_str);
+        else
+                version = 0;
+
         /* Find matching resource */
         for (l = resource_group->priv->resources; l; l = l->next) {
                 Resource *resource;
@@ -783,10 +790,11 @@ message_received_cb (GSSDPClient        *client,
                 resource = l->data;
 
                 if (want_all ||
-                    g_regex_match (resource->target_regex,
-                                   target,
-                                   0,
-                                   NULL)) {
+                    (g_regex_match (resource->target_regex,
+                                    target,
+                                    0,
+                                    NULL) &&
+                     version <= resource->version)) {
                         /* Match. */
                         guint timeout;
                         DiscoveryResponse *response;
