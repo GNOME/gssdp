@@ -84,6 +84,8 @@ typedef struct {
 
         guint                id;
 
+        guint                version;
+
         gboolean             initial_byebye_sent;
 } Resource;
 
@@ -128,6 +130,7 @@ static char *
 get_version_for_target          (char *target);
 static GRegex *
 create_target_regex             (const char         *target,
+                                 guint              *version,
                                  GError            **error);
 static void
 send_initial_resource_byebye    (Resource          *resource);
@@ -615,7 +618,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
         resource->usn    = g_strdup (usn);
 
         error = NULL;
-        resource->target_regex = create_target_regex (target, &error);
+        resource->target_regex = create_target_regex (target, &resource->version, &error);
         if (error) {
                 g_warning ("Error compiling regular expression for '%s': %s",
                            target,
@@ -1166,19 +1169,22 @@ get_version_for_target (char *target)
 }
 
 static GRegex *
-create_target_regex (const char *target, GError **error)
+create_target_regex (const char *target, guint *version, GError **error)
 {
         GRegex *regex;
         char *pattern;
-        char *version;
+        char *version_str;
 
+        *version = 0;
         /* Make sure we have enough room for version pattern */
         pattern = g_strndup (target,
                              strlen (target) + strlen (VERSION_PATTERN));
 
-        version = get_version_for_target (pattern);
-        if (version != NULL)
-                strcpy (version, VERSION_PATTERN);
+        version_str = get_version_for_target (pattern);
+        if (version_str != NULL) {
+                *version = atoi (version_str);
+                strcpy (version_str, VERSION_PATTERN);
+        }
 
         regex = g_regex_new (pattern, 0, 0, error);
 
