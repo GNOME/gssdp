@@ -84,7 +84,7 @@ typedef struct {
 
         guint                id;
 
-        gboolean             initial_alive_sent;
+        gboolean             initial_byebye_sent;
 } Resource;
 
 typedef struct {
@@ -129,6 +129,8 @@ get_version_for_target          (char *target);
 static GRegex *
 create_target_regex             (const char         *target,
                                  GError            **error);
+static void
+send_initial_resource_byebye    (Resource          *resource);
 
 static void
 gssdp_resource_group_init (GSSDPResourceGroup *resource_group)
@@ -480,6 +482,20 @@ gssdp_resource_group_get_message_delay (GSSDPResourceGroup *resource_group)
         return resource_group->priv->message_delay;
 }
 
+static void
+send_initial_resource_byebye (Resource *resource)
+{
+        if (!resource->initial_byebye_sent) {
+                /* Unannounce before first announce. This is
+                   done to minimize the possibility of
+                   control points thinking that this is just
+                   a reannouncement. */
+                resource_byebye (resource);
+
+                resource->initial_byebye_sent = TRUE;
+        }
+}
+
 /**
  * gssdp_resource_group_set_available
  * @resource_group: A #GSSDPResourceGroup
@@ -528,6 +544,11 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
 		g_source_attach (resource_group->priv->timeout_src, context);
 
                 g_source_unref (resource_group->priv->timeout_src);
+
+                /* Make sure initial byebyes are sent grouped before initial
+                 * alives */
+                for (l = resource_group->priv->resources; l; l = l->next)
+                        send_initial_resource_byebye (l->data);
 
                 /* Announce all resources */
                 for (l = resource_group->priv->resources; l; l = l->next)
@@ -606,7 +627,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
                 return 0;
         }
 
-        resource->initial_alive_sent = FALSE;
+        resource->initial_byebye_sent = FALSE;
 
         for (l = locations; l; l = l->next) {
                 resource->locations = g_list_append (resource->locations,
@@ -1013,14 +1034,8 @@ resource_alive (Resource *resource)
         guint max_age;
         char *al;
 
-        if (!resource->initial_alive_sent) {
-                /* Unannounce before first announce. This is done to
-                   minimize the possibility of control points thinking
-                   that this is just a reannouncement. */
-                resource_byebye (resource);
-
-                resource->initial_alive_sent = TRUE;
-        }
+        /* Send initial byebye if not sent already */
+        send_initial_resource_byebye (resource);
 
         /* Send message */
         client = resource->resource_group->priv->client;
