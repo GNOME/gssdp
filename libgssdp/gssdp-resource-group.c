@@ -642,46 +642,15 @@ gssdp_resource_group_add_resource_simple (GSSDPResourceGroup *resource_group,
                                           const char         *usn,
                                           const char         *location)
 {
-        Resource *resource;
-        GError   *error;
+        GList *locations = NULL;
+        guint  resource_id;
 
-        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
-        g_return_val_if_fail (target != NULL, 0);
-        g_return_val_if_fail (usn != NULL, 0);
-        g_return_val_if_fail (location != NULL, 0);
+        locations = g_list_append (locations, (gpointer) location);
+        resource_id = gssdp_resource_group_add_resource (resource_group, target, usn, locations);
 
-        resource = g_slice_new0 (Resource);
+        g_list_free (locations);
 
-        resource->resource_group = resource_group;
-
-        resource->target = g_strdup (target);
-        resource->usn    = g_strdup (usn);
-
-        error = NULL;
-        resource->target_regex = create_target_regex (target, &error);
-        if (error) {
-                g_warning ("Error compiling regular expression for '%s': %s",
-                           target,
-                           error->message);
-
-                g_error_free (error);
-                resource_free (resource);
-
-                return 0;
-        }
-
-        resource->locations = g_list_append (resource->locations,
-                                             g_strdup (location));
-
-        resource_group->priv->resources =
-                g_list_prepend (resource_group->priv->resources, resource);
-
-        resource->id = ++resource_group->priv->last_resource_id;
-
-        if (resource_group->priv->available)
-                resource_alive (resource);
-
-        return resource->id;
+        return resource_id;
 }
 
 /**
