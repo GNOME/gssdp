@@ -765,10 +765,13 @@ message_received_cb (GSSDPClient        *client,
 
         /* Extract MX */
         mx_str = soup_message_headers_get_one (headers, "MX");
-        if (mx_str)
-                mx = atoi (mx_str);
-        else
-                mx = SSDP_DEFAULT_MX;
+        if (!mx_str || atoi (mx_str) == 0) {
+                g_warning ("Discovery request did not have a valid MX header");
+ 
+                return;
+        }
+ 
+        mx = atoi (mx_str);
 
         /* Find matching resource */
         for (l = resource_group->priv->resources; l; l = l->next) {
