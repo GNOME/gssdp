@@ -347,7 +347,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
          * GSSDPResourceGroup:message-delay
          *
          * The minimum number of milliseconds between SSDP messages.
-         * The default is 20 based on DLNA specification.
+         * The default is 120 based on DLNA specification.
          **/
         g_object_class_install_property
                 (object_class,
