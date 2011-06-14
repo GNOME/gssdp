@@ -1015,6 +1015,7 @@ resource_alive (Resource *resource)
         GSSDPClient *client;
         guint max_age;
         char *al, *message;
+        guint8 i;
 
         /* Send initial byebye if not sent already */
         send_initial_resource_byebye (resource);
@@ -1026,15 +1027,17 @@ resource_alive (Resource *resource)
 
         al = construct_al (resource);
 
-        message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
-                                   max_age,
-                                   (char *) resource->locations->data,
-                                   al ? al : "",
-                                   gssdp_client_get_server_id (client),
-                                   resource->target,
-                                   resource->usn);
+        for (i = 0; i < 3; i++) {
+                message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
+                                           max_age,
+                                           (char *) resource->locations->data,
+                                           al ? al : "",
+                                           gssdp_client_get_server_id (client),
+                                           resource->target,
+                                           resource->usn);
 
-        queue_message (resource->resource_group, message);
+                queue_message (resource->resource_group, message);
+        }
 
         g_free (al);
 }
@@ -1045,14 +1048,17 @@ resource_alive (Resource *resource)
 static void
 resource_byebye (Resource *resource)
 {
+        guint8 i;
         char *message;
 
-        /* Queue message */
-        message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
-                                   resource->target,
-                                   resource->usn);
+        for (i = 0; i < 3; i++) {
+                /* Queue message */
+                message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
+                                           resource->target,
+                                           resource->usn);
 
-        queue_message (resource->resource_group, message);
+                queue_message (resource->resource_group, message);
+        }
 }
 
 /**
