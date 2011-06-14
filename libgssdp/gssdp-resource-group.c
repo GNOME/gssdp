@@ -98,7 +98,7 @@ typedef struct {
         GSource  *timeout_src;
 } DiscoveryResponse;
 
-#define DEFAULT_MESSAGE_DELAY 20 
+#define DEFAULT_MESSAGE_DELAY 120
 #define VERSION_PATTERN "[0-9]+$"
 
 /* Function prototypes */
