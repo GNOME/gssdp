@@ -1,3 +1,19 @@
+0.11.0
+======
+- Many fixes to discovery, discoverability and announcement.
+- Many introspection improvements such as:
+  * Classes that can throw an error on construction now implement
+    GInitable.
+  * Updated introspection annotations.
+- Code cleanup.
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+Alberto Mardegan <mardy@users.sourceforge.net>
+Sven Neumann <s.neumann@raumfeld.com>
+
 0.10.0
 ======
 
