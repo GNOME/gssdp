@@ -20,6 +20,7 @@
  */
 
 #include <libgssdp/gssdp.h>
+#include <gio/gio.h>
 #include <stdlib.h>
 
 static void
@@ -58,7 +59,10 @@ main (int    argc,
         g_type_init ();
 
         error = NULL;
-        client = gssdp_client_new (NULL, NULL, &error);
+        client = g_initable_new (GSSDP_TYPE_CLIENT,
+                                 NULL,
+                                 &error,
+                                 NULL);
         if (error) {
                 g_printerr ("Error creating the GSSDP client: %s\n",
                             error->message);

@@ -614,7 +614,6 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         gboolean was_cached;
         guint timeout;
         GList *locations;
-        GMainContext *context;
 
         usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
@@ -709,9 +708,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                                resource_expire,
                                resource, NULL);
 
-        context = gssdp_client_get_main_context
-                (resource_browser->priv->client);
-        g_source_attach (resource->timeout_src, context);
+        g_source_attach (resource->timeout_src,
+                         g_main_context_get_thread_default ());
 
         g_source_unref (resource->timeout_src);
 
@@ -962,8 +960,6 @@ discovery_timeout (gpointer data)
 static void
 start_discovery (GSSDPResourceBrowser *resource_browser)
 {
-        GMainContext *context;
-
         /* Send one now */
         send_discovery_request (resource_browser);
 
@@ -975,9 +971,8 @@ start_discovery (GSSDPResourceBrowser *resource_browser)
                                discovery_timeout,
                                resource_browser, NULL);
 
-        context = gssdp_client_get_main_context
-                (resource_browser->priv->client);
-        g_source_attach (resource_browser->priv->timeout_src, context);
+        g_source_attach (resource_browser->priv->timeout_src,
+                         g_main_context_get_thread_default ());
 
         g_source_unref (resource_browser->priv->timeout_src);
 }

@@ -75,8 +75,10 @@ gssdp_client_new              (GMainContext *main_context,
                                const char   *iface,
                                GError      **error);
 
+#ifndef GSSDP_DISABLE_DEPRECATED
 GMainContext *
 gssdp_client_get_main_context (GSSDPClient  *client);
+#endif
 
 void
 gssdp_client_set_server_id    (GSSDPClient  *client,

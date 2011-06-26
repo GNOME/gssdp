@@ -337,13 +337,13 @@ gssdp_socket_source_set_callback (GSSDPSocketSource *self,
 }
 
 void
-gssdp_socket_source_attach (GSSDPSocketSource *self,
-                            GMainContext      *context)
+gssdp_socket_source_attach (GSSDPSocketSource *self)
 {
         g_return_if_fail (self != NULL);
         g_return_if_fail (GSSDP_IS_SOCKET_SOURCE (self));
 
-        g_source_attach (self->priv->source, context);
+        g_source_attach (self->priv->source,
+                         g_main_context_get_thread_default ());
 }
 
 static void

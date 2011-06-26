@@ -601,7 +601,10 @@ init_upnp (void)
         GError *error;
         
         error = NULL;
-        client = gssdp_client_new (NULL, NULL, &error);
+        client = g_initable_new (GSSDP_TYPE_CLIENT,
+                                 NULL,
+                                 &error,
+                                 NULL);
         if (error) {
                 g_printerr ("Error creating the GSSDP client: %s\n",
                             error->message);

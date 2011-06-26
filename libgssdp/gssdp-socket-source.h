@@ -84,8 +84,7 @@ gssdp_socket_source_set_callback (GSSDPSocketSource   *socket_source,
                                   gpointer             user_data);
 
 G_GNUC_INTERNAL void
-gssdp_socket_source_attach       (GSSDPSocketSource   *socket_source,
-                                  GMainContext        *context);
+gssdp_socket_source_attach       (GSSDPSocketSource   *socket_source);
 
 G_END_DECLS
 

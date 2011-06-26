@@ -522,7 +522,6 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
         resource_group->priv->available = available;
 
         if (available) {
-                GMainContext *context;
                 int timeout;
 
                 /* We want to re-announce at least 3 times before the resource
@@ -542,9 +541,8 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                                        resource_group_timeout,
                                        resource_group, NULL);
 
-                context = gssdp_client_get_main_context
-                        (resource_group->priv->client);
-                g_source_attach (resource_group->priv->timeout_src, context);
+                g_source_attach (resource_group->priv->timeout_src,
+                                 g_main_context_get_thread_default ());
 
                 g_source_unref (resource_group->priv->timeout_src);
 
@@ -805,7 +803,6 @@ message_received_cb (GSSDPClient        *client,
                         /* Match. */
                         guint timeout;
                         DiscoveryResponse *response;
-                        GMainContext *context;
 
                         /* Get a random timeout from the interval [0, mx] */
                         timeout = g_random_int_range (0, mx * 1000);
@@ -828,8 +825,8 @@ message_received_cb (GSSDPClient        *client,
                                                discovery_response_timeout,
                                                response, NULL);
 
-                        context = gssdp_client_get_main_context (client);
-                        g_source_attach (response->timeout_src, context);
+                        g_source_attach (response->timeout_src,
+                                         g_main_context_get_thread_default ());
 
                         g_source_unref (response->timeout_src);
                         
@@ -1005,16 +1002,13 @@ queue_message (GSSDPResourceGroup *resource_group,
         if (resource_group->priv->message_src == NULL) {
                 /* nothing in the queue: process message immediately 
                    and add a timeout for (possible) next message */
-                GMainContext *context;
-
                 process_queue (resource_group);
                 resource_group->priv->message_src = g_timeout_source_new (
                     resource_group->priv->message_delay);
                 g_source_set_callback (resource_group->priv->message_src,
                     process_queue, resource_group, NULL);
-                context = gssdp_client_get_main_context (
-                    resource_group->priv->client);
-                g_source_attach (resource_group->priv->message_src, context);
+                g_source_attach (resource_group->priv->message_src,
+                                 g_main_context_get_thread_default ());
                 g_source_unref (resource_group->priv->message_src);
         }
 }
