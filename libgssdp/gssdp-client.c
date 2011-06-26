@@ -403,12 +403,12 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 {
         GObjectClass *object_class;
 
-	object_class = G_OBJECT_CLASS (klass);
+        object_class = G_OBJECT_CLASS (klass);
 
-	object_class->set_property = gssdp_client_set_property;
-	object_class->get_property = gssdp_client_get_property;
-	object_class->dispose      = gssdp_client_dispose;
-	object_class->finalize     = gssdp_client_finalize;
+        object_class->set_property = gssdp_client_set_property;
+        object_class->get_property = gssdp_client_get_property;
+        object_class->dispose      = gssdp_client_dispose;
+        object_class->finalize     = gssdp_client_finalize;
 
         g_type_class_add_private (klass, sizeof (GSSDPClientPrivate));
 
@@ -1250,8 +1250,8 @@ get_host_ip (char **iface, char **network)
                         continue;
                 else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
-		else if ((ifa->ifa_flags & IFF_POINTOPOINT))
-			continue;
+                else if ((ifa->ifa_flags & IFF_POINTOPOINT))
+                        continue;
 
                 /* Loopback and IPv6 interfaces go at the bottom on the list */
                 if (ifa->ifa_flags & IFF_LOOPBACK ||

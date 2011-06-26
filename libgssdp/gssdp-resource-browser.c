@@ -247,12 +247,12 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
 {
         GObjectClass *object_class;
 
-	object_class = G_OBJECT_CLASS (klass);
+        object_class = G_OBJECT_CLASS (klass);
 
-	object_class->set_property = gssdp_resource_browser_set_property;
-	object_class->get_property = gssdp_resource_browser_get_property;
-	object_class->dispose      = gssdp_resource_browser_dispose;
-	object_class->finalize     = gssdp_resource_browser_finalize;
+        object_class->set_property = gssdp_resource_browser_set_property;
+        object_class->get_property = gssdp_resource_browser_get_property;
+        object_class->dispose      = gssdp_resource_browser_dispose;
+        object_class->finalize     = gssdp_resource_browser_finalize;
 
         g_type_class_add_private (klass, sizeof (GSSDPResourceBrowserPrivate));
 
@@ -705,13 +705,13 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         }
 
         resource->timeout_src = g_timeout_source_new_seconds (timeout);
-	g_source_set_callback (resource->timeout_src,
+        g_source_set_callback (resource->timeout_src,
                                resource_expire,
-			       resource, NULL);
+                               resource, NULL);
 
         context = gssdp_client_get_main_context
                 (resource_browser->priv->client);
-	g_source_attach (resource->timeout_src, context);
+        g_source_attach (resource->timeout_src, context);
 
         g_source_unref (resource->timeout_src);
 
@@ -950,7 +950,7 @@ discovery_timeout (gpointer data)
         resource_browser->priv->num_discovery += 1;
 
         if (resource_browser->priv->num_discovery >= MAX_DISCOVERY_MESSAGES) {
-		resource_browser->priv->timeout_src = NULL;
+                resource_browser->priv->timeout_src = NULL;
                 resource_browser->priv->num_discovery = 0;
 
                 return FALSE;
@@ -971,13 +971,13 @@ start_discovery (GSSDPResourceBrowser *resource_browser)
         resource_browser->priv->num_discovery = 1;
         resource_browser->priv->timeout_src =
                 g_timeout_source_new (DISCOVERY_FREQUENCY);
-	g_source_set_callback (resource_browser->priv->timeout_src,
-			       discovery_timeout,
-			       resource_browser, NULL);
+        g_source_set_callback (resource_browser->priv->timeout_src,
+                               discovery_timeout,
+                               resource_browser, NULL);
 
         context = gssdp_client_get_main_context
                 (resource_browser->priv->client);
-	g_source_attach (resource_browser->priv->timeout_src, context);
+        g_source_attach (resource_browser->priv->timeout_src, context);
 
         g_source_unref (resource_browser->priv->timeout_src);
 }
@@ -986,9 +986,9 @@ start_discovery (GSSDPResourceBrowser *resource_browser)
 static void
 stop_discovery (GSSDPResourceBrowser *resource_browser)
 {
-	if (resource_browser->priv->timeout_src) {
-		g_source_destroy (resource_browser->priv->timeout_src);
-		resource_browser->priv->timeout_src = NULL;
-		resource_browser->priv->num_discovery = 0;
-	}
+        if (resource_browser->priv->timeout_src) {
+                g_source_destroy (resource_browser->priv->timeout_src);
+                resource_browser->priv->timeout_src = NULL;
+                resource_browser->priv->num_discovery = 0;
+        }
 }

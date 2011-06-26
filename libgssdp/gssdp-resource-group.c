@@ -281,11 +281,11 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
 {
         GObjectClass *object_class;
 
-	object_class = G_OBJECT_CLASS (klass);
+        object_class = G_OBJECT_CLASS (klass);
 
-	object_class->set_property = gssdp_resource_group_set_property;
-	object_class->get_property = gssdp_resource_group_get_property;
-	object_class->dispose      = gssdp_resource_group_dispose;
+        object_class->set_property = gssdp_resource_group_set_property;
+        object_class->get_property = gssdp_resource_group_get_property;
+        object_class->dispose      = gssdp_resource_group_dispose;
 
         g_type_class_add_private (klass, sizeof (GSSDPResourceGroupPrivate));
 
@@ -538,13 +538,13 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                 /* Add re-announcement timer */
                 resource_group->priv->timeout_src =
                         g_timeout_source_new_seconds (timeout);
-		g_source_set_callback (resource_group->priv->timeout_src,
-				       resource_group_timeout,
-				       resource_group, NULL);
+                g_source_set_callback (resource_group->priv->timeout_src,
+                                       resource_group_timeout,
+                                       resource_group, NULL);
 
                 context = gssdp_client_get_main_context
                         (resource_group->priv->client);
-		g_source_attach (resource_group->priv->timeout_src, context);
+                g_source_attach (resource_group->priv->timeout_src, context);
 
                 g_source_unref (resource_group->priv->timeout_src);
 
@@ -824,12 +824,12 @@ message_received_cb (GSSDPClient        *client,
 
                         /* Add timeout */
                         response->timeout_src = g_timeout_source_new (timeout);
-			g_source_set_callback (response->timeout_src,
-					       discovery_response_timeout,
-					       response, NULL);
+                        g_source_set_callback (response->timeout_src,
+                                               discovery_response_timeout,
+                                               response, NULL);
 
                         context = gssdp_client_get_main_context (client);
-			g_source_attach (response->timeout_src, context);
+                        g_source_attach (response->timeout_src, context);
 
                         g_source_unref (response->timeout_src);
                         
@@ -866,7 +866,9 @@ construct_al (Resource *resource)
 }
 
 static char *
-construct_usn (const char *usn, const char *response_target, const char *resource_target)
+construct_usn (const char *usn,
+               const char *response_target,
+               const char *resource_target)
 {
         const char *needle;
         char *prefix;
@@ -905,7 +907,9 @@ discovery_response_timeout (gpointer user_data)
         max_age = response->resource->resource_group->priv->max_age;
 
         al = construct_al (response->resource);
-        usn = construct_usn (response->resource->usn, response->target, response->resource->target);
+        usn = construct_usn (response->resource->usn,
+                             response->target,
+                             response->resource->target);
         date = soup_date_new_from_now (0);
         date_str = soup_date_to_string (date, SOUP_DATE_HTTP);
         soup_date_free (date);
