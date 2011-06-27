@@ -92,6 +92,7 @@ struct _GSSDPClientPrivate {
         char              *host_ip;
         char              *network;
 
+        GSocket           *send_socket;
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
 
@@ -212,9 +213,52 @@ gssdp_client_initable_init (GInitable     *initable,
                          client);
         }
 
+        /* Setup send socket. For security reasons, it is not recommended to
+         * send with source port == SSDP_PORT */
+        client->priv->send_socket = g_socket_new (G_SOCKET_FAMILY_IPV4,
+                                                  G_SOCKET_TYPE_DATAGRAM,
+                                                  G_SOCKET_PROTOCOL_UDP,
+                                                  &internal_error);
+        if (client->priv->send_socket) {
+                GInetAddress *inet_addr;
+                GSocketAddress *sock_addr;
+
+                inet_addr = g_inet_address_new_from_string
+                                        (gssdp_client_get_host_ip (client));
+                sock_addr = g_inet_socket_address_new (inet_addr, 0);
+
+                g_socket_bind (client->priv->send_socket,
+                               sock_addr,
+                               FALSE,
+                               &internal_error);
+
+                g_object_unref (sock_addr);
+                g_object_unref (inet_addr);
+        }
+
  errors:
-        if (!client->priv->request_socket || !client->priv->multicast_socket) {
+        if (!client->priv->request_socket ||
+            !client->priv->multicast_socket ||
+            !client->priv->send_socket) {
                 g_propagate_error (error, internal_error);
+
+                if (client->priv->request_socket) {
+                        g_object_unref (client->priv->request_socket);
+
+                        client->priv->request_socket = NULL;
+                }
+
+                if (client->priv->multicast_socket) {
+                        g_object_unref (client->priv->multicast_socket);
+
+                        client->priv->multicast_socket = NULL;
+                }
+
+                if (client->priv->send_socket) {
+                        g_object_unref (client->priv->send_socket);
+
+                        client->priv->send_socket = NULL;
+                }
 
                 return FALSE;
         }
@@ -321,6 +365,11 @@ gssdp_client_dispose (GObject *object)
         if (client->priv->multicast_socket) {
                 g_object_unref (client->priv->multicast_socket);
                 client->priv->multicast_socket = NULL;
+        }
+
+        if (client->priv->send_socket) {
+                g_object_unref (client->priv->send_socket);
+                client->priv->send_socket = NULL;
         }
 
         /* Unref the context */
@@ -694,12 +743,12 @@ _gssdp_client_send_message (GSSDPClient *client,
 {
         gssize res;
         GError *error = NULL;
-        GSocket *socket = NULL;
         GInetAddress *inet_address = NULL;
         GSocketAddress *address = NULL;
 
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         g_return_if_fail (message != NULL);
+        g_return_if_fail (client->priv->send_socket != NULL);
 
         if (!client->priv->active)
                 /* We don't send messages in passive mode */
@@ -715,8 +764,8 @@ _gssdp_client_send_message (GSSDPClient *client,
 
         inet_address = g_inet_address_new_from_string (dest_ip);
         address = g_inet_socket_address_new (inet_address, dest_port);
-        socket = gssdp_socket_source_get_socket (client->priv->request_socket);
-        res = g_socket_send_to (socket,
+
+        res = g_socket_send_to (client->priv->send_socket,
                                 address,
                                 message,
                                 strlen (message),
