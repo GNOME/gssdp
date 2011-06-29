@@ -768,7 +768,7 @@ message_received_cb (GSSDPClient        *client,
 
         /* Extract MX */
         mx_str = soup_message_headers_get_one (headers, "MX");
-        if (!mx_str || atoi (mx_str) == 0) {
+        if (!mx_str || atoi (mx_str) <= 0) {
                 g_warning ("Discovery request did not have a valid MX header");
  
                 return;
