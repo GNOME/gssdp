@@ -740,7 +740,7 @@ message_received_cb (GSSDPClient        *client,
                      gpointer            user_data)
 {
         GSSDPResourceGroup *resource_group;
-        const char *target, *mx_str, *version_str;
+        const char *target, *mx_str, *version_str, *man;
         gboolean want_all;
         int mx, version;
         GList *l;
@@ -773,7 +773,14 @@ message_received_cb (GSSDPClient        *client,
  
                 return;
         }
- 
+
+        man = soup_message_headers_get_one (headers, "MAN");
+        if (!man) {
+                g_warning ("Discovery request did not have a valid MAN header");
+
+                return;
+        }
+
         mx = atoi (mx_str);
 
         /* Extract version */
