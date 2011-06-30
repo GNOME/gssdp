@@ -205,6 +205,7 @@ gssdp_socket_source_do_init (GInitable     *initable,
                                             inner_error,
                                             "Failed to set TTL");
 
+                goto error;
         }
         /* Set up additional things according to the type of socket desired */
         if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
