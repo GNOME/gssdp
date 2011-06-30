@@ -249,11 +249,10 @@ gssdp_socket_source_do_init (GInitable     *initable,
                                                           port);
         }
 
-#ifdef G_OS_WIN32
-        /* normally g_socket_bind does this, but it is disabled on
+        /* Normally g_socket_bind does this, but it is disabled on
          * windows since SO_REUSEADDR has different semantics
-         * there. Nevertheless, there's no way without for
-         * multicast sockets
+         * there, also we nees SO_REUSEPORT on OpenBSD. This is a nop
+         * everywhere else.
          */
         if (!gssdp_socket_reuse_address (self->priv->socket,
                                          TRUE,
@@ -265,7 +264,7 @@ gssdp_socket_source_do_init (GInitable     *initable,
 
                 goto error;
         }
-#endif
+
         /* Bind to requested port and address */
         if (!g_socket_bind (self->priv->socket,
                             bind_address,

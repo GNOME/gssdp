@@ -90,8 +90,13 @@ gssdp_socket_option_set (GSocket    *socket,
 
 gboolean
 gssdp_socket_enable_loop (GSocket *socket,
-                          gboolean enable,
+                          gboolean _enable,
                           GError **error) {
+#if defined(__OpenBSD__)
+        guint8 enable = (guint8) _enable;
+#else
+        gboolean enable = _enable;
+#endif
         return gssdp_socket_option_set (socket,
                                         IPPROTO_IP,
                                         IP_MULTICAST_LOOP,
@@ -102,8 +107,13 @@ gssdp_socket_enable_loop (GSocket *socket,
 
 gboolean
 gssdp_socket_set_ttl (GSocket *socket,
-                      int      ttl,
+                      int      _ttl,
                       GError **error) {
+#if defined(__OpenBSD__)
+        guint8 ttl = (guint8) _ttl;
+#else
+        int ttl = _ttl;
+#endif
         return gssdp_socket_option_set (socket,
                                         IPPROTO_IP,
                                         IP_MULTICAST_TTL,
@@ -143,19 +153,25 @@ gssdp_socket_mcast_interface_set (GSocket      *socket,
                                         error);
 }
 
-#ifdef G_OS_WIN32
 gboolean
 gssdp_socket_reuse_address (GSocket *socket,
                             gboolean enable,
                             GError **error) {
+#if defined(G_OS_WIN32) || defined(__OpenBSD__)
         return gssdp_socket_option_set (socket,
                                         SOL_SOCKET,
+#if defined(__OpenBSD__)
+                                        SO_REUSEPORT,
+#else
                                         SO_REUSEADDR,
+#endif
+
                                         (char *) &enable,
                                         sizeof (enable),
                                         error);
-}
 #endif
+        return TRUE;
+}
 
 
 /*
