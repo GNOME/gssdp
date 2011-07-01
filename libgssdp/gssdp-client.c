@@ -819,7 +819,9 @@ parse_http_request (char                *buf,
                     SoupMessageHeaders **headers,
                     int                 *type)
 {
-        char *req_method;
+        char *req_method = NULL;
+        char *path = NULL;
+        SoupHTTPVersion version;
 
         *headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
 
@@ -827,8 +829,10 @@ parse_http_request (char                *buf,
                                         len,
                                         *headers,
                                         &req_method,
-                                        NULL,
-                                        NULL) == SOUP_STATUS_OK) {
+                                        &path,
+                                        &version) == SOUP_STATUS_OK &&
+            version == SOUP_HTTP_1_1 &&
+            (path && g_ascii_strncasecmp (path, "*", 1) == 0)) {
                 if (g_ascii_strncasecmp (req_method,
                                          SSDP_SEARCH_METHOD,
                                          strlen (SSDP_SEARCH_METHOD)) == 0)
@@ -846,6 +850,12 @@ parse_http_request (char                *buf,
         } else {
                 soup_message_headers_free (*headers);
                 *headers = NULL;
+
+                if (path)
+                        g_free (path);
+
+                if (req_method)
+                        g_free (req_method);
 
                 return FALSE;
         }
