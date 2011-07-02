@@ -240,8 +240,13 @@ gssdp_socket_source_do_init (GInitable     *initable,
                                                           SSDP_PORT);
 #endif
         } else {
+                guint port = SSDP_PORT;
+
+                /* Chose random port For the socket source used by M-SEARCH */
+                if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH)
+                        port = 0;
                 bind_address = g_inet_socket_address_new (iface_address,
-                                                          SSDP_PORT);
+                                                          port);
         }
 
 #ifdef G_OS_WIN32
@@ -401,7 +406,7 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
                          "Type",
                          "Type of socket-source (Multicast/Unicast)",
                          GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                         GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
+                         GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
                          GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |

@@ -33,10 +33,11 @@ typedef enum {
 } _GSSDPMessageType;
 
 G_GNUC_INTERNAL void
-_gssdp_client_send_message (GSSDPClient *client,
-                            const char  *dest_ip,
-                            gushort      dest_port,
-                            const char  *message);
+_gssdp_client_send_message (GSSDPClient       *client,
+                            const char        *dest_ip,
+                            gushort            dest_port,
+                            const char        *message,
+                            _GSSDPMessageType  type);
 
 G_END_DECLS
 

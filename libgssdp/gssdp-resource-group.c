@@ -922,7 +922,8 @@ discovery_response_timeout (gpointer user_data)
         _gssdp_client_send_message (client,
                                     response->dest_ip,
                                     response->dest_port,
-                                    message);
+                                    message,
+                                    _GSSDP_DISCOVERY_RESPONSE);
 
         g_free (message);
         g_free (date_str);
@@ -977,7 +978,8 @@ process_queue (gpointer data)
                 _gssdp_client_send_message (client,
                                             NULL,
                                             0,
-                                            message);
+                                            message,
+                                            _GSSDP_DISCOVERY_RESPONSE);
                 g_free (message);
 
                 return TRUE;

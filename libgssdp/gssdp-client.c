@@ -92,9 +92,9 @@ struct _GSSDPClientPrivate {
         char              *host_ip;
         char              *network;
 
-        GSocket           *send_socket;
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
+        GSSDPSocketSource *search_socket;
 
         gboolean           active;
 };
@@ -130,6 +130,11 @@ static gboolean
 multicast_socket_source_cb    (GIOChannel   *source,
                                GIOCondition  condition,
                                gpointer      user_data);
+static gboolean
+search_socket_source_cb       (GIOChannel   *source,
+                               GIOCondition  condition,
+                               gpointer      user_data);
+
 static gboolean
 init_network_info             (GSSDPClient  *client,
                                GError      **error);
@@ -211,35 +216,26 @@ gssdp_client_initable_init (GInitable     *initable,
                         (client->priv->multicast_socket,
                          (GSourceFunc) multicast_socket_source_cb,
                          client);
+        } else {
+                goto errors;
         }
 
         /* Setup send socket. For security reasons, it is not recommended to
-         * send with source port == SSDP_PORT */
-        client->priv->send_socket = g_socket_new (G_SOCKET_FAMILY_IPV4,
-                                                  G_SOCKET_TYPE_DATAGRAM,
-                                                  G_SOCKET_PROTOCOL_UDP,
-                                                  &internal_error);
-        if (client->priv->send_socket) {
-                GInetAddress *inet_addr;
-                GSocketAddress *sock_addr;
-
-                inet_addr = g_inet_address_new_from_string
-                                        (gssdp_client_get_host_ip (client));
-                sock_addr = g_inet_socket_address_new (inet_addr, 0);
-
-                g_socket_bind (client->priv->send_socket,
-                               sock_addr,
-                               FALSE,
-                               &internal_error);
-
-                g_object_unref (sock_addr);
-                g_object_unref (inet_addr);
+         * send M-SEARCH with source port == SSDP_PORT */
+        client->priv->search_socket = gssdp_socket_source_new
+                                        (GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
+                                         gssdp_client_get_host_ip (client),
+                                         &internal_error);
+        if (client->priv->search_socket != NULL) {
+                gssdp_socket_source_set_callback
+                                        (client->priv->search_socket,
+                                         (GSourceFunc) search_socket_source_cb,
+                                         client);
         }
-
  errors:
         if (!client->priv->request_socket ||
             !client->priv->multicast_socket ||
-            !client->priv->send_socket) {
+            !client->priv->search_socket) {
                 g_propagate_error (error, internal_error);
 
                 if (client->priv->request_socket) {
@@ -254,10 +250,10 @@ gssdp_client_initable_init (GInitable     *initable,
                         client->priv->multicast_socket = NULL;
                 }
 
-                if (client->priv->send_socket) {
-                        g_object_unref (client->priv->send_socket);
+                if (client->priv->search_socket) {
+                        g_object_unref (client->priv->search_socket);
 
-                        client->priv->send_socket = NULL;
+                        client->priv->search_socket = NULL;
                 }
 
                 return FALSE;
@@ -267,6 +263,9 @@ gssdp_client_initable_init (GInitable     *initable,
                                     client->priv->main_context);
 
         gssdp_socket_source_attach (client->priv->multicast_socket,
+                                    client->priv->main_context);
+
+        gssdp_socket_source_attach (client->priv->search_socket,
                                     client->priv->main_context);
 
         return TRUE;
@@ -367,9 +366,9 @@ gssdp_client_dispose (GObject *object)
                 client->priv->multicast_socket = NULL;
         }
 
-        if (client->priv->send_socket) {
-                g_object_unref (client->priv->send_socket);
-                client->priv->send_socket = NULL;
+        if (client->priv->search_socket) {
+                g_object_unref (client->priv->search_socket);
+                client->priv->search_socket = NULL;
         }
 
         /* Unref the context */
@@ -736,19 +735,20 @@ gssdp_client_get_active (GSSDPClient *client)
  * Sends @message to @dest_ip.
  **/
 void
-_gssdp_client_send_message (GSSDPClient *client,
-                            const char  *dest_ip,
-                            gushort      dest_port,
-                            const char  *message)
+_gssdp_client_send_message (GSSDPClient      *client,
+                            const char       *dest_ip,
+                            gushort           dest_port,
+                            const char       *message,
+                            _GSSDPMessageType type)
 {
         gssize res;
         GError *error = NULL;
         GInetAddress *inet_address = NULL;
         GSocketAddress *address = NULL;
+        GSocket *socket;
 
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         g_return_if_fail (message != NULL);
-        g_return_if_fail (client->priv->send_socket != NULL);
 
         if (!client->priv->active)
                 /* We don't send messages in passive mode */
@@ -762,10 +762,17 @@ _gssdp_client_send_message (GSSDPClient *client,
         if (dest_port == 0)
                 dest_port = SSDP_PORT;
 
+        if (type == _GSSDP_DISCOVERY_REQUEST)
+                socket = gssdp_socket_source_get_socket
+                                        (client->priv->search_socket);
+        else
+                socket = gssdp_socket_source_get_socket
+                                        (client->priv->request_socket);
+
         inet_address = g_inet_address_new_from_string (dest_ip);
         address = g_inet_socket_address_new (inet_address, dest_port);
 
-        res = g_socket_send_to (client->priv->send_socket,
+        res = g_socket_send_to (socket,
                                 address,
                                 message,
                                 strlen (message),
@@ -1056,6 +1063,18 @@ multicast_socket_source_cb (GIOChannel  *source,
         client = GSSDP_CLIENT (user_data);
 
         return socket_source_cb (client->priv->multicast_socket, client);
+}
+
+static gboolean
+search_socket_source_cb (GIOChannel  *source,
+                         GIOCondition condition,
+                         gpointer     user_data)
+{
+        GSSDPClient *client;
+
+        client = GSSDP_CLIENT (user_data);
+
+        return socket_source_cb (client->priv->search_socket, client);
 }
 
 #ifdef G_OS_WIN32

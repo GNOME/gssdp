@@ -55,7 +55,8 @@ typedef struct _GSSDPSocketSourcePrivate GSSDPSocketSourcePrivate;
 
 typedef enum {
         GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-        GSSDP_SOCKET_SOURCE_TYPE_MULTICAST
+        GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
+        GSSDP_SOCKET_SOURCE_TYPE_SEARCH
 } GSSDPSocketSourceType;
 
 

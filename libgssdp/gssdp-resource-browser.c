@@ -932,7 +932,8 @@ send_discovery_request (GSSDPResourceBrowser *resource_browser)
         _gssdp_client_send_message (resource_browser->priv->client,
                                     NULL,
                                     0,
-                                    message);
+                                    message,
+                                    _GSSDP_DISCOVERY_REQUEST);
 
         g_free (message);
 }
