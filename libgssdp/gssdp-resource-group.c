@@ -379,9 +379,9 @@ gssdp_resource_group_new (GSSDPClient *client)
                              NULL);
 }
 
-/**
+/*
  * Sets the #GSSDPClient @resource_group is associated with @client
- **/
+ */
 static void
 gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
                                  GSSDPClient        *client)
@@ -710,9 +710,9 @@ gssdp_resource_group_remove_resource (GSSDPResourceGroup *resource_group,
         }
 }
 
-/**
+/*
  * Called to re-announce all resources periodically
- **/
+ */
 static gboolean
 resource_group_timeout (gpointer user_data)
 {
@@ -728,9 +728,9 @@ resource_group_timeout (gpointer user_data)
         return TRUE;
 }
 
-/**
+/*
  * Received a message
- **/
+ */
 static void
 message_received_cb (GSSDPClient        *client,
                      const char         *from_ip,
@@ -840,9 +840,9 @@ message_received_cb (GSSDPClient        *client,
         }
 }
 
-/**
+/*
  * Construct the AL (Alternative Locations) header for @resource
- **/
+ */
 static char *
 construct_al (Resource *resource)
 {
@@ -886,9 +886,9 @@ construct_usn (const char *usn,
         return st;
 }
 
-/**
+/*
  * Send a discovery response
- **/
+ */
 static gboolean
 discovery_response_timeout (gpointer user_data)
 {
@@ -939,9 +939,9 @@ discovery_response_timeout (gpointer user_data)
         return FALSE;
 }
 
-/**
+/*
  * Free a DiscoveryResponse structure and its contained data
- **/
+ */
 static void
 discovery_response_free (DiscoveryResponse *response)
 {
@@ -956,9 +956,9 @@ discovery_response_free (DiscoveryResponse *response)
         g_slice_free (DiscoveryResponse, response);
 }
 
-/**
+/*
  * Send the next queued message, if any
- **/
+ */
 static gboolean
 process_queue (gpointer data)
 {
@@ -990,11 +990,11 @@ process_queue (gpointer data)
         }
 }
 
-/**
+/*
  * Add a message to sending queue
  * 
  * Do not free @message.
- **/
+ */
 static void
 queue_message (GSSDPResourceGroup *resource_group,
                char               *message)
@@ -1019,9 +1019,9 @@ queue_message (GSSDPResourceGroup *resource_group,
         }
 }
 
-/**
+/*
  * Send ssdp:alive message for @resource
- **/
+ */
 static void
 resource_alive (Resource *resource)
 {
@@ -1055,9 +1055,9 @@ resource_alive (Resource *resource)
         g_free (al);
 }
 
-/**
+/*
  * Send ssdp:byebye message for @resource
- **/
+ */
 static void
 resource_byebye (Resource *resource)
 {
@@ -1074,9 +1074,9 @@ resource_byebye (Resource *resource)
         }
 }
 
-/**
+/*
  * Free a Resource structure and its contained data
- **/
+ */
 static void
 resource_free (Resource *resource)
 {

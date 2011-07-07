@@ -390,9 +390,9 @@ gssdp_resource_browser_new (GSSDPClient *client,
                              NULL);
 }
 
-/**
+/*
  * Sets the #GSSDPClient @resource_browser is associated with to @client
- **/
+ */
 static void
 gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
                                    GSSDPClient          *client)
@@ -574,9 +574,9 @@ gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser)
         return resource_browser->priv->active;
 }
 
-/**
+/*
  * Resource expired: Remove
- **/
+ */
 static gboolean
 resource_expire (gpointer user_data)
 {
@@ -844,9 +844,9 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
                 resource_unavailable (resource_browser, headers);
 }
 
-/**
+/*
  * Received a message
- **/
+ */
 static void
 message_received_cb (GSSDPClient        *client,
                      const char         *from_ip,
@@ -874,9 +874,9 @@ message_received_cb (GSSDPClient        *client,
         }
 }
 
-/**
+/*
  * Free a Resource structure and its contained data
- **/
+ */
 static void
 resource_free (gpointer data)
 {
@@ -906,9 +906,9 @@ clear_cache_helper (gpointer key, gpointer value, gpointer data)
         return TRUE;
 }
 
-/**
+/*
  * Clears the cached resources hash
- **/
+ */
 static void
 clear_cache (GSSDPResourceBrowser *resource_browser)
 {

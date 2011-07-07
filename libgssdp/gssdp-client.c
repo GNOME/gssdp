@@ -571,9 +571,9 @@ gssdp_client_new (GMainContext *main_context,
                                NULL);
 }
 
-/**
+/*
  * Sets the GMainContext @client is associated with to @main_context
- **/
+ */
 static void
 gssdp_client_set_main_context (GSSDPClient  *client,
                                GMainContext *main_context)
@@ -790,9 +790,9 @@ _gssdp_client_send_message (GSSDPClient      *client,
         g_object_unref (inet_address);
 }
 
-/**
+/*
  * Generates the default server ID
- **/
+ */
 static char *
 make_server_id (void)
 {
@@ -915,9 +915,9 @@ inet_netof (struct in_addr in) {
 }
 #endif
 
-/**
+/*
  * Called when data can be read from the socket
- **/
+ */
 static gboolean
 socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
 {
