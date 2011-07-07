@@ -1,3 +1,20 @@
+0.11.1
+======
+- Fullfill restrictions imposed by UPnP CTT 1.5.
+- Initial OpenBSD support.
+- Fix a crash on socket creation.
+- Implement DLNA guideline 7.2.3.4.
+- Copyright header clean-up.
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+
+Bugs fixed:
+- bgo#653733
+- bgo#653875
+- bgo#653857
+
 0.11.0
 ======
 - Many fixes to discovery, discoverability and announcement.
