@@ -7,7 +7,9 @@
   <bookinfo>
     <title>GSSDP Reference Manual</title>
 
-    <releaseinfo>Version &version;</releaseinfo>
+    <releaseinfo>Version &version;
+        <ulink role="online-location" url="http://developer.gnome.org/gssdp/unstable/">http://developer.gnome.org/gssdp/unstable/</ulink>
+    </releaseinfo>
 
     <copyright>
       <year>2007</year>
