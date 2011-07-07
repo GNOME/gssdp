@@ -1,16 +1,26 @@
-AC_PREREQ(2.53)
-AC_INIT(gssdp, 0.11.1, http://www.gupnp.org/)
-AM_INIT_AUTOMAKE()
+AC_PREREQ([2.64])
+AC_INIT([gssdp],
+        [0.11.1],
+        [http://bugzilla.gnome.org/enter_bug.cgi?product=gupnp&component=gssdp],
+        [gssdp],
+        [http://www.gupnp.org/])
+
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR(libgssdp/gssdp-client.c)
-AM_CONFIG_HEADER(config.h)
-
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],)
-
-AC_ISC_POSIX
-AC_PROG_CC
-AC_STDC_HEADERS
-AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([build-aux])
+
+AM_INIT_AUTOMAKE([1.11])
+AM_MAINTAINER_MODE([enable])
+
+AM_SILENT_RULES([yes])
+
+AC_SEARCH_LIBS([strerror],[cposix])
+AC_PROG_CC
+AC_HEADER_STDC
+
+LT_PREREQ([2.2])
+LT_INIT
 
 PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.22 \
                             gobject-2.0 >= 2.22 \
@@ -20,7 +30,7 @@ PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.22 \
 LIBGTK_REQUIRED=2.12.0
 
 AC_ARG_WITH( gtk,
-  AC_HELP_STRING([--without-gtk],[compile without gtk+ support]),
+  AS_HELP_STRING([--without-gtk],[compile without gtk+ support]),
   try_gtk=$withval, try_gtk=yes )
 
 HAVE_LIBGTK=no
@@ -78,7 +88,7 @@ AM_CONDITIONAL(OS_WIN32, [test $os_win32 = yes])
 
 GTK_DOC_CHECK([1.0])
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 libgssdp/Makefile
 tools/Makefile
@@ -88,3 +98,4 @@ doc/version.xml
 gssdp-1.0.pc
 gssdp-1.0-uninstalled.pc
 ])
+AC_OUTPUT
