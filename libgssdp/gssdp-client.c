@@ -853,6 +853,9 @@ parse_http_request (char                *buf,
 
                 g_free (req_method);
 
+                if (path)
+                        g_free (path);
+
                 return TRUE;
         } else {
                 soup_message_headers_free (*headers);
