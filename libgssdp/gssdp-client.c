@@ -554,6 +554,7 @@ gssdp_client_new (GMainContext *main_context,
                 g_warning ("GSSDPClient:main-context is deprecated."
                            " Please use g_main_context_push_thread_default()");
         }
+
         return g_initable_new (GSSDP_TYPE_CLIENT,
                                NULL,
                                error,
