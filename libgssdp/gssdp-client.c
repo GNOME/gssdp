@@ -321,8 +321,9 @@ gssdp_client_set_property (GObject      *object,
                                             g_value_get_string (value));
                 break;
         case PROP_MAIN_CONTEXT:
-                g_warning ("GSSDPClient:main-context is deprecated."
-                           " Please use g_main_context_push_thread_default()");
+                if (g_value_get_pointer (value) != NULL)
+                        g_warning ("GSSDPClient:main-context is deprecated."
+                                   " Please use g_main_context_push_thread_default()");
                 break;
         case PROP_IFACE:
                 client->priv->iface = g_value_dup_string (value);
