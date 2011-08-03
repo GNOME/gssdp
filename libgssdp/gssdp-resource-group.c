@@ -99,6 +99,7 @@ typedef struct {
 } DiscoveryResponse;
 
 #define DEFAULT_MESSAGE_DELAY 120
+#define DEFAULT_ANNOUNCEMENT_SET_SIZE 3
 #define VERSION_PATTERN "[0-9]+$"
 
 /* Function prototypes */
@@ -499,6 +500,16 @@ send_initial_resource_byebye (Resource *resource)
         }
 }
 
+static void
+send_announcement_set (GList *resources, GFunc message_function)
+{
+        guint8 i;
+
+        for (i = 0; i < DEFAULT_ANNOUNCEMENT_SET_SIZE; i++) {
+                g_list_foreach (resources, message_function, NULL);
+        }
+}
+
 /**
  * gssdp_resource_group_set_available
  * @resource_group: A #GSSDPResourceGroup
@@ -548,16 +559,15 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
 
                 /* Make sure initial byebyes are sent grouped before initial
                  * alives */
-                for (l = resource_group->priv->resources; l; l = l->next)
-                        send_initial_resource_byebye (l->data);
+                send_announcement_set (resource_group->priv->resources,
+                                       (GFunc) send_initial_resource_byebye);
 
-                /* Announce all resources */
-                for (l = resource_group->priv->resources; l; l = l->next)
-                        resource_alive (l->data);
+                send_announcement_set (resource_group->priv->resources,
+                                       (GFunc) resource_alive);
         } else {
                 /* Unannounce all resources */
-                for (l = resource_group->priv->resources; l; l = l->next)
-                        resource_byebye (l->data);
+                send_announcement_set (resource_group->priv->resources,
+                                       (GFunc) resource_byebye);
 
                 /* Remove re-announcement timer */
                 g_source_destroy (resource_group->priv->timeout_src);
@@ -716,12 +726,12 @@ resource_group_timeout (gpointer user_data)
 {
         GSSDPResourceGroup *resource_group;
         GList *l;
+        int i;
 
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
 
-        /* Re-announce all resources */
-        for (l = resource_group->priv->resources; l; l = l->next)
-                resource_alive (l->data);
+        send_announcement_set (resource_group->priv->resources,
+                               resource_alive);
 
         return TRUE;
 }
@@ -1022,7 +1032,6 @@ resource_alive (Resource *resource)
         GSSDPClient *client;
         guint max_age;
         char *al, *message;
-        guint8 i;
 
         /* Send initial byebye if not sent already */
         send_initial_resource_byebye (resource);
@@ -1034,17 +1043,15 @@ resource_alive (Resource *resource)
 
         al = construct_al (resource);
 
-        for (i = 0; i < 3; i++) {
-                message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
-                                           max_age,
-                                           (char *) resource->locations->data,
-                                           al ? al : "",
-                                           gssdp_client_get_server_id (client),
-                                           resource->target,
-                                           resource->usn);
+        message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
+                                   max_age,
+                                   (char *) resource->locations->data,
+                                   al ? al : "",
+                                   gssdp_client_get_server_id (client),
+                                   resource->target,
+                                   resource->usn);
 
-                queue_message (resource->resource_group, message);
-        }
+        queue_message (resource->resource_group, message);
 
         g_free (al);
 }
@@ -1055,17 +1062,14 @@ resource_alive (Resource *resource)
 static void
 resource_byebye (Resource *resource)
 {
-        guint8 i;
         char *message;
 
-        for (i = 0; i < 3; i++) {
-                /* Queue message */
-                message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
-                                           resource->target,
-                                           resource->usn);
+        /* Queue message */
+        message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
+                                   resource->target,
+                                   resource->usn);
 
-                queue_message (resource->resource_group, message);
-        }
+        queue_message (resource->resource_group, message);
 }
 
 /*
