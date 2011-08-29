@@ -1,3 +1,19 @@
+0.12.0
+======
+- Remove unnecessary and annoying deprecation warnings.
+- When sending duplicate announcement packets, always repeat complete sets.
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+
+Bugs fixed:
+- bgo#655900
+
+DLNA requirements addressed:
+- 7.2.4.3
+- 7.2.4.5
+
 0.11.2
 ======
 - Modernize autotools.
