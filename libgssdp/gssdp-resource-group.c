@@ -523,8 +523,6 @@ void
 gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                                     gboolean            available)
 {
-        GList *l;
-
         g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group));
 
         if (resource_group->priv->available == available)
@@ -725,13 +723,11 @@ static gboolean
 resource_group_timeout (gpointer user_data)
 {
         GSSDPResourceGroup *resource_group;
-        GList *l;
-        int i;
 
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
 
         send_announcement_set (resource_group->priv->resources,
-                               resource_alive);
+                               (GFunc) resource_alive);
 
         return TRUE;
 }
