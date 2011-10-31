@@ -70,7 +70,7 @@ typedef unsigned long in_addr_t;
 #endif
 
 /* Size of the buffer used for reading from the socket */
-#define BUF_SIZE 1024
+#define BUF_SIZE 65536
 
 static void
 gssdp_client_initable_iface_init (gpointer g_iface,
