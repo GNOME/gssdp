@@ -460,7 +460,12 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 
         version = g_strrstr (pattern, ":");
         if (version != NULL &&
-            g_regex_match_simple (version_pattern, version + 1, 0, 0)) {
+            (g_strstr_len (pattern, -1, "uuid:") != pattern ||
+             version != g_strstr_len (pattern, -1, ":")) &&
+            g_regex_match_simple (version_pattern,
+                                  version + 1,
+                                  G_REGEX_MATCH_ANCHORED,
+                                  0)) {
                 strcpy (version + 1, version_pattern);
         }
 
