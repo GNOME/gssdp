@@ -1,3 +1,16 @@
+0.12.1
+======
+- Increase UDP buffer size.
+- Fix searching for an UDN that started with [a-f]
+
+All contributors to this release:
+
+Steffen Sledz <sledz@dresearch-fe.de>
+Jens Georg <mail@jensge.org>
+
+Bugs fixed:
+- https://bugzilla.gnome.org/show_bug.cgi?id=664177
+
 0.12.0
 ======
 - Remove unnecessary and annoying deprecation warnings.
