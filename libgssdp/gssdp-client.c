@@ -72,6 +72,7 @@ typedef unsigned long in_addr_t;
 #include "gssdp-socket-source.h"
 #include "gssdp-marshal.h"
 #include "gssdp-protocol.h"
+#include "gssdp-socket-functions.h"
 
 #ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
@@ -107,6 +108,7 @@ typedef struct _GSSDPNetworkDevice GSSDPNetworkDevice;
 struct _GSSDPClientPrivate {
         char              *server_id;
 
+        GHashTable        *user_agent_cache;
         guint              socket_ttl;
         guint              msearch_port;
         GSSDPNetworkDevice device;
@@ -161,6 +163,10 @@ static gboolean
 gssdp_client_initable_init    (GInitable     *initable,
                                GCancellable  *cancellable,
                                GError       **error);
+
+char *
+arp_lookup                    (GSSDPClient   *client,
+                               const char    *ip_address);
 
 static void
 gssdp_client_init (GSSDPClient *client)
@@ -294,6 +300,11 @@ gssdp_client_initable_init (GInitable                   *initable,
         gssdp_socket_source_attach (client->priv->search_socket);
 
         client->priv->initialized = TRUE;
+
+        client->priv->user_agent_cache = g_hash_table_new_full (g_str_hash,
+                                                                g_str_equal,
+                                                                g_free,
+                                                                g_free);
 
         return TRUE;
 }
@@ -430,6 +441,9 @@ gssdp_client_finalize (GObject *object)
         g_free (client->priv->device.iface_name);
         g_free (client->priv->device.host_ip);
         g_free (client->priv->device.network);
+
+        if (client->priv->user_agent_cache)
+                g_hash_table_unref (client->priv->user_agent_cache);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->finalize (object);
 }
@@ -788,6 +802,63 @@ gssdp_client_set_network (GSSDPClient *client,
                 client->priv->device.network = g_strdup (network);
 
         g_object_notify (G_OBJECT (client), "network");
+}
+
+/**
+ * gssdp_client_add_cache_entry:
+ * @client: A #GSSDPClient
+ * @ip_address: The host to add to the cache
+ * @user_agent: User agent ot the host to add
+ **/
+void
+gssdp_client_add_cache_entry (GSSDPClient  *client,
+                               const char   *ip_address,
+                               const char   *user_agent)
+{
+        char *hwaddr;
+
+        g_return_if_fail (client != NULL);
+        g_return_if_fail (ip_address != NULL);
+        g_return_if_fail (user_agent != NULL);
+
+        hwaddr = arp_lookup (client, ip_address);
+
+        if (hwaddr)
+                g_hash_table_insert (client->priv->user_agent_cache,
+                                     hwaddr,
+                                     g_strdup (user_agent));
+}
+
+/**
+ * gssdp_client_guess_user_agent:
+ * @client: A #GSSDPClient
+ * @ip_address: IP address to guess the user-agent for
+ *
+ * Returns: (transfer none): The user-agent cached for this IP, %NULL if none
+ * is cached.
+ **/
+const char *
+gssdp_client_guess_user_agent (GSSDPClient *client,
+                               const char  *ip_address)
+{
+        char *hwaddr;
+
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+        g_return_val_if_fail (ip_address != NULL, NULL);
+
+        hwaddr = arp_lookup (client, ip_address);
+
+        if (hwaddr) {
+                const char *agent;
+
+                agent =  g_hash_table_lookup (client->priv->user_agent_cache,
+                                              hwaddr);
+                g_free (hwaddr);
+
+                return agent;
+        }
+
+        return NULL;
 }
 
 /**
@@ -1610,3 +1681,8 @@ init_network_info (GSSDPClient *client, GError **error)
         return ret;
 }
 
+char *
+arp_lookup (GSSDPClient *client, const char *ip_address)
+{
+        return g_strdup (ip_address);
+}

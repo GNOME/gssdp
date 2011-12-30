@@ -269,4 +269,3 @@ gssdp_socket_mcast_group_join (GSocket       *socket,
         return result;
 }
 
-
