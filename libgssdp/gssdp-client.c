@@ -1336,7 +1336,20 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         ip_string = g_inet_address_to_string (inetaddr);
         port = g_inet_socket_address_get_port (
                                         G_INET_SOCKET_ADDRESS (address));
+
         if (type >= 0) {
+                const char *agent;
+
+                /* update client cache */
+                agent = soup_message_headers_get_one (headers, "Server");
+                if (!agent)
+                        agent = soup_message_headers_get_one (headers, "User-Agent");
+
+                if (agent)
+                        gssdp_client_add_cache_entry (client,
+                                                      ip_string,
+                                                      agent);
+
                 g_signal_emit (client,
                                signals[MESSAGE_RECEIVED],
                                0,
