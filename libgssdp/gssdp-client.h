@@ -120,6 +120,15 @@ gssdp_client_remove_header    (GSSDPClient *client,
 void
 gssdp_client_clear_headers    (GSSDPClient *client);
 
+void
+gssdp_client_add_cache_entry  (GSSDPClient  *client,
+                               const char   *ip_address,
+                               const char   *user_agent);
+
+const char *
+gssdp_client_guess_user_agent (GSSDPClient *client,
+                               const char  *ip_address);
+
 G_END_DECLS
 
 #endif /* __GSSDP_CLIENT_H__ */

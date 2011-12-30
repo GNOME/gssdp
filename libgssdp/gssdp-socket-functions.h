@@ -37,4 +37,5 @@ G_GNUC_INTERNAL gboolean
 gssdp_socket_enable_info         (GSocket *socket,
                                   gboolean enable,
                                   GError **error);
+
 #endif
