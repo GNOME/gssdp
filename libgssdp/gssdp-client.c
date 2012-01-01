@@ -40,6 +40,11 @@
 #include <sys/utsname.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#ifdef __linux__
+/* headers for ARP */
+#include <net/if_arp.h>
+#include <sys/ioctl.h>
+#endif
 #else
 #define _WIN32_WINNT 0x502
 #include <winsock2.h>
@@ -1697,5 +1702,41 @@ init_network_info (GSSDPClient *client, GError **error)
 char *
 arp_lookup (GSSDPClient *client, const char *ip_address)
 {
+#if defined(__linux__)
+        struct arpreq req;
+        struct sockaddr_in *sin;
+        GSocket *socket;
+
+        memset (&req, 0, sizeof (req));
+
+        /* FIXME: Update when we support IPv6 properly */
+        sin = (struct sockaddr_in *) &req.arp_pa;
+        sin->sin_family = AF_INET;
+        sin->sin_addr.s_addr = inet_addr (ip_address);
+
+        strncpy (req.arp_dev,
+                 client->priv->device.iface_name,
+                 sizeof (req.arp_dev));
+        socket = gssdp_socket_source_get_socket (client->priv->search_socket);
+
+        if (ioctl (g_socket_get_fd (socket), SIOCGARP, (caddr_t) &req) < 0) {
+                return NULL;
+        }
+
+        if (req.arp_flags & ATF_COM) {
+                unsigned char *buf = (unsigned char *) req.arp_ha.sa_data;
+
+                return g_strdup_printf ("%02X:%02X:%02X:%02X:%02X:%02X",
+                                        buf[0],
+                                        buf[1],
+                                        buf[2],
+                                        buf[3],
+                                        buf[4],
+                                        buf[5]);
+        }
+
+        return NULL;
+#else
         return g_strdup (ip_address);
+#endif
 }
