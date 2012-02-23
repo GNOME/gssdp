@@ -416,7 +416,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:main-context:
+         * GSSDPClient:main-context: (skip)
          *
          * The #GMainContext to use. Set to NULL to use the default.
          * Deprecated: 0.11.2: Use g_main_context_push_thread_default().
@@ -516,7 +516,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient::message-received:
+         * GSSDPClient::message-received: (skip)
          *
          * Internal signal.
          *
@@ -539,7 +539,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 
 /**
  * gssdp_client_new:
- * @main_context: Deprecated: 0.11.2: Always set to NULL. If you want to
+ * @main_context: (allow-none): Deprecated: 0.11.2: Always set to NULL. If you want to
  *                specify a context use g_main_context_push_thread_default()
  * @iface: The name of the network interface, or %NULL for auto-detection.
  * @error: Location to store error, or NULL
@@ -564,7 +564,7 @@ gssdp_client_new (GMainContext *main_context,
 }
 
 /*
- * gssdp_client_get_main_context:
+ * gssdp_client_get_main_context: (skip)
  * @client: A #GSSDPClient
  *
  * Returns: (transfer none): The #GMainContext @client is associated with, or NULL.
