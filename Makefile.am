@@ -4,7 +4,7 @@ else
 TOOLS_DIR =
 endif
 
-SUBDIRS = libgssdp $(TOOLS_DIR) tests doc
+SUBDIRS = libgssdp $(TOOLS_DIR) tests doc vala
 
 ACLOCAL_AMFLAGS=${ACLOCAL_FLAGS} -I m4
 

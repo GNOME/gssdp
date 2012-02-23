@@ -73,6 +73,16 @@ if test "x$enable_debug" = "xyes"; then
 fi
 
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
+
+# vapigen
+AS_IF([test "x$found_introspection" = "xyes"],
+      [
+       VALA_PROG_VAPIGEN([0.14])
+      ]
+)
+AM_CONDITIONAL([HAVE_VAPIGEN], [test "x$VAPIGEN" != "x"])
+
+
 dnl Check for Win32
 AC_MSG_CHECKING([for Win32])
 case "$host" in
@@ -94,6 +104,7 @@ libgssdp/Makefile
 tools/Makefile
 tests/Makefile
 tests/gtest/Makefile
+vala/Makefile
 doc/Makefile
 doc/version.xml
 gssdp-1.0.pc
