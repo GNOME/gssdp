@@ -93,6 +93,7 @@ Makefile
 libgssdp/Makefile
 tools/Makefile
 tests/Makefile
+tests/gtest/Makefile
 doc/Makefile
 doc/version.xml
 gssdp-1.0.pc

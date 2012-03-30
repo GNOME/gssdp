@@ -1,3 +1,5 @@
+SUBDIRS = gtest
+
 AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir)
 
 noinst_PROGRAMS = test-browser test-publish
