@@ -26,12 +26,7 @@
 #include <libgssdp/gssdp-resource-browser.h>
 #include <libgssdp/gssdp-resource-group.h>
 
-static void
-on_test_bgo673150_resource_unavailable (GSSDPResourceBrowser *src,
-                                        const char           *usn)
-{
-        g_assert_not_reached ();
-}
+#include "test-util.h"
 
 static gboolean
 on_test_bgo673150_delay_timeout (gpointer user_data)
@@ -73,7 +68,7 @@ test_bgo673150 (void)
 
         signal_id = g_signal_connect (browser,
                                       "resource-unavailable",
-                                      G_CALLBACK (on_test_bgo673150_resource_unavailable),
+                                      G_CALLBACK (on_resource_unavailable_assert_not_reached),
                                       NULL);
 
         /* Delay resource browser until ressource group sent its initial
