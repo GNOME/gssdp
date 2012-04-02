@@ -126,7 +126,7 @@ gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
         resource_browser->priv->resources =
                 g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
-                                       NULL,
+                                       g_free,
                                        resource_free);
 }
 
@@ -622,13 +622,24 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         gboolean was_cached;
         guint timeout;
         GList *locations;
+        char *canonical_usn;
 
         usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
 
+        if (resource_browser->priv->version > 0) {
+                char *version;
+
+                version = g_strrstr (usn, ":");
+                canonical_usn = g_strndup (usn, version - usn);
+        } else {
+                canonical_usn = g_strdup (usn);
+        }
+
         /* Get from cache, if possible */
-        resource = g_hash_table_lookup (resource_browser->priv->resources, usn);
+        resource = g_hash_table_lookup (resource_browser->priv->resources,
+                                        canonical_usn);
         if (resource) {
                 /* Remove old timeout */
                 g_source_destroy (resource->timeout_src);
@@ -642,11 +653,17 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                 resource->usn              = g_strdup (usn);
                 
                 g_hash_table_insert (resource_browser->priv->resources,
-                                     resource->usn,
+                                     canonical_usn,
                                      resource);
                 
                 was_cached = FALSE;
+
+                /* hash-table takes ownership of this */
+                canonical_usn = NULL;
         }
+
+        if (canonical_usn != NULL)
+                g_free (canonical_usn);
 
         /* Calculate new timeout */
         header = soup_message_headers_get_one (headers, "Cache-Control");
@@ -777,21 +794,36 @@ resource_unavailable (GSSDPResourceBrowser *resource_browser,
                       SoupMessageHeaders   *headers)
 {
         const char *usn;
+        char *canonical_usn;
 
         usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
 
-        /* Only process if we were cached */
-        if (!g_hash_table_lookup (resource_browser->priv->resources, usn))
-                return;
+        if (resource_browser->priv->version > 0) {
+                char *version;
 
-        g_hash_table_remove (resource_browser->priv->resources, usn);
+                version = g_strrstr (usn, ":");
+                canonical_usn = g_strndup (usn, version - usn);
+        } else {
+                canonical_usn = g_strdup (usn);
+        }
+
+        /* Only process if we were cached */
+        if (!g_hash_table_lookup (resource_browser->priv->resources,
+                                  canonical_usn))
+                goto out;
+
+        g_hash_table_remove (resource_browser->priv->resources,
+                             canonical_usn);
 
         g_signal_emit (resource_browser,
                        signals[RESOURCE_UNAVAILABLE],
                        0,
                        usn);
+
+out:
+        g_free (canonical_usn);
 }
 
 static gboolean
