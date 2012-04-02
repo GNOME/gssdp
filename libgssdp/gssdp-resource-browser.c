@@ -34,6 +34,7 @@
 #include <libsoup/soup.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "gssdp-resource-browser.h"
 #include "gssdp-client-private.h"
@@ -63,6 +64,7 @@ struct _GSSDPResourceBrowserPrivate {
                         
         GSource     *timeout_src;
         guint        num_discovery;
+        guint        version;
 };
 
 enum {
@@ -453,7 +455,7 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
         if (resource_browser->priv->target_regex)
                 g_regex_unref (resource_browser->priv->target_regex);
 
-        version_pattern = "[0-9]+";
+        version_pattern = "([0-9]+)";
         /* Make sure we have enough room for version pattern */
         pattern = g_strndup (target,
                              strlen (target) + strlen (version_pattern));
@@ -466,6 +468,7 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
                                   version + 1,
                                   G_REGEX_MATCH_ANCHORED,
                                   0)) {
+                resource_browser->priv->version = atoi (version + 1);
                 strcpy (version + 1, version_pattern);
         }
 
@@ -795,12 +798,35 @@ static gboolean
 check_target_compat (GSSDPResourceBrowser *resource_browser,
                      const char           *st)
 {
-        return strcmp (resource_browser->priv->target,
-                       GSSDP_ALL_RESOURCES) == 0 ||
-               g_regex_match (resource_browser->priv->target_regex,
-                              st,
-                              0,
-                              NULL);
+        GMatchInfo *info;
+        int         version;
+        char       *tmp;
+
+        if (strcmp (resource_browser->priv->target,
+                    GSSDP_ALL_RESOURCES) == 0)
+                return TRUE;
+
+        if (!g_regex_match (resource_browser->priv->target_regex,
+                            st,
+                            0,
+                            &info)) {
+                g_match_info_free (info);
+
+                return FALSE;
+        }
+
+        /* If there was no version to match, we're done */
+        if (resource_browser->priv->version == 0)
+                return TRUE;
+
+        if (g_match_info_get_match_count (info) != 2)
+                return FALSE;
+
+        version = atoi ((tmp = g_match_info_fetch (info, 1)));
+        g_free (tmp);
+        g_match_info_free (info);
+
+        return version >= resource_browser->priv->version;
 }
 
 static void
