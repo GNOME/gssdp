@@ -399,7 +399,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
         g_type_class_add_private (klass, sizeof (GSSDPClientPrivate));
 
         /**
-         * GSSDPClient:server-id
+         * GSSDPClient:server-id:
          *
          * The SSDP server's identifier.
          **/
@@ -416,7 +416,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:main-context
+         * GSSDPClient:main-context:
          *
          * The #GMainContext to use. Set to NULL to use the default.
          * Deprecated: 0.11.2: Use g_main_context_push_thread_default().
@@ -433,7 +433,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:interface
+         * GSSDPClient:interface:
          *
          * The name of the network interface this client is associated with.
          * Set to NULL to autodetect.
@@ -453,7 +453,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:network
+         * GSSDPClient:network:
          *
          * The network this client is currently connected to. You could set this
          * to anything you want to identify the network this client is
@@ -477,7 +477,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:host-ip
+         * GSSDPClient:host-ip:
          *
          * The IP address of the assoicated network interface.
          **/
@@ -495,7 +495,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:active
+         * GSSDPClient:active:
          *
          * Whether this client is active or not (passive). When active
          * (default), the client sends messages on the network, otherwise
@@ -516,7 +516,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient::message-received
+         * GSSDPClient::message-received:
          *
          * Internal signal.
          *
@@ -538,7 +538,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 }
 
 /**
- * gssdp_client_new
+ * gssdp_client_new:
  * @main_context: Deprecated: 0.11.2: Always set to NULL. If you want to
  *                specify a context use g_main_context_push_thread_default()
  * @iface: The name of the network interface, or %NULL for auto-detection.
@@ -564,7 +564,7 @@ gssdp_client_new (GMainContext *main_context,
 }
 
 /*
- * gssdp_client_get_main_context
+ * gssdp_client_get_main_context:
  * @client: A #GSSDPClient
  *
  * Returns: (transfer none): The #GMainContext @client is associated with, or NULL.
@@ -579,7 +579,7 @@ gssdp_client_get_main_context (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_set_server_id
+ * gssdp_client_set_server_id:
  * @client: A #GSSDPClient
  * @server_id: The server ID
  *
@@ -603,7 +603,7 @@ gssdp_client_set_server_id (GSSDPClient *client,
 }
 
 /**
- * gssdp_client_get_server_id
+ * gssdp_client_get_server_id:
  * @client: A #GSSDPClient
  *
  * Return value: The server ID.
@@ -617,7 +617,7 @@ gssdp_client_get_server_id (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_interface
+ * gssdp_client_get_interface:
  * @client: A #GSSDPClient
  *
  * Get the name of the network interface associated to @client.
@@ -633,7 +633,7 @@ gssdp_client_get_interface (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_host_ip
+ * gssdp_client_get_host_ip:
  * @client: A #GSSDPClient
  *
  * Get the IP address we advertise ourselves as using.
@@ -649,7 +649,7 @@ gssdp_client_get_host_ip (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_set_network
+ * gssdp_client_set_network:
  * @client: A #GSSDPClient
  * @network: The string identifying the network
  *
@@ -673,7 +673,7 @@ gssdp_client_set_network (GSSDPClient *client,
 }
 
 /**
- * gssdp_client_get_network
+ * gssdp_client_get_network:
  * @client: A #GSSDPClient
  *
  * Get the network this client is associated with.
@@ -689,7 +689,7 @@ gssdp_client_get_network (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_active
+ * gssdp_client_get_active:
  * @client: A #GSSDPClient
  *
  * Return value: %TRUE if @client is active, %FALSE otherwise.
@@ -703,7 +703,7 @@ gssdp_client_get_active (GSSDPClient *client)
 }
 
 /**
- * _gssdp_client_send_message
+ * _gssdp_client_send_message:
  * @client: A #GSSDPClient
  * @dest_ip: The destination IP address, or NULL to broadcast
  * @dest_port: The destination port, or NULL for default

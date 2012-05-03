@@ -22,7 +22,7 @@
 #include "gssdp-error.h"
 
 /**
- * gssdp_error_quark
+ * gssdp_error_quark:
  *
  * Returns: a #GQuark uniquely used by GSSDP's errors.
  **/

@@ -259,7 +259,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
         g_type_class_add_private (klass, sizeof (GSSDPResourceBrowserPrivate));
 
         /**
-         * GSSDPResourceBrowser:client
+         * GSSDPResourceBrowser:client:
          *
          * The #GSSDPClient to use.
          **/
@@ -276,7 +276,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceBrowser:target
+         * GSSDPResourceBrowser:target:
          *
          * The discovery target.
          **/
@@ -293,7 +293,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceBrowser:mx
+         * GSSDPResourceBrowser:mx:
          *
          * The maximum number of seconds in which to request other parties
          * to respond.
@@ -314,7 +314,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceBrowser:active
+         * GSSDPResourceBrowser:active:
          *
          * Whether this browser is active or not.
          **/
@@ -331,7 +331,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceBrowser::resource-available
+         * GSSDPResourceBrowser::resource-available:
          * @resource_browser: The #GSSDPResourceBrowser that received the
          * signal
          * @usn: The USN of the discovered resource
@@ -355,7 +355,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                               G_TYPE_POINTER);
 
         /**
-         * GSSDPResourceBrowser::resource-unavailable
+         * GSSDPResourceBrowser::resource-unavailable:
          * @resource_browser: The #GSSDPResourceBrowser that received the
          * signal
          * @usn: The USN of the resource
@@ -377,7 +377,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
 }
 
 /**
- * gssdp_resource_browser_new
+ * gssdp_resource_browser_new:
  * @client: The #GSSDPClient to associate with
  *
  * Return value: A new #GSSDPResourceBrowser object.
@@ -415,7 +415,7 @@ gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_client
+ * gssdp_resource_browser_get_client:
  * @resource_browser: A #GSSDPResourceBrowser
  *
  * Returns: (transfer none): The #GSSDPClient @resource_browser is associated with.
@@ -430,7 +430,7 @@ gssdp_resource_browser_get_client (GSSDPResourceBrowser *resource_browser)
 }
 
 /**
- * gssdp_resource_browser_set_target
+ * gssdp_resource_browser_set_target:
  * @resource_browser: A #GSSDPResourceBrowser
  * @target: The browser target
  *
@@ -490,7 +490,7 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_target
+ * gssdp_resource_browser_get_target:
  * @resource_browser: A #GSSDPResourceBrowser
  *
  * Return value: The browser target.
@@ -505,7 +505,7 @@ gssdp_resource_browser_get_target (GSSDPResourceBrowser *resource_browser)
 }
 
 /**
- * gssdp_resource_browser_set_mx
+ * gssdp_resource_browser_set_mx:
  * @resource_browser: A #GSSDPResourceBrowser
  * @mx: The to be used MX value
  *
@@ -526,7 +526,7 @@ gssdp_resource_browser_set_mx (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_mx
+ * gssdp_resource_browser_get_mx:
  * @resource_browser: A #GSSDPResourceBrowser
  *
  * Return value: The used MX value.
@@ -540,7 +540,7 @@ gssdp_resource_browser_get_mx (GSSDPResourceBrowser *resource_browser)
 }
 
 /**
- * gssdp_resource_browser_set_active
+ * gssdp_resource_browser_set_active:
  * @resource_browser: A #GSSDPResourceBrowser
  * @active: TRUE to activate @resource_browser
  *
@@ -569,7 +569,7 @@ gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_active
+ * gssdp_resource_browser_get_active:
  * @resource_browser: A #GSSDPResourceBrowser
  *
  * Return value: TRUE if @resource_browser is active.

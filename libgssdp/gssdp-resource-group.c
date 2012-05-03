@@ -291,7 +291,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
         g_type_class_add_private (klass, sizeof (GSSDPResourceGroupPrivate));
 
         /**
-         * GSSDPResourceGroup:client
+         * GSSDPResourceGroup:client:
          *
          * The #GSSDPClient to use.
          **/
@@ -308,7 +308,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceGroup:max-age
+         * GSSDPResourceGroup:max-age:
          *
          * The number of seconds our advertisements are valid.
          **/
@@ -327,7 +327,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceGroup:available
+         * GSSDPResourceGroup:available:
          *
          * Whether this group of resources is available or not.
          **/
@@ -345,7 +345,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceGroup:message-delay
+         * GSSDPResourceGroup:message-delay:
          *
          * The minimum number of milliseconds between SSDP messages.
          * The default is 120 based on DLNA specification.
@@ -367,7 +367,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
 }
 
 /**
- * gssdp_resource_group_new
+ * gssdp_resource_group_new:
  * @client: The #GSSDPClient to associate with
  *
  * Return value: A new #GSSDPResourceGroup object.
@@ -403,7 +403,7 @@ gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_client
+ * gssdp_resource_group_get_client:
  * @resource_group: A #GSSDPResourceGroup
  *
  * Returns: (transfer none): The #GSSDPClient @resource_group is associated with.
@@ -417,7 +417,7 @@ gssdp_resource_group_get_client (GSSDPResourceGroup *resource_group)
 }
 
 /**
- * gssdp_resource_group_set_max_age
+ * gssdp_resource_group_set_max_age:
  * @resource_group: A #GSSDPResourceGroup
  * @max_age: The number of seconds advertisements are valid
  *
@@ -438,7 +438,7 @@ gssdp_resource_group_set_max_age (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_max_age
+ * gssdp_resource_group_get_max_age:
  * @resource_group: A #GSSDPResourceGroup
  *
  * Return value: The number of seconds advertisements are valid.
@@ -452,7 +452,7 @@ gssdp_resource_group_get_max_age (GSSDPResourceGroup *resource_group)
 }
 
 /**
- * gssdp_resource_group_set_message_delay
+ * gssdp_resource_group_set_message_delay:
  * @resource_group: A #GSSDPResourceGroup
  * @message_delay: The message delay in ms.
  *
@@ -473,7 +473,7 @@ gssdp_resource_group_set_message_delay (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_message_delay
+ * gssdp_resource_group_get_message_delay:
  * @resource_group: A #GSSDPResourceGroup
  *
  * Return value: the minimum time between each SSDP message in ms.
@@ -511,7 +511,7 @@ send_announcement_set (GList *resources, GFunc message_function)
 }
 
 /**
- * gssdp_resource_group_set_available
+ * gssdp_resource_group_set_available:
  * @resource_group: A #GSSDPResourceGroup
  * @available: TRUE if @resource_group should be available (advertised)
  *
@@ -576,7 +576,7 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_available
+ * gssdp_resource_group_get_available:
  * @resource_group: A #GSSDPResourceGroup
  *
  * Return value: TRUE if @resource_group is available (advertised).
@@ -590,11 +590,11 @@ gssdp_resource_group_get_available (GSSDPResourceGroup *resource_group)
 }
 
 /**
- * gssdp_resource_group_add_resource
+ * gssdp_resource_group_add_resource:
  * @resource_group: An @GSSDPResourceGroup
  * @target: The resource's target
  * @usn: The resource's USN
- * @locations: A #GList of the resource's locations
+ * @locations: (element-type utf8): A #GList of the resource's locations
  *
  * Adds a resource with target @target, USN @usn, and locations @locations
  * to @resource_group.
@@ -655,7 +655,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_add_resource_simple
+ * gssdp_resource_group_add_resource_simple:
  * @resource_group: An @GSSDPResourceGroup
  * @target: The resource's target
  * @usn: The resource's USN
@@ -684,7 +684,7 @@ gssdp_resource_group_add_resource_simple (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_remove_resource
+ * gssdp_resource_group_remove_resource:
  * @resource_group: An @GSSDPResourceGroup
  * @resource_id: The ID of the resource to remove
  *

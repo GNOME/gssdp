@@ -79,7 +79,7 @@ struct _GSSDPResourceBrowserClass {
 };
 
 /**
- * GSSDP_ALL_RESOURCES
+ * GSSDP_ALL_RESOURCES:
  *
  * SSDP search target for finding all possible resources.
  **/
