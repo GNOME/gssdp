@@ -848,11 +848,17 @@ check_target_compat (GSSDPResourceBrowser *resource_browser,
         }
 
         /* If there was no version to match, we're done */
-        if (resource_browser->priv->version == 0)
-                return TRUE;
+        if (resource_browser->priv->version == 0) {
+                g_match_info_free (info);
 
-        if (g_match_info_get_match_count (info) != 2)
+                return TRUE;
+        }
+
+        if (g_match_info_get_match_count (info) != 2) {
+                g_match_info_free (info);
+
                 return FALSE;
+        }
 
         version = atoi ((tmp = g_match_info_fetch (info, 1)));
         g_free (tmp);
