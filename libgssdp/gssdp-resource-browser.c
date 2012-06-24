@@ -466,8 +466,8 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
              version != g_strstr_len (pattern, -1, ":")) &&
             g_regex_match_simple (version_pattern,
                                   version + 1,
-                                  G_REGEX_MATCH_ANCHORED,
-                                  0)) {
+                                  G_REGEX_ANCHORED,
+                                  G_REGEX_MATCH_ANCHORED)) {
                 resource_browser->priv->version = atoi (version + 1);
                 strcpy (version + 1, version_pattern);
         }
