@@ -179,9 +179,9 @@ packet_to_treeview_data (const gchar *from_ip,
         
         /* Now the Packet Information */
         if (type == _GSSDP_DISCOVERY_RESPONSE)
-                target = soup_message_headers_get (headers, "ST");
+                target = soup_message_headers_get_one (headers, "ST");
         else
-                target = soup_message_headers_get (headers, "NT");
+                target = soup_message_headers_get_one (headers, "NT");
         
         packet_data[3] = g_strdup (target);
         packet_data[4] = NULL;
