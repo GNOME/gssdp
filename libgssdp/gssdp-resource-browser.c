@@ -591,6 +591,7 @@ resource_expire (gpointer user_data)
         GSSDPResourceBrowser *resource_browser;
         Resource *resource;
         char *usn;
+        char *canonical_usn;
 
         resource = user_data;
         resource_browser = resource->resource_browser;
@@ -601,13 +602,24 @@ resource_expire (gpointer user_data)
         usn = resource->usn;
         resource->usn = NULL;
 
-        g_hash_table_remove (resource->resource_browser->priv->resources, usn);
+        if (resource_browser->priv->version > 0) {
+                char *version;
+
+                version = g_strrstr (usn, ":");
+                canonical_usn = g_strndup (usn, version - usn);
+        } else {
+                canonical_usn = g_strdup (usn);
+        }
+
+        g_hash_table_remove (resource->resource_browser->priv->resources,
+                             canonical_usn);
 
         g_signal_emit (resource_browser,
                        signals[RESOURCE_UNAVAILABLE],
                        0,
                        usn);
         g_free (usn);
+        g_free (canonical_usn);
 
         return FALSE;
 }
