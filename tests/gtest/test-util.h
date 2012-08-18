@@ -30,6 +30,9 @@ G_BEGIN_DECLS
 gboolean
 quit_loop (gpointer user_data);
 
+gboolean
+unref_object (gpointer object);
+
 void
 on_resource_available_assert_not_reached (GSSDPResourceBrowser *src,
                                           const char           *usn,

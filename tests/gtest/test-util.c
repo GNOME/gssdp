@@ -24,3 +24,11 @@ quit_loop (gpointer user_data)
 
         return FALSE;
 }
+
+gboolean
+unref_object (gpointer object)
+{
+        g_object_unref ((GObject *) object);
+
+        return FALSE;
+}
