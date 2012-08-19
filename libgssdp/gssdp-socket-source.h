@@ -76,6 +76,7 @@ G_GNUC_INTERNAL GSSDPSocketSource *
 gssdp_socket_source_new        (GSSDPSocketSourceType  type,
                                 const char            *host_ip,
                                 guint                  ttl,
+                                const char            *device_name,
                                 GError               **error);
 
 G_GNUC_INTERNAL GSocket*
