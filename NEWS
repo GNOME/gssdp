@@ -1,3 +1,27 @@
+0.12.2
+======
+- Functional tests.
+- Regression tests.
+- Ignore announcements from services with a lower version.
+- Make internal resource cache version-independant.
+- Update gtk-doc annotations.
+- Update pkg-config files.
+- Create Vala bindings from GIR.
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+Stef Walter <stefw@gnome.org>
+Riko Yamada <rik0yamada@yahoo.co.jp>
+Mark Ryan <mark.d.ryan@intel.com>
+
+Bugs fixed:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=673150
+ - https://bugzilla.gnome.org/show_bug.cgi?id=678744
+ - https://bugzilla.gnome.org/show_bug.cgi?id=679781
+ - https://bugzilla.gnome.org/show_bug.cgi?id=682099
+ - https://bugzilla.gnome.org/show_bug.cgi?id=675355
+
 0.12.1
 ======
 - Increase UDP buffer size.
