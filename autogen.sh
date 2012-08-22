@@ -21,6 +21,16 @@
 #  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 #  Boston, MA 02110-1301, USA.
 
+test -n "$srcdir" || srcdir=`dirname "$0"`
+test -n "$srcdir" || srcdir=.
+
+olddir=`pwd`
+cd "$srcdir"
+
 gtkdocize || exit 1
 ACLOCAL="${ACLOCAL-aclocal} $ACLOCAL_FLAGS" autoreconf -v --install || exit 1
-./configure --enable-maintainer-mode --enable-debug "$@"
+
+cd "$olddir"
+if test -z "$NOCONFIGURE"; then
+    "$srcdir/configure" --enable-maintainer-mode --enable-debug "$@"
+fi
