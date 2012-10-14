@@ -83,7 +83,7 @@ INTROSPECTION_GIRS += GSSDP-1.0.gir
 girdir = $(datadir)/gir-1.0
 gir_DATA = GSSDP-1.0.gir
 
-typelibdir = $(libdir)/girepository-1.0/
+typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(gir_DATA:.gir=.typelib)
 
 CLEANFILES += $(gir_DATA) $(typelib_DATA)

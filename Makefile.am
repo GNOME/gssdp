@@ -11,9 +11,9 @@ ACLOCAL_AMFLAGS=${ACLOCAL_FLAGS} -I m4
 pkgconfig_DATA= gssdp-1.0.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
-EXTRA_DIST = gssdp-1.0.pc.in gssdp-1.0-uninstalled.pc.in
+EXTRA_DIST = gssdp-1.0.pc.in gssdp-1.0-uninstalled.pc.in m4/introspection.m4
 
-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
+DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection
 
 # Extra clean files so that maintainer-clean removes *everything*
 MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.sub configure depcomp install-sh ltmain.sh Makefile.in missing config.h.in
