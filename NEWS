@@ -1,3 +1,15 @@
+0.13.1
+======
+- Run introspection in make distcheck.
+- Don't fail configure if vapigen could not be found.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=686039
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+
 0.13.0
 ======
 
@@ -12,7 +24,7 @@ All contributors to this release:
 Andreas Henriksson <andreas@fatal.se>
 Jens Georg <mail@jensge.org>
 
-Bugs addresses:
+Bugs addressed:
  - https://bugzilla.gnome.org/show_bug.cgi?id=685477
 
 0.12.2.1
