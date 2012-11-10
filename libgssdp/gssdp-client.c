@@ -95,6 +95,7 @@ struct _GSSDPClientPrivate {
         GSSDPSocketSource *search_socket;
 
         gboolean           active;
+        gboolean           initialized;
 };
 
 enum {
@@ -167,6 +168,10 @@ gssdp_client_initable_init (GInitable     *initable,
 {
         GSSDPClient *client = GSSDP_CLIENT (initable);
         GError *internal_error = NULL;
+
+        if (client->priv->initialized)
+                return TRUE;
+
 #ifdef G_OS_WIN32
         WSADATA wsaData = {0};
         if (WSAStartup (MAKEWORD (2,2), &wsaData) != 0) {
@@ -256,6 +261,8 @@ gssdp_client_initable_init (GInitable     *initable,
         gssdp_socket_source_attach (client->priv->request_socket);
         gssdp_socket_source_attach (client->priv->multicast_socket);
         gssdp_socket_source_attach (client->priv->search_socket);
+
+        client->priv->initialized = TRUE;
 
         return TRUE;
 }
