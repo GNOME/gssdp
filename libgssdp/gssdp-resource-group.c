@@ -44,6 +44,8 @@ G_DEFINE_TYPE (GSSDPResourceGroup,
                gssdp_resource_group,
                G_TYPE_OBJECT);
 
+#define DEFAULT_MAN_HEADER "\"ssdp:discover\""
+
 struct _GSSDPResourceGroupPrivate {
         GSSDPClient *client;
 
@@ -774,12 +776,12 @@ message_received_cb (GSSDPClient        *client,
         mx_str = soup_message_headers_get_one (headers, "MX");
         if (!mx_str || atoi (mx_str) <= 0) {
                 g_warning ("Discovery request did not have a valid MX header");
- 
+
                 return;
         }
 
         man = soup_message_headers_get_one (headers, "MAN");
-        if (!man) {
+        if (!man || strcmp (man, DEFAULT_MAN_HEADER) != 0) {
                 g_warning ("Discovery request did not have a valid MAN header");
 
                 return;
