@@ -32,7 +32,9 @@ main (int    argc,
         GError *error;
         GMainLoop *main_loop;
 
+#if !GLIB_CHECK_VERSION (2, 35, 0)
         g_type_init ();
+#endif
 
         error = NULL;
         client = g_initable_new (GSSDP_TYPE_CLIENT,
