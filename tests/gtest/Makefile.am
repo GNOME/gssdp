@@ -1,5 +1,5 @@
 TESTS_ENVIRONMENT = G_SLICE=debug-blocks \
-		    LD_LIBRARY_PATH=$(top_builddir)/libgssdp/.libs
+		    LD_LIBRARY_PATH=$(top_builddir)/libgssdp/.libs:$(LD_LIBRARY_PATH)
 
 TESTS=$(check_PROGRAMS)
 
