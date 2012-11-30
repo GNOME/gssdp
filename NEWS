@@ -1,3 +1,25 @@
+0.13.2
+======
+- Fix implementation of GInitable such that _init() is callable multiple times
+  without breaking.
+- Really ignore invalid MAN headers.
+- Fix port reuse on NetBSD.
+- Allow non-sourcedir build from git.
+- Don't use -Werror by default.
+- Silence some deprecation warnings.
+
+Bugs fixed in this release:
+ - https://github.com/01org/media-service-upnp/issues/54
+ - https://bugzilla.gnome.org/show_bug.cgi?id=685949
+ - https://bugzilla.gnome.org/show_bug.cgi?id=682576
+ - https://bugzilla.gnome.org/show_bug.cgi?id=682308
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+Theppitak Karoonboonyanan <thep@linux.thai.net>
+Matthias Drochner <M.Drochner@fz-juelich.de>
+
 0.13.1
 ======
 - Run introspection in make distcheck.
