@@ -84,11 +84,18 @@ G_DEFINE_TYPE_EXTENDED (GSSDPClient,
                                 (G_TYPE_INITABLE,
                                  gssdp_client_initable_iface_init));
 
+struct _GSSDPNetworkDevice {
+        char *iface_name;
+        char *host_ip;
+        char *network;
+        struct sockaddr_in mask;
+};
+typedef struct _GSSDPNetworkDevice GSSDPNetworkDevice;
+
 struct _GSSDPClientPrivate {
         char              *server_id;
-        char              *iface;
-        char              *host_ip;
-        char              *network;
+
+        GSSDPNetworkDevice device;
 
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
@@ -333,10 +340,10 @@ gssdp_client_set_property (GObject      *object,
                                    " Please use g_main_context_push_thread_default()");
                 break;
         case PROP_IFACE:
-                client->priv->iface = g_value_dup_string (value);
+                client->priv->device.iface_name = g_value_dup_string (value);
                 break;
         case PROP_NETWORK:
-                client->priv->network = g_value_dup_string (value);
+                client->priv->device.network = g_value_dup_string (value);
                 break;
         case PROP_ACTIVE:
                 client->priv->active = g_value_get_boolean (value);
@@ -384,9 +391,9 @@ gssdp_client_finalize (GObject *object)
 #endif
 
         g_free (client->priv->server_id);
-        g_free (client->priv->iface);
-        g_free (client->priv->host_ip);
-        g_free (client->priv->network);
+        g_free (client->priv->device.iface_name);
+        g_free (client->priv->device.host_ip);
+        g_free (client->priv->device.network);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->finalize (object);
 }
@@ -636,7 +643,7 @@ gssdp_client_get_interface (GSSDPClient *client)
 {
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
 
-        return client->priv->iface;
+        return client->priv->device.iface_name;
 }
 
 /**
@@ -652,7 +659,7 @@ gssdp_client_get_host_ip (GSSDPClient *client)
 {
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
 
-        return client->priv->host_ip;
+        return client->priv->device.host_ip;
 }
 
 /**
@@ -668,13 +675,13 @@ gssdp_client_set_network (GSSDPClient *client,
 {
         g_return_if_fail (GSSDP_IS_CLIENT (client));
 
-        if (client->priv->network) {
-                g_free (client->priv->network);
-                client->priv->network = NULL;
+        if (client->priv->device.network) {
+                g_free (client->priv->device.network);
+                client->priv->device.network = NULL;
         }
 
         if (network)
-                client->priv->network = g_strdup (network);
+                client->priv->device.network = g_strdup (network);
 
         g_object_notify (G_OBJECT (client), "network");
 }
@@ -692,7 +699,7 @@ gssdp_client_get_network (GSSDPClient *client)
 {
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
 
-        return client->priv->network;
+        return client->priv->device.network;
 }
 
 /**
@@ -885,20 +892,6 @@ parse_http_response (char                *buf,
         }
 }
 
-#ifdef G_OS_WIN32
-static in_addr_t
-inet_netof (struct in_addr in) {
-        in_addr_t i = ntohl(in.s_addr);
-
-        if (IN_CLASSA (i))
-            return (((i) & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT);
-        else if (IN_CLASSB (i))
-            return (((i) & IN_CLASSB_NET) >> IN_CLASSB_NSHIFT);
-        else
-            return (((i) & IN_CLASSC_NET) >> IN_CLASSC_NSHIFT);
-}
-#endif
-
 /*
  * Called when data can be read from the socket
  */
@@ -915,9 +908,8 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         char *ip_string = NULL;
         guint16 port;
         GError *error = NULL;
-        in_addr_t recv_network;
-        in_addr_t our_network;
-        struct in_addr our_addr;
+        in_addr_t our_addr;
+        in_addr_t mask;
         struct sockaddr_in addr;
 
         /* Get Socket */
@@ -952,10 +944,10 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                 goto out;
         }
 
-        recv_network = inet_netof (addr.sin_addr);
-        our_addr.s_addr = inet_addr (gssdp_client_get_host_ip (client));
-        our_network = inet_netof (our_addr);
-        if (recv_network != our_network)
+        mask = client->priv->device.mask.sin_addr.s_addr;
+        our_addr = inet_addr (gssdp_client_get_host_ip (client));
+
+        if ((addr.sin_addr.s_addr & mask) != (our_addr & mask))
                 goto out;
 
         if (bytes >= BUF_SIZE) {
@@ -1114,11 +1106,10 @@ extract_address_and_prefix (PIP_ADAPTER_UNICAST_ADDRESS  adapter,
  * appropriately.
  */
 
-static char *
-get_host_ip (char **iface, char **network)
+static gboolean
+get_host_ip (GSSDPNetworkDevice *device)
 {
 #ifdef G_OS_WIN32
-        char *addr = NULL;
         GList *up_ifaces = NULL, *ifaceptr = NULL;
         ULONG flags = GAA_FLAG_INCLUDE_PREFIX |
                       GAA_FLAG_SKIP_DNS_SERVER |
@@ -1151,8 +1142,8 @@ get_host_ip (char **iface, char **network)
                         if (adapter->IfType == IF_TYPE_PPP)
                                 continue;
 
-                        if (*iface != NULL &&
-                            strcmp (*iface, adapter->AdapterName) != 0)
+                        if (device->iface_name != NULL &&
+                            strcmp (device->iface_name, adapter->AdapterName) != 0)
                                 continue;
 
                         /* I think that IPv6 is done via pseudo-adapters, so
@@ -1181,28 +1172,35 @@ get_host_ip (char **iface, char **network)
                 adapter = (PIP_ADAPTER_ADDRESSES) ifaceptr->data;
                 address = adapter->FirstUnicastAddress;
 
-                switch (address->Address.lpSockaddr->sa_family) {
-                        case AF_INET:
-                        case AF_INET6:
-                                if (extract_address_and_prefix (
-                                         address,
-                                         adapter->FirstPrefix,
-                                         ip,
-                                         prefix)) {
-                                        p = ip;
-                                        q = prefix;
-                                }
-                                break;
-                        default:
-                                continue;
+                if (address->Address.lpSockaddr->sa_family != AF_INET)
+                        continue;
+
+                if (extract_address_and_prefix (address,
+                                                adapter->FirstPrefix,
+                                                ip,
+                                                prefix)) {
+                                                p = ip;
+                                                q = prefix;
                 }
 
                 if (p != NULL) {
-                        addr = g_strdup (p);
-                        if (*iface == NULL)
-                                *iface = g_strdup (adapter->AdapterName);
-                        if (*network == NULL)
-                                *network = g_strdup (q);
+                        device->host_ip = g_strdup (p);
+                        /* This relies on the compiler doing an arithmetic
+                         * shift here!
+                         */
+                        gint32 mask = 0;
+                        if (adapter->FirstPrefix->PrefixLength > 0) {
+                                mask = (gint32) 0x80000000;
+                                mask >>= adapter->FirstPrefix->PrefixLength - 1;
+                        }
+                        device->mask.sin_family = AF_INET;
+                        device->mask.sin_port = 0;
+                        device->mask.sin_addr.s_addr = htonl ((guint32) mask);
+
+                        if (device->iface_name == NULL)
+                                device->iface_name = g_strdup (adapter->AdapterName);
+                        if (device->network == NULL)
+                                device->network = g_strdup (q);
                         break;
                 }
 
@@ -1210,27 +1208,26 @@ get_host_ip (char **iface, char **network)
         g_list_free (up_ifaces);
         g_free (adapters_addresses);
 
-        return addr;
+        return TRUE;
 #else
         struct ifaddrs *ifa_list, *ifa;
-        char *ret;
         GList *up_ifaces, *ifaceptr;
 
-        ret = NULL;
         up_ifaces = NULL;
 
         if (getifaddrs (&ifa_list) != 0) {
                 g_error ("Failed to retrieve list of network interfaces:\n%s\n",
                          strerror (errno));
 
-                return NULL;
+                return FALSE;
         }
 
         for (ifa = ifa_list; ifa != NULL; ifa = ifa->ifa_next) {
                 if (ifa->ifa_addr == NULL)
                         continue;
 
-                if (*iface && strcmp (*iface, ifa->ifa_name) != 0)
+                if (device->iface_name &&
+                    strcmp (device->iface_name, ifa->ifa_name) != 0)
                         continue;
                 else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
@@ -1251,59 +1248,37 @@ get_host_ip (char **iface, char **network)
                 char ip[INET6_ADDRSTRLEN];
                 char net[INET6_ADDRSTRLEN];
                 const char *p, *q;
-                int i = 0;
                 struct sockaddr_in *s4, *s4_mask;
-                struct sockaddr_in6 *s6, *s6_mask;
                 struct in_addr net_addr;
-                struct in6_addr net6_addr;
-
-                p = NULL;
 
                 ifa = ifaceptr->data;
 
-                switch (ifa->ifa_addr->sa_family) {
-                case AF_INET:
-                        s4 = (struct sockaddr_in *) ifa->ifa_addr;
-                        p = inet_ntop (AF_INET,
-                                       &s4->sin_addr, ip, sizeof (ip));
-                        s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
-                        net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
-                                          (in_addr_t) s4_mask->sin_addr.s_addr;
-                        q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
-                        break;
-                case AF_INET6:
-                        s6 = (struct sockaddr_in6 *) ifa->ifa_addr;
-                        p = inet_ntop (AF_INET6,
-                                       &s6->sin6_addr, ip, sizeof (ip));
-                        s6_mask = (struct sockaddr_in6 *) ifa->ifa_netmask;
-                        /* FIXME: Is this the right way to calculate this? */
-                        /* FIXME: Does this work on big endian machines? */
-                        for (i = 0; i < 16; ++i) {
-                                net6_addr.s6_addr[i] =
-                                        s6->sin6_addr.s6_addr[i] &
-                                        s6_mask->sin6_addr.s6_addr[i];
-                        }
-                        q = inet_ntop (AF_INET6, &net6_addr, net, sizeof (net));
-                        break;
-                default:
-                        continue; /* Unknown: ignore */
+                if (ifa->ifa_addr->sa_family != AF_INET) {
+                        continue;
                 }
 
-                if (p != NULL) {
-                        ret = g_strdup (p);
+                s4 = (struct sockaddr_in *) ifa->ifa_addr;
+                p = inet_ntop (AF_INET,
+                               &s4->sin_addr,
+                               ip,
+                               sizeof (ip));
+                device->host_ip = g_strdup (p);
+                s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
+                memcpy (&(device->mask), s4_mask, sizeof (struct sockaddr_in));
+                net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
+                                  (in_addr_t) s4_mask->sin_addr.s_addr;
+                q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
 
-                        if (*iface == NULL)
-                                *iface = g_strdup (ifa->ifa_name);
-                        if (*network == NULL)
-                                *network = g_strdup (q);
-                        break;
-                }
+                if (device->iface_name == NULL)
+                        device->iface_name = g_strdup (ifa->ifa_name);
+                if (device->network == NULL)
+                        device->network = g_strdup (q);
         }
 
         g_list_free (up_ifaces);
         freeifaddrs (ifa_list);
 
-        return ret;
+        return TRUE;
 #endif
 }
 
@@ -1312,24 +1287,27 @@ init_network_info (GSSDPClient *client, GError **error)
 {
         gboolean ret = TRUE;
 
-        if (client->priv->iface == NULL || client->priv->host_ip == NULL)
-                client->priv->host_ip =
-                        get_host_ip (&client->priv->iface,
-                                     &client->priv->network);
+        /* Either interface name or host_ip wasn't given during construction.
+         * If one is given, try to find the other, otherwise just pick an
+         * interface.
+         */
+        if (client->priv->device.iface_name == NULL ||
+            client->priv->device.host_ip == NULL)
+                get_host_ip (&(client->priv->device));
 
-        if (client->priv->iface == NULL) {
+        if (client->priv->device.iface_name == NULL) {
                 g_set_error_literal (error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_FAILED,
                                      "No default route?");
 
                 ret = FALSE;
-        } else if (client->priv->host_ip == NULL) {
+        } else if (client->priv->device.host_ip == NULL) {
                         g_set_error (error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_NO_IP_ADDRESS,
                                      "Failed to find IP of interface %s",
-                                     client->priv->iface);
+                                     client->priv->device.iface_name);
 
                 ret = FALSE;
         }
