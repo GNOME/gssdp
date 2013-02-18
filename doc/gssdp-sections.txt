@@ -63,6 +63,7 @@ gssdp_resource_browser_set_mx
 gssdp_resource_browser_get_mx
 gssdp_resource_browser_set_active
 gssdp_resource_browser_get_active
+gssdp_resource_browser_rescan
 <SUBSECTION Standard>
 GSSDP_RESOURCE_BROWSER
 GSSDP_IS_RESOURCE_BROWSER

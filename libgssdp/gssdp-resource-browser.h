@@ -113,6 +113,9 @@ gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
 gboolean
 gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser);
 
+gboolean
+gssdp_resource_browser_rescan     (GSSDPResourceBrowser *resource_browser);
+
 G_END_DECLS
 
 #endif /* __GSSDP_RESOURCE_BROWSER_H__ */

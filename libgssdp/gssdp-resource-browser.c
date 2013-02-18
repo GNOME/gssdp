@@ -41,6 +41,7 @@
 #include "gssdp-protocol.h"
 #include "gssdp-marshal.h"
 
+#define RESCAN_TIMEOUT 5 /* 5 seconds */
 #define MAX_DISCOVERY_MESSAGES 3
 #define DISCOVERY_FREQUENCY    500 /* 500 ms */
 
@@ -65,6 +66,9 @@ struct _GSSDPResourceBrowserPrivate {
         GSource     *timeout_src;
         guint        num_discovery;
         guint        version;
+
+        GSource     *refresh_cache_src;
+        GHashTable  *fresh_resources;
 };
 
 enum {
@@ -112,6 +116,8 @@ static void
 start_discovery                  (GSSDPResourceBrowser *resource_browser);
 static void
 stop_discovery                   (GSSDPResourceBrowser *resource_browser);
+static gboolean
+refresh_cache                    (gpointer data);
 
 static void
 gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
@@ -582,6 +588,30 @@ gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser)
         return resource_browser->priv->active;
 }
 
+/**
+ * gssdp_resource_browser_rescan:
+ * @resource_browser: A #GSSDPResourceBrowser
+ *
+ * Begins discovery if @resource_browser is active and no discovery is
+ * performed. Otherwise does nothing.
+ *
+ * Return value: %TRUE if rescaning has been started.
+ **/
+gboolean
+gssdp_resource_browser_rescan (GSSDPResourceBrowser *resource_browser)
+{
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser), 0);
+
+        if (resource_browser->priv->active &&
+            resource_browser->priv->timeout_src == NULL &&
+            resource_browser->priv->refresh_cache_src == NULL) {
+                start_discovery (resource_browser);
+                return TRUE;
+        }
+
+        return FALSE;
+}
+
 /*
  * Resource expired: Remove
  */
@@ -652,6 +682,16 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         /* Get from cache, if possible */
         resource = g_hash_table_lookup (resource_browser->priv->resources,
                                         canonical_usn);
+        /* Put usn into fresh resources, so this resource will not be
+         * removed on cache refreshing. */
+        if (resource_browser->priv->fresh_resources != NULL) {
+                char *usn_copy = g_strdup (canonical_usn);
+
+                g_hash_table_insert (resource_browser->priv->fresh_resources,
+                                     usn_copy,
+                                     usn_copy);
+        }
+
         if (resource) {
                 /* Remove old timeout */
                 g_source_destroy (resource->timeout_src);
@@ -1032,6 +1072,18 @@ discovery_timeout (gpointer data)
                 resource_browser->priv->timeout_src = NULL;
                 resource_browser->priv->num_discovery = 0;
 
+                /* Setup cache refreshing */
+                resource_browser->priv->refresh_cache_src =
+                                  g_timeout_source_new_seconds (RESCAN_TIMEOUT);
+                g_source_set_callback
+                                     (resource_browser->priv->refresh_cache_src,
+                                      refresh_cache,
+                                      resource_browser,
+                                      NULL);
+                g_source_attach (resource_browser->priv->refresh_cache_src,
+                                 g_main_context_get_thread_default ());
+                g_source_unref (resource_browser->priv->refresh_cache_src);
+
                 return FALSE;
         } else
                 return TRUE;
@@ -1056,6 +1108,13 @@ start_discovery (GSSDPResourceBrowser *resource_browser)
                          g_main_context_get_thread_default ());
 
         g_source_unref (resource_browser->priv->timeout_src);
+
+        /* Setup a set of responsive resources for cache refreshing */
+        resource_browser->priv->fresh_resources = g_hash_table_new_full
+                                        (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         NULL);
 }
 
 /* Stops the sending of discovery messages */
@@ -1067,4 +1126,50 @@ stop_discovery (GSSDPResourceBrowser *resource_browser)
                 resource_browser->priv->timeout_src = NULL;
                 resource_browser->priv->num_discovery = 0;
         }
+        if (resource_browser->priv->refresh_cache_src) {
+                g_source_destroy (resource_browser->priv->refresh_cache_src);
+                resource_browser->priv->refresh_cache_src = NULL;
+        }
+        if (resource_browser->priv->fresh_resources) {
+                g_hash_table_unref (resource_browser->priv->fresh_resources);
+                resource_browser->priv->fresh_resources = NULL;
+        }
+}
+
+static gboolean
+refresh_cache_helper (gpointer key, gpointer value, gpointer data)
+{
+        Resource *resource;
+        GHashTable *fresh_resources;
+
+        resource = value;
+        fresh_resources = data;
+
+        if (g_hash_table_lookup_extended (fresh_resources, key, NULL, NULL))
+                return FALSE;
+        else {
+                g_signal_emit (resource->resource_browser,
+                               signals[RESOURCE_UNAVAILABLE],
+                               0,
+                               resource->usn);
+
+                return TRUE;
+        }
+}
+
+/* Removes non-responsive resources */
+static gboolean
+refresh_cache (gpointer data)
+{
+        GSSDPResourceBrowser *resource_browser;
+
+        resource_browser = GSSDP_RESOURCE_BROWSER (data);
+        g_hash_table_foreach_remove (resource_browser->priv->resources,
+                                     refresh_cache_helper,
+                                     resource_browser->priv->fresh_resources);
+        g_hash_table_unref (resource_browser->priv->fresh_resources);
+        resource_browser->priv->fresh_resources = NULL;
+        resource_browser->priv->refresh_cache_src = NULL;
+
+        return FALSE;
 }
