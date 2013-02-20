@@ -74,6 +74,7 @@ typedef struct _GSSDPSocketSourceClass {
 G_GNUC_INTERNAL GSSDPSocketSource *
 gssdp_socket_source_new        (GSSDPSocketSourceType  type,
                                 const char            *host_ip,
+                                guint                  ttl,
                                 GError               **error);
 G_GNUC_INTERNAL GSocket*
 gssdp_socket_source_get_socket (GSSDPSocketSource     *socket_source);

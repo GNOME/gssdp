@@ -47,13 +47,16 @@ struct _GSSDPSocketSourcePrivate {
         GSource              *source;
         GSocket              *socket;
         GSSDPSocketSourceType type;
+
         char                 *host_ip;
+        guint                 ttl;
 };
 
 enum {
     PROP_0,
     PROP_TYPE,
-    PROP_HOST_IP
+    PROP_HOST_IP,
+    PROP_TTL,
 };
 
 static void
@@ -108,6 +111,9 @@ gssdp_socket_source_set_property (GObject          *object,
         case PROP_HOST_IP:
                 self->priv->host_ip = g_value_dup_string (value);
                 break;
+        case PROP_TTL:
+                self->priv->ttl = g_value_get_uint (value);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -122,6 +128,7 @@ gssdp_socket_source_set_property (GObject          *object,
 GSSDPSocketSource *
 gssdp_socket_source_new (GSSDPSocketSourceType type,
                          const char           *host_ip,
+                         guint                 ttl,
                          GError              **error)
 {
         return g_initable_new (GSSDP_TYPE_SOCKET_SOURCE,
@@ -131,6 +138,8 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                                type,
                                "host-ip",
                                host_ip,
+                               "ttl",
+                               ttl,
                                NULL);
 }
 
@@ -198,15 +207,20 @@ gssdp_socket_source_do_init (GInitable     *initable,
         }
 
         /* TTL */
+        if (!self->priv->ttl)
+                /* UDA/1.0 says 4, UDA/1.1 says 2 */
+                self->priv->ttl = 4;
+
         if (!gssdp_socket_set_ttl (self->priv->socket,
-                                   4,
+                                   self->priv->ttl,
                                    &inner_error)) {
                 g_propagate_prefixed_error (error,
                                             inner_error,
-                                            "Failed to set TTL");
+                                            "Failed to set TTL to %u", self->priv->ttl);
 
                 goto error;
         }
+
         /* Set up additional things according to the type of socket desired */
         if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
                 /* Enable multicast loopback */
@@ -419,6 +433,19 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
                          "Host ip",
                          "IP address of associated network interface",
                          NULL,
+                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                         G_PARAM_STATIC_BLURB));
+
+        g_object_class_install_property
+                (object_class,
+                 PROP_TTL,
+                 g_param_spec_uint
+                        ("ttl",
+                         "TTL",
+                         "Time To Live for the socket",
+                         0, 255,
+                         0,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                          G_PARAM_STATIC_BLURB));

@@ -95,6 +95,7 @@ typedef struct _GSSDPNetworkDevice GSSDPNetworkDevice;
 struct _GSSDPClientPrivate {
         char              *server_id;
 
+        guint              socket_ttl;
         GSSDPNetworkDevice device;
 
         GSSDPSocketSource *request_socket;
@@ -112,7 +113,8 @@ enum {
         PROP_IFACE,
         PROP_NETWORK,
         PROP_HOST_IP,
-        PROP_ACTIVE
+        PROP_ACTIVE,
+        PROP_SOCKET_TTL,
 };
 
 enum {
@@ -203,6 +205,7 @@ gssdp_client_initable_init (GInitable     *initable,
         client->priv->request_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
                                          gssdp_client_get_host_ip (client),
+                                         client->priv->socket_ttl,
                                          &internal_error);
         if (client->priv->request_socket != NULL) {
                 gssdp_socket_source_set_callback
@@ -216,6 +219,7 @@ gssdp_client_initable_init (GInitable     *initable,
         client->priv->multicast_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
                                          gssdp_client_get_host_ip (client),
+                                         client->priv->socket_ttl,
                                          &internal_error);
         if (client->priv->multicast_socket != NULL) {
                 gssdp_socket_source_set_callback
@@ -231,6 +235,7 @@ gssdp_client_initable_init (GInitable     *initable,
         client->priv->search_socket = gssdp_socket_source_new
                                         (GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
                                          gssdp_client_get_host_ip (client),
+                                         client->priv->socket_ttl,
                                          &internal_error);
         if (client->priv->search_socket != NULL) {
                 gssdp_socket_source_set_callback
@@ -313,6 +318,9 @@ gssdp_client_get_property (GObject    *object,
         case PROP_ACTIVE:
                 g_value_set_boolean (value, client->priv->active);
                 break;
+        case PROP_SOCKET_TTL:
+                g_value_set_uint (value, client->priv->socket_ttl);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -347,6 +355,9 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_ACTIVE:
                 client->priv->active = g_value_get_boolean (value);
+                break;
+        case PROP_SOCKET_TTL:
+                client->priv->socket_ttl = g_value_get_uint (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -528,6 +539,26 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_NAME |
                           G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
+
+        /**
+         * GSSDPClient:socket-ttl:
+         *
+         * Time-to-live value to use for all sockets created by this client.
+         * If not set (or set to 0) the value recommended by UPnP will be used.
+         * This property can only be set during object construction.
+         */
+        g_object_class_install_property
+                (object_class,
+                 PROP_SOCKET_TTL,
+                 g_param_spec_uint
+                        ("socket-ttl",
+                         "Socket TTL",
+                         "Time To Live for client's sockets",
+                         0, 255,
+                         0,
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                         G_PARAM_STATIC_BLURB));
 
         /**
          * GSSDPClient::message-received: (skip)
