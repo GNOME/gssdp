@@ -1,3 +1,20 @@
+0.14.0
+======
+- Don't use inet_netof to filter for correct source networks.
+- Add gssdp_resource_browser_rescan() function.
+- Allow custom TTL values for GSSDPClient.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=656406
+ - https://bugzilla.gnome.org/show_bug.cgi?id=668922
+ - https://bugzilla.gnome.org/show_bug.cgi?id=692516
+
+All contributors to this release:
+
+Jens Georg <mail@jensge.org>
+Krzesimir Nowak <krnowak@openismus.com>
+gnupnp <gnupnp@dorgby.net>
+
 0.13.2
 ======
 - Fix implementation of GInitable such that _init() is callable multiple times
