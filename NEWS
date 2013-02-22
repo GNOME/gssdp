@@ -1,3 +1,15 @@
+0.14.1
+======
+
+- Fix a crash on network announcements.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=694418
+
+All contributors to this release:
+  Krzesimir Nowak <krnowak@openismus.com>
+  Jussi Kukkonen <jussi.kukkonen@intel.com>
+
 0.14.0
 ======
 - Don't use inet_netof to filter for correct source networks.
