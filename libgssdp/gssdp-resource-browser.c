@@ -687,9 +687,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         if (resource_browser->priv->fresh_resources != NULL) {
                 char *usn_copy = g_strdup (canonical_usn);
 
-                g_hash_table_insert (resource_browser->priv->fresh_resources,
-                                     usn_copy,
-                                     usn_copy);
+                g_hash_table_add (resource_browser->priv->fresh_resources,
+                                  usn_copy);
         }
 
         if (resource) {
