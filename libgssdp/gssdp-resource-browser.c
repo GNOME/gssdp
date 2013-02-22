@@ -685,10 +685,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         /* Put usn into fresh resources, so this resource will not be
          * removed on cache refreshing. */
         if (resource_browser->priv->fresh_resources != NULL) {
-                char *usn_copy = g_strdup (canonical_usn);
-
                 g_hash_table_add (resource_browser->priv->fresh_resources,
-                                  usn_copy);
+                                  g_strdup (canonical_usn));
         }
 
         if (resource) {
@@ -1144,7 +1142,7 @@ refresh_cache_helper (gpointer key, gpointer value, gpointer data)
         resource = value;
         fresh_resources = data;
 
-        if (g_hash_table_lookup_extended (fresh_resources, key, NULL, NULL))
+        if (g_hash_table_contains (fresh_resources, key))
                 return FALSE;
         else {
                 g_signal_emit (resource->resource_browser,

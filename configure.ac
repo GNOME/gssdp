@@ -22,9 +22,9 @@ AC_HEADER_STDC
 LT_PREREQ([2.2])
 LT_INIT
 
-PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.22 \
-                            gobject-2.0 >= 2.22 \
-                            gio-2.0 >= 2.22 \
+PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.32 \
+                            gobject-2.0 >= 2.32 \
+                            gio-2.0 >= 2.32 \
                             libsoup-2.4 >= 2.26.1)
 
 LIBGTK_REQUIRED=2.12.0
