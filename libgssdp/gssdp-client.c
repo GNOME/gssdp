@@ -1304,6 +1304,7 @@ get_host_ip (GSSDPNetworkDevice *device)
                         device->iface_name = g_strdup (ifa->ifa_name);
                 if (device->network == NULL)
                         device->network = g_strdup (q);
+                break;
         }
 
         g_list_free (up_ifaces);
