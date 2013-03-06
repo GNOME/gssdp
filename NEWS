@@ -1,3 +1,12 @@
+0.14.2
+======
+
+- Fix memory leaks on initial interface search.
+- Make default interface detection a little bit smarter.
+
+All contributors to this release:
+  Krzesimir Nowak <krnowak@openismus.com>
+
 0.14.1
 ======
 
