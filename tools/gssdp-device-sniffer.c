@@ -27,11 +27,19 @@
 #define UI_FILE "gssdp-device-sniffer.ui"
 #define MAX_IP_LEN 16
 
+static char *interface = NULL;
+
 GtkBuilder *builder;
 GSSDPResourceBrowser *resource_browser;
 GSSDPClient *client;
 char *ip_filter = NULL;
 gboolean capture_packets = TRUE;
+
+GOptionEntry entries[] =
+{
+        {"interface", 'i', 0, G_OPTION_ARG_STRING, &interface, "Network interface to listen on", NULL },
+        { NULL }
+};
 
 G_MODULE_EXPORT
 void
@@ -550,8 +558,18 @@ init_ui (gint *argc, gchar **argv[])
         GtkWidget *main_window;
         gint window_width, window_height;
         gchar *ui_path = NULL;
-        
-        gtk_init (argc, argv);
+        GError *error = NULL;
+        GOptionContext *context;
+
+        context = g_option_context_new ("- graphical SSDP debug tool");
+        g_option_context_add_main_entries (context, entries, NULL);
+        g_option_context_add_group (context, gtk_get_option_group (TRUE));
+        if (!g_option_context_parse (context, argc, argv, &error)) {
+                g_print ("Failed to parse options: %s\n", error->message);
+                g_error_free (error);
+
+                return FALSE;
+        }
 
         /* Try to fetch the ui file from the CWD first */
         ui_path = UI_FILE;
@@ -604,6 +622,7 @@ init_upnp (void)
         client = g_initable_new (GSSDP_TYPE_CLIENT,
                                  NULL,
                                  &error,
+                                 "interface", interface,
                                  NULL);
         if (error) {
                 g_printerr ("Error creating the GSSDP client: %s\n",
