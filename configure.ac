@@ -27,7 +27,7 @@ PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.32 \
                             gio-2.0 >= 2.32 \
                             libsoup-2.4 >= 2.26.1)
 
-LIBGTK_REQUIRED=2.12.0
+LIBGTK_REQUIRED=3.0
 
 AC_ARG_WITH( gtk,
   AS_HELP_STRING([--without-gtk],[compile without gtk+ support]),
@@ -36,7 +36,7 @@ AC_ARG_WITH( gtk,
 HAVE_LIBGTK=no
 if test x$try_gtk = xyes ; then
     dnl check for gtk+
-    PKG_CHECK_MODULES(LIBGTK, gtk+-2.0 >= $LIBGTK_REQUIRED ,
+    PKG_CHECK_MODULES(LIBGTK, gtk+-3.0 >= $LIBGTK_REQUIRED ,
       [
         HAVE_LIBGTK=yes
         AC_SUBST(LIBGTK_CFLAGS)
