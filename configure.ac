@@ -81,13 +81,23 @@ AS_IF([test "x$[]enable_strict_c" = "xyes"],
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 # vapigen
+have_vapigen=no
 AS_IF([test "x$found_introspection" = "xyes"],
       [
-       VALA_PROG_VAPIGEN([0.14])
+       dnl output of g-i >= 1.36.0 needs vapigen >= 0.20 to process
+       AC_MSG_CHECKING([whether G-I is 1.36 or newer])
+       VAPIGEN_MIN_VERSION=0.14
+       AS_IF([pkg-config --atleast-version=1.36.0 gobject-introspection-1.0],
+             [
+              AC_MSG_RESULT([yes])
+              VAPIGEN_MIN_VERSION=0.20
+             ],[AC_MSG_RESULT([no])]
+       )
+       GUPNP_PROG_VAPIGEN([$VAPIGEN_MIN_VERSION])
       ]
 )
+AS_IF([test "x$VAPIGEN" != "x"], [have_vapigen=yes])
 AM_CONDITIONAL([HAVE_VAPIGEN], [test "x$VAPIGEN" != "x"])
-
 
 dnl Check for Win32
 AC_MSG_CHECKING([for Win32])
@@ -117,3 +127,12 @@ gssdp-1.0.pc
 gssdp-1.0-uninstalled.pc
 ])
 AC_OUTPUT
+
+echo "
+    ${PACKAGE} ${VERSION}
+    ---------------------
+
+    Prefix:                ${prefix}
+    GObject-Introspection: ${found_introspection}
+    VALA bindings:         ${have_vapigen}
+"
