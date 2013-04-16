@@ -17,6 +17,9 @@ GNOME_COMPILE_WARNINGS
 
 AM_SILENT_RULES([yes])
 
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+
 AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_CC
 AC_HEADER_STDC
@@ -113,6 +116,20 @@ case "$host" in
 esac
 AC_MSG_RESULT([$os_win32])
 AM_CONDITIONAL(OS_WIN32, [test $os_win32 = yes])
+
+dnl Check for Android
+AC_MSG_CHECKING([for Android as target OS])
+target_android=no
+case "$target_os" in
+    linux-android*)
+        target_android=yes
+        ;;
+    *)
+        target_android=no
+        ;;
+esac
+AC_MSG_RESULT([$target_android])
+AM_CONDITIONAL(TARGET_ANDROID, [test $target_android = yes])
 
 GTK_DOC_CHECK([1.0])
 

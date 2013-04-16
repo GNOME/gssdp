@@ -56,6 +56,10 @@ libgssdp_1_0_la_LIBADD += -lws2_32 -liphlpapi
 libgssdp_1_0_la_LDFLAGS += -no-undefined
 endif
 
+if TARGET_ANDROID
+libgssdp_1_0_la_LIBADD += -llog
+endif
+
 EXTRA_DIST = gssdp-marshal.list
 
 CLEANFILES = $(BUILT_SOURCES)
