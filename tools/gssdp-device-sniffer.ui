@@ -3,7 +3,9 @@
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAboutDialog" id="about-dialog">
     <property name="can_focus">False</property>
+    <property name="resizable">False</property>
     <property name="type_hint">normal</property>
+    <property name="transient_for">main-window</property>
     <property name="copyright" translatable="yes">Copyright (C) 2007 Zeeshan Ali (Khattak)</property>
     <property name="comments" translatable="yes">A Device Sniffer tool based on GSSDP framework.
 Inspired by Intel Tools for UPnP.</property>
@@ -36,6 +38,7 @@ Inspired by Intel Tools for UPnP.</property>
     <property name="title" translatable="yes">Address Filter</property>
     <property name="resizable">False</property>
     <property name="type_hint">dialog</property>
+    <property name="transient_for">main-window</property>
     <signal name="response" handler="on_address_filter_dialog_response" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox1">
