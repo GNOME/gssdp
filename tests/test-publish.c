@@ -24,8 +24,8 @@
 #include <stdlib.h>
 
 int
-main (int    argc,
-      char **argv)
+main (G_GNUC_UNUSED int    argc,
+      G_GNUC_UNUSED char **argv)
 {
         GSSDPClient *client;
         GSSDPResourceGroup *resource_group;

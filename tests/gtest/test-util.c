@@ -22,18 +22,18 @@
 #include "test-util.h"
 
 void
-on_resource_unavailable_assert_not_reached (GSSDPResourceBrowser *src,
-                                            const char           *usn,
-                                            gpointer              user_data)
+on_resource_unavailable_assert_not_reached (G_GNUC_UNUSED GSSDPResourceBrowser *src,
+                                            G_GNUC_UNUSED const char           *usn,
+                                            G_GNUC_UNUSED gpointer              user_data)
 {
         g_assert_not_reached ();
 }
 
 void
-on_resource_available_assert_not_reached (GSSDPResourceBrowser *src,
-                                          const char           *usn,
-                                          GList                *locations,
-                                          gpointer              user_data)
+on_resource_available_assert_not_reached (G_GNUC_UNUSED GSSDPResourceBrowser *src,
+                                          G_GNUC_UNUSED const char           *usn,
+                                          G_GNUC_UNUSED GList                *locations,
+                                          G_GNUC_UNUSED gpointer              user_data)
 {
         g_assert_not_reached ();
 }

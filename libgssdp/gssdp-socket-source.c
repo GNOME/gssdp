@@ -74,7 +74,7 @@ gssdp_socket_source_do_init (GInitable     *initable,
 
 static void
 gssdp_socket_source_initable_init (gpointer g_iface,
-                                   gpointer iface_data)
+                                   G_GNUC_UNUSED gpointer iface_data)
 {
         GInitableIface *iface = (GInitableIface *)g_iface;
         iface->init = gssdp_socket_source_do_init;
@@ -83,7 +83,7 @@ gssdp_socket_source_initable_init (gpointer g_iface,
 static void
 gssdp_socket_source_get_property (GObject    *object,
                                   guint       property_id,
-                                  GValue     *value,
+                                  G_GNUC_UNUSED GValue     *value,
                                   GParamSpec *pspec)
 {
         /* All properties are construct-only, write-only */
@@ -145,7 +145,7 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
 
 static gboolean
 gssdp_socket_source_do_init (GInitable     *initable,
-                             GCancellable  *cancellable,
+                             G_GNUC_UNUSED GCancellable  *cancellable,
                              GError       **error)
 {
         GSSDPSocketSource *self = NULL;

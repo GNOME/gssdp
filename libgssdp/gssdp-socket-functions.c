@@ -153,6 +153,8 @@ gssdp_socket_mcast_interface_set (GSocket      *socket,
                                         error);
 }
 
+#define __GSSDP_UNUSED(x) (void)(x)
+
 gboolean
 gssdp_socket_reuse_address (GSocket *socket,
                             gboolean enable,
@@ -169,6 +171,10 @@ gssdp_socket_reuse_address (GSocket *socket,
                                         (char *) &enable,
                                         sizeof (enable),
                                         error);
+#else
+        __GSSDP_UNUSED(socket);
+        __GSSDP_UNUSED(enable);
+        __GSSDP_UNUSED(error);
 #endif
         return TRUE;
 }
