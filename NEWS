@@ -1,3 +1,20 @@
+0.14.3
+======
+
+- Add --interface, -i commandline option to gssdp-device-sniffer to specify a
+  network interface for it to run on.
+- Update the GSSDP device sniffer to GTK+3.
+- Depend on vapigen >= 0.20 if gobject-introspection is 1.36 or newer.
+- Some minor UI fixes in gssdp-device-sniffer.
+- Make it compile with -Wall -Wextra.
+
+All contributors to this release:
+  Jens Georg <jensg@openismus.com>
+
+Changes in dependencies:
+  Gtk+ >= 3.0
+  vapigen >= 0.20 if gobject-introspection is >= 1.36
+
 0.14.2
 ======
 
