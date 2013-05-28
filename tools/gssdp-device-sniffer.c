@@ -235,7 +235,7 @@ append_packet (const gchar *from_ip,
 static void
 on_ssdp_message (G_GNUC_UNUSED GSSDPClient *client,
                  G_GNUC_UNUSED const gchar *from_ip,
-                 G_GNUX_UNUSED gushort      from_port,
+                 G_GNUC_UNUSED gushort      from_port,
                  _GSSDPMessageType          type,
                  SoupMessageHeaders        *headers,
                  G_GNUC_UNUSED gpointer     user_data)
