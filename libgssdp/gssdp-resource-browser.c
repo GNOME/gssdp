@@ -968,12 +968,12 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
  * Received a message
  */
 static void
-message_received_cb (G_GNUC_UNUSED GSSDPClient        *client,
-                     G_GNUC_UNUSED const char         *from_ip,
-                     G_GNUC_UNUSED gushort             from_port,
-                     _GSSDPMessageType   type,
-                     SoupMessageHeaders *headers,
-                     gpointer            user_data)
+message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
+                     G_GNUC_UNUSED const char  *from_ip,
+                     G_GNUC_UNUSED gushort      from_port,
+                     _GSSDPMessageType          type,
+                     SoupMessageHeaders        *headers,
+                     gpointer                   user_data)
 {
         GSSDPResourceBrowser *resource_browser;
 
@@ -1013,7 +1013,7 @@ resource_free (gpointer data)
 
 static gboolean
 clear_cache_helper (G_GNUC_UNUSED gpointer key,
-                    gpointer value,
+                    gpointer               value,
                     G_GNUC_UNUSED gpointer data)
 {
         Resource *resource;

@@ -25,8 +25,8 @@
 
 static void
 resource_available_cb (G_GNUC_UNUSED GSSDPResourceBrowser *resource_browser,
-                       const char           *usn,
-                       GList                *locations)
+                       const char                         *usn,
+                       GList                              *locations)
 {
         GList *l;
 
@@ -40,7 +40,7 @@ resource_available_cb (G_GNUC_UNUSED GSSDPResourceBrowser *resource_browser,
 
 static void
 resource_unavailable_cb (G_GNUC_UNUSED GSSDPResourceBrowser *resource_browser,
-                         const char           *usn)
+                         const char                         *usn)
 {
         g_print ("resource unavailable\n"
                  "  USN:      %s\n",

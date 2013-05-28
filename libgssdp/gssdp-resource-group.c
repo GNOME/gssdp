@@ -738,12 +738,12 @@ resource_group_timeout (gpointer user_data)
  * Received a message
  */
 static void
-message_received_cb (G_GNUC_UNUSED GSSDPClient        *client,
-                     const char         *from_ip,
-                     gushort             from_port,
-                     _GSSDPMessageType   type,
-                     SoupMessageHeaders *headers,
-                     gpointer            user_data)
+message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
+                     const char                *from_ip,
+                     gushort                    from_port,
+                     _GSSDPMessageType          type,
+                     SoupMessageHeaders        *headers,
+                     gpointer                   user_data)
 {
         GSSDPResourceGroup *resource_group;
         const char *target, *mx_str, *version_str, *man;

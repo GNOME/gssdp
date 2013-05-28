@@ -163,7 +163,7 @@ gssdp_client_init (GSSDPClient *client)
 }
 
 static void
-gssdp_client_initable_iface_init (gpointer g_iface,
+gssdp_client_initable_iface_init (gpointer               g_iface,
                                   G_GNUC_UNUSED gpointer iface_data)
 {
         GInitableIface *iface = (GInitableIface *)g_iface;
@@ -171,9 +171,9 @@ gssdp_client_initable_iface_init (gpointer g_iface,
 }
 
 static gboolean
-gssdp_client_initable_init (GInitable     *initable,
-                            G_GNUC_UNUSED GCancellable *cancellable,
-                            GError       **error)
+gssdp_client_initable_init (GInitable                   *initable,
+                            G_GNUC_UNUSED GCancellable  *cancellable,
+                            GError                     **error)
 {
         GSSDPClient *client = GSSDP_CLIENT (initable);
         GError *internal_error = NULL;
@@ -1054,7 +1054,7 @@ out:
 static gboolean
 request_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                           G_GNUC_UNUSED GIOCondition condition,
-                          gpointer     user_data)
+                          gpointer                   user_data)
 {
         GSSDPClient *client;
 
@@ -1066,7 +1066,7 @@ request_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
 static gboolean
 multicast_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                             G_GNUC_UNUSED GIOCondition condition,
-                            gpointer     user_data)
+                            gpointer                   user_data)
 {
         GSSDPClient *client;
 
@@ -1078,7 +1078,7 @@ multicast_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
 static gboolean
 search_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                          G_GNUC_UNUSED GIOCondition condition,
-                         gpointer     user_data)
+                         gpointer                   user_data)
 {
         GSSDPClient *client;
 
