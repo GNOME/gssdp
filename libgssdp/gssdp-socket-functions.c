@@ -159,10 +159,10 @@ gboolean
 gssdp_socket_reuse_address (GSocket *socket,
                             gboolean enable,
                             GError **error) {
-#if defined(G_OS_WIN32) || defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(G_OS_WIN32) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__)
         return gssdp_socket_option_set (socket,
                                         SOL_SOCKET,
-#if defined(__OpenBSD__) || defined (__NetBSD__)
+#if defined(__OpenBSD__) || defined (__NetBSD__) || defined (__FreeBSD__)
                                         SO_REUSEPORT,
 #else
                                         SO_REUSEADDR,
