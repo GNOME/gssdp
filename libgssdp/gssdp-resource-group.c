@@ -207,7 +207,7 @@ gssdp_resource_group_set_property (GObject      *object,
                 break;
         case PROP_MAX_AGE:
                 gssdp_resource_group_set_max_age (resource_group,
-                                                  g_value_get_long (value));
+                                                  g_value_get_uint (value));
                 break;
         case PROP_AVAILABLE:
                 gssdp_resource_group_set_available
