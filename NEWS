@@ -1,3 +1,18 @@
+0.14.4
+======
+
+- Fix gtk-doc warnings.
+- Use SO_REUSEPORT on FreeBSD and Debian/kFreeBSD.
+- Fix discovery issue with some devices when g_get_application_name returned a
+  non-ASCII translated version of the name.
+- Fix a compiler warning about parentheses.
+- Use GNOME_COMPILE_WARNINGS for a safe set of strict compiler warnings.
+- Remove the use of INCLUDES which has been deprecated for a while.
+
+All contributors to this release:
+  Jens Georg <jensg@openismus.com>
+  Bastien Nocera <hadess@hadess.net>
+
 0.14.3
 ======
 
