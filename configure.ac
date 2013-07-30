@@ -13,6 +13,8 @@ AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([1.11 tar-ustar no-dist-gzip dist-xz])
 AM_MAINTAINER_MODE([enable])
 
+GNOME_COMPILE_WARNINGS
+
 AM_SILENT_RULES([yes])
 
 AC_SEARCH_LIBS([strerror],[cposix])
