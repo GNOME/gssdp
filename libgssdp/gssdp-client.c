@@ -1266,7 +1266,7 @@ get_host_ip (GSSDPNetworkDevice *device)
                         continue;
 
                 /* Loopback and IPv6 interfaces go at the bottom on the list */
-                if (ifa->ifa_flags & IFF_LOOPBACK ||
+                if ((ifa->ifa_flags & IFF_LOOPBACK) ||
                     ifa->ifa_addr->sa_family == AF_INET6)
                         up_ifaces = g_list_append (up_ifaces, ifa);
                 else
