@@ -29,7 +29,7 @@ SCAN_OPTIONS=
 
 # Extra options to supply to gtkdoc-mkdb.
 # e.g. MKDB_OPTIONS=--sgml-mode --output-format=xml
-MKDB_OPTIONS=--sgml-mode --output-format=xml
+MKDB_OPTIONS=--xml-mode --output-format=xml
 
 # Extra options to supply to gtkdoc-mktmpl
 # e.g. MKTMPL_OPTIONS=--only-section-tmpl
@@ -70,7 +70,7 @@ expand_content_files=
 # signals and properties.
 # e.g. INCLUDES=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
-AM_CPPFLAGS=-I$(top_srcdir) $(LIBGSSDP_CFLAGS)
+GTKDOC_CFLAGS=-I$(top_srcdir) $(LIBGSSDP_CFLAGS)
 GTKDOC_LIBS=$(top_builddir)/libgssdp/libgssdp-1.0.la $(LIBGSSDP_LIBS)
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.

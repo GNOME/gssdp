@@ -385,6 +385,21 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
 /**
  * gssdp_resource_browser_new:
  * @client: The #GSSDPClient to associate with
+ * @target: A SSDP search target
+ *
+ * @target is a generic string the resource browser listens for on the SSDP
+ * bus. There are several possible targets such as
+ * <itemizedlist>
+ *   <listitem><para>"ssdp:all" for everything</para></listitem>
+ *   <listitem><para>
+ *     "upnp:rootdevice" for UPnP device entry points, not caring about the
+ *     device type</para></listitem>
+ *   <listitem><para>The UUID of a specific device</para></listitem>
+ *   <listitem><para>Device types such as
+ *   "urn:schemas-upnp-org:device:MediaServer:1"</para></listitem>
+ *   <listitem><para>Service types such as
+ *   "urn:schemas-upnp-org:service:ContentDirectory:1"</para></listitem>
+ * </itemizedlist>
  *
  * Return value: A new #GSSDPResourceBrowser object.
  **/

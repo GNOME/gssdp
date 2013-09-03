@@ -131,7 +131,7 @@ esac
 AC_MSG_RESULT([$target_android])
 AM_CONDITIONAL(TARGET_ANDROID, [test $target_android = yes])
 
-GTK_DOC_CHECK([1.0])
+GTK_DOC_CHECK([1.14], [--flavour no-tmpl])
 
 AC_CONFIG_FILES([
 Makefile
