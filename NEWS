@@ -1,3 +1,17 @@
+0.14.5
+======
+
+- Port get_host_ip() to Android/Bionic.
+- Some more gtk-doc updates.
+- Fix some autoconf warnings.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=707161
+
+All contributors to this release:
+ - Jens Georg <jensg@openismus.com>
+ - Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>
+
 0.14.4
 ======
 
