@@ -131,6 +131,14 @@ esac
 AC_MSG_RESULT([$target_android])
 AM_CONDITIONAL(TARGET_ANDROID, [test $target_android = yes])
 
+target_generic=no
+AS_IF([test "x$target_android" = "xno"],
+      [AS_IF([test "x$os_win32" = "xno"],
+             [target_generic="yes"])
+      ])
+
+AM_CONDITIONAL(TARGET_GENERIC, [test $target_generic = "yes"])
+
 GTK_DOC_CHECK([1.14], [--flavour no-tmpl])
 
 AC_CONFIG_FILES([
