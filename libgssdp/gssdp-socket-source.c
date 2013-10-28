@@ -50,6 +50,7 @@ struct _GSSDPSocketSourcePrivate {
 
         char                 *host_ip;
         guint                 ttl;
+        guint                 port;
 };
 
 enum {
@@ -57,6 +58,7 @@ enum {
     PROP_TYPE,
     PROP_HOST_IP,
     PROP_TTL,
+    PROP_PORT
 };
 
 static void
@@ -113,6 +115,9 @@ gssdp_socket_source_set_property (GObject          *object,
                 break;
         case PROP_TTL:
                 self->priv->ttl = g_value_get_uint (value);
+                break;
+        case PROP_PORT:
+                self->priv->port = g_value_get_uint (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -256,9 +261,11 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         } else {
                 guint port = SSDP_PORT;
 
-                /* Chose random port For the socket source used by M-SEARCH */
+                /* Use user-supplied or random port for the socket source used
+                 * by M-SEARCH */
                 if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH)
-                        port = 0;
+                        port = self->priv->port;
+
                 bind_address = g_inet_socket_address_new (iface_address,
                                                           port);
         }
@@ -449,4 +456,16 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                          G_PARAM_STATIC_BLURB));
+
+        g_object_class_install_property
+                (object_class,
+                 PROP_PORT,
+                 g_param_spec_uint
+                        ("port",
+                         "UDP port",
+                         "UDP port to use for TYPE_SEARCH sockets",
+                         0, G_MAXUINT16,
+                         0,
+                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS));
 }

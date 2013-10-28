@@ -30,6 +30,9 @@
 
 G_BEGIN_DECLS
 
+G_GNUC_INTERNAL GType
+gssdp_socket_source_get_type (void) G_GNUC_CONST;
+
 #define GSSDP_TYPE_SOCKET_SOURCE \
                 (gssdp_socket_source_get_type ())
 #define GSSDP_SOCKET_SOURCE(obj) \
@@ -59,8 +62,6 @@ typedef enum {
         GSSDP_SOCKET_SOURCE_TYPE_SEARCH
 } GSSDPSocketSourceType;
 
-
-
 typedef struct _GSSDPSocketSource {
         GObject                   parent;
 
@@ -76,6 +77,7 @@ gssdp_socket_source_new        (GSSDPSocketSourceType  type,
                                 const char            *host_ip,
                                 guint                  ttl,
                                 GError               **error);
+
 G_GNUC_INTERNAL GSocket*
 gssdp_socket_source_get_socket (GSSDPSocketSource     *socket_source);
 

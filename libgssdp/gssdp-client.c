@@ -1,10 +1,12 @@
 /* 
  * Copyright (C) 2006, 2007, 2008 OpenedHand Ltd.
  * Copyright (C) 2009 Nokia Corporation.
+ * Copyright (C) 2013 Intel Corporation.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *         Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
  *                               <zeeshan.ali@nokia.com>
+ *         Jens Georg <jensg@openismus.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -106,6 +108,7 @@ struct _GSSDPClientPrivate {
         char              *server_id;
 
         guint              socket_ttl;
+        guint              msearch_port;
         GSSDPNetworkDevice device;
 
         GSSDPSocketSource *request_socket;
@@ -125,6 +128,7 @@ enum {
         PROP_HOST_IP,
         PROP_ACTIVE,
         PROP_SOCKET_TTL,
+        PROP_MSEARCH_PORT,
 };
 
 enum {
@@ -242,11 +246,16 @@ gssdp_client_initable_init (GInitable                   *initable,
 
         /* Setup send socket. For security reasons, it is not recommended to
          * send M-SEARCH with source port == SSDP_PORT */
-        client->priv->search_socket = gssdp_socket_source_new
-                                        (GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
-                                         gssdp_client_get_host_ip (client),
-                                         client->priv->socket_ttl,
-                                         &internal_error);
+        client->priv->search_socket = GSSDP_SOCKET_SOURCE (g_initable_new
+                                        (GSSDP_TYPE_SOCKET_SOURCE,
+                                         NULL,
+                                         &internal_error,
+                                         "type", GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
+                                         "host-ip", gssdp_client_get_host_ip (client),
+                                         "ttl", client->priv->socket_ttl,
+                                         "port", client->priv->msearch_port,
+                                         NULL));
+
         if (client->priv->search_socket != NULL) {
                 gssdp_socket_source_set_callback
                                         (client->priv->search_socket,
@@ -331,6 +340,9 @@ gssdp_client_get_property (GObject    *object,
         case PROP_SOCKET_TTL:
                 g_value_set_uint (value, client->priv->socket_ttl);
                 break;
+        case PROP_MSEARCH_PORT:
+                g_value_set_uint (value, client->priv->msearch_port);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -368,6 +380,9 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_SOCKET_TTL:
                 client->priv->socket_ttl = g_value_get_uint (value);
+                break;
+        case PROP_MSEARCH_PORT:
+                client->priv->msearch_port = g_value_get_uint (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -571,6 +586,26 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          G_PARAM_STATIC_BLURB));
 
         /**
+         * GSSDPClient:msearch-port:
+         *
+         * UDP port to use for sending multicast M-SEARCH requests on the
+         * network. If not set (or set to 0) a random port will be used.
+         * This property can be only set during object construction.
+         */
+        g_object_class_install_property
+                (object_class,
+                 PROP_MSEARCH_PORT,
+                 g_param_spec_uint
+                        ("msearch-port",
+                         "M-SEARCH port",
+                         "UDP port to use for M-SEARCH requests",
+                         0, G_MAXUINT16,
+                         0,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS));
+
+        /**
          * GSSDPClient::message-received: (skip)
          *
          * Internal signal.
@@ -615,6 +650,29 @@ gssdp_client_new (GMainContext *main_context,
                                NULL,
                                error,
                                "interface", iface,
+                               NULL);
+}
+
+/**
+ * gssdp_client_new_with_port:
+ * @iface: (allow-none): The name of the network interface, or %NULL for
+ * auto-detection.
+ * @msearch_port: The network port to use for M-SEARCH requests or 0 for
+ * random.
+ * @error: (allow-none): Location to store error, or %NULL.
+ *
+ * Return value: A new #GSSDPClient object.
+ **/
+GSSDPClient *
+gssdp_client_new_with_port (const char *iface,
+                            guint16     msearch_port,
+                            GError    **error)
+{
+        return g_initable_new (GSSDP_TYPE_CLIENT,
+                               NULL,
+                               error,
+                               "interface", iface,
+                               "msearch-port", msearch_port,
                                NULL);
 }
 
