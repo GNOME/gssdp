@@ -1,3 +1,17 @@
+0.14.6
+======
+
+- Add msearch-property to GSSDPClient to use a fixed UDP listening port.
+- Doc changes.
+- Marshalling fixes for GSSDPClient::message-received signal.
+
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=711015
+
+All contributors to this release:
+ - Jens Georg <jensg@openismus.com>
+
 0.14.5
 ======
 
