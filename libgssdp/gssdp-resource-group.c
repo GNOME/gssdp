@@ -515,7 +515,7 @@ send_announcement_set (GList *resources, GFunc message_function)
 /**
  * gssdp_resource_group_set_available:
  * @resource_group: A #GSSDPResourceGroup
- * @available: TRUE if @resource_group should be available (advertised)
+ * @available: %TRUE if @resource_group should be available (advertised)
  *
  * Sets @resource_group<!-- -->s availability to @available. Changing
  * @resource_group<!-- -->s availability causes it to announce its new state
@@ -593,7 +593,7 @@ gssdp_resource_group_get_available (GSSDPResourceGroup *resource_group)
 
 /**
  * gssdp_resource_group_add_resource:
- * @resource_group: An @GSSDPResourceGroup
+ * @resource_group: A #GSSDPResourceGroup
  * @target: The resource's target
  * @usn: The resource's USN
  * @locations: (element-type utf8): A #GList of the resource's locations
@@ -658,7 +658,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 
 /**
  * gssdp_resource_group_add_resource_simple:
- * @resource_group: An @GSSDPResourceGroup
+ * @resource_group: A #GSSDPResourceGroup
  * @target: The resource's target
  * @usn: The resource's USN
  * @location: The resource's location
@@ -687,7 +687,7 @@ gssdp_resource_group_add_resource_simple (GSSDPResourceGroup *resource_group,
 
 /**
  * gssdp_resource_group_remove_resource:
- * @resource_group: An @GSSDPResourceGroup
+ * @resource_group: A #GSSDPResourceGroup
  * @resource_id: The ID of the resource to remove
  *
  * Removes the resource with ID @resource_id from @resource_group.

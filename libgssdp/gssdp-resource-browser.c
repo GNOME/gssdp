@@ -563,7 +563,7 @@ gssdp_resource_browser_get_mx (GSSDPResourceBrowser *resource_browser)
 /**
  * gssdp_resource_browser_set_active:
  * @resource_browser: A #GSSDPResourceBrowser
- * @active: TRUE to activate @resource_browser
+ * @active: %TRUE to activate @resource_browser
  *
  * (De)activates @resource_browser.
  **/
@@ -593,7 +593,7 @@ gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
  * gssdp_resource_browser_get_active:
  * @resource_browser: A #GSSDPResourceBrowser
  *
- * Return value: TRUE if @resource_browser is active.
+ * Return value: %TRUE if @resource_browser is active.
  **/
 gboolean
 gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser)

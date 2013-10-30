@@ -631,7 +631,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
  * gssdp_client_new:
  * @main_context: (allow-none): Deprecated: 0.11.2: Always set to NULL. If you want to
  *                specify a context use g_main_context_push_thread_default()
- * @iface: The name of the network interface, or %NULL for auto-detection.
+ * @iface: (allow-none): The name of the network interface, or %NULL for auto-detection.
  * @error: Location to store error, or NULL
  *
  * Return value: A new #GSSDPClient object.
@@ -680,7 +680,7 @@ gssdp_client_new_with_port (const char *iface,
  * gssdp_client_get_main_context: (skip)
  * @client: A #GSSDPClient
  *
- * Returns: (transfer none): The #GMainContext @client is associated with, or NULL.
+ * Returns: (transfer none): The #GMainContext @client is associated with, or %NULL.
  * Deprecated: 0.11.2: Returns g_main_context_get_thread_default()
  **/
 GMainContext *
@@ -818,8 +818,8 @@ gssdp_client_get_active (GSSDPClient *client)
 /**
  * _gssdp_client_send_message:
  * @client: A #GSSDPClient
- * @dest_ip: The destination IP address, or NULL to broadcast
- * @dest_port: The destination port, or NULL for default
+ * @dest_ip: (allow-none): The destination IP address, or %NULL to broadcast
+ * @dest_port: (allow-none): The destination port, or %NULL for default
  * @message: The message to send
  *
  * Sends @message to @dest_ip.
