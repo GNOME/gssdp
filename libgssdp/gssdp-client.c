@@ -607,6 +607,11 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 
         /**
          * GSSDPClient::message-received: (skip)
+         * @client: The #GSSDPClient that received the message.
+         * @from_ip: The IP address of the source.
+         * @from_port: The UDP port used by the sender.
+         * @type: The #_GSSDPMessageType.
+         * @headers: (type SoupMessageHeaders): Parsed #SoupMessageHeaders from the message.
          *
          * Internal signal.
          *
@@ -618,7 +623,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                               G_SIGNAL_RUN_LAST,
                               0,
                               NULL, NULL,
-                              gssdp_marshal_VOID__STRING_UINT_INT_POINTER,
+                              gssdp_marshal_VOID__STRING_UINT_INT_BOXED,
                               G_TYPE_NONE,
                               4,
                               G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE,

@@ -76,7 +76,7 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)
 
 if HAVE_INTROSPECTION
 GSSDP-1.0.gir: libgssdp-1.0.la
-GSSDP_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0
+GSSDP_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 Soup-2.4
 GSSDP_1_0_gir_CFLAGS = $(INCLUDES)
 GSSDP_1_0_gir_LIBS = libgssdp-1.0.la
 GSSDP_1_0_gir_FILES = $(introspection_sources)

@@ -7,7 +7,7 @@ gssdp-1.0.stamp: $(top_builddir)/libgssdp/GSSDP-1.0.gir \
 		$(srcdir)/GSSDP-1.0.metadata \
 		$(srcdir)/gssdp-1.0-custom.vala
 	$(AM_V_GEN)$(VAPIGEN) --metadatadir=$(srcdir) \
-			      --library=gssdp-1.0 --pkg=gio-2.0 \
+			      --library=gssdp-1.0 --pkg=gio-2.0 --pkg=libsoup-2.4 \
 			      $(top_builddir)/libgssdp/GSSDP-1.0.gir \
 				  $(srcdir)/gssdp-1.0-custom.vala && \
 	echo timestmap > $(@F)
