@@ -75,6 +75,11 @@ gssdp_client_new              (GMainContext *main_context,
                                const char   *iface,
                                GError      **error);
 
+GSSDPClient *
+gssdp_client_new_with_port    (const char *iface,
+                               guint16     msearch_port,
+                               GError    **error);
+
 #ifndef GSSDP_DISABLE_DEPRECATED
 GMainContext *
 gssdp_client_get_main_context (GSSDPClient  *client);
