@@ -220,6 +220,16 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         /* Enable broadcasting */
         g_socket_set_broadcast (self->priv->socket, TRUE);
 
+        if (!gssdp_socket_enable_info (self->priv->socket,
+                                       TRUE,
+                                       &inner_error)) {
+                g_propagate_prefixed_error (error,
+                                            inner_error,
+                                            "Failed to enable info messages");
+
+                goto error;
+        }
+
         /* TTL */
         if (!self->priv->ttl)
                 /* UDA/1.0 says 4, UDA/1.1 says 2 */

@@ -131,6 +131,30 @@ esac
 AC_MSG_RESULT([$target_android])
 AM_CONDITIONAL(TARGET_ANDROID, [test $target_android = yes])
 
+dnl Check whether in_pktinfo is available
+AC_CHECK_TYPE(struct in_pktinfo,
+              [
+               HAVE_PKTINFO=yes
+               AC_DEFINE([HAVE_PKTINFO],[1],[Whether we have IP_PKTINFO available])
+              ],
+              [
+               HAVE_PKTINFO=no
+              ], [#include <netinet/ip.h>])
+AM_CONDITIONAL([HAVE_PKTINFO], [test $HAVE_PKTINFO = yes], [])
+
+dnl Check for SIOCGIFINDEX
+AC_MSG_CHECKING([for SIOCGIFINDEX])
+AC_TRY_COMPILE([#include <sys/ioctl.h>],
+               [int i = SIOCGIFINDEX],
+               [
+                HAVE_SIOCGIFINDEX=yes
+                AC_DEFINE([HAVE_SIOCGIFINDEX], [1], [Whether we have SIOCGIFINDEX])
+               ],
+               [
+                HAVE_SIOCGIFINDEX=no
+               ])
+AC_MSG_RESULT([$HAVE_SIOCGIFINDEX])
+
 GTK_DOC_CHECK([1.14], [--flavour no-tmpl])
 
 AC_CONFIG_FILES([

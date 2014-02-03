@@ -66,12 +66,19 @@ typedef unsigned long in_addr_t;
 #endif
 #include <libsoup/soup-headers.h>
 
+#ifdef HAVE_SIOCGIFINDEX
+#include <sys/ioctl.h>
+#endif
+
 #include "gssdp-client.h"
 #include "gssdp-client-private.h"
 #include "gssdp-error.h"
 #include "gssdp-socket-source.h"
 #include "gssdp-marshal.h"
 #include "gssdp-protocol.h"
+#ifdef HAVE_PKTINFO
+#include "gssdp-pktinfo-message.h"
+#endif
 
 #ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
@@ -99,8 +106,10 @@ G_DEFINE_TYPE_EXTENDED (GSSDPClient,
 struct _GSSDPNetworkDevice {
         char *iface_name;
         char *host_ip;
+        GInetAddress *host_addr;
         char *network;
         struct sockaddr_in mask;
+        gint index;
 };
 typedef struct _GSSDPNetworkDevice GSSDPNetworkDevice;
 
@@ -1015,18 +1024,25 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         char *ip_string = NULL;
         guint16 port;
         GError *error = NULL;
-        in_addr_t our_addr;
-        in_addr_t mask;
-        struct sockaddr_in addr;
+        GInputVector vector;
+        GSocketControlMessage **messages;
+        gint num_messages;
+
+        vector.buffer = buf;
+        vector.size = BUF_SIZE;
 
         /* Get Socket */
         socket = gssdp_socket_source_get_socket (socket_source);
-        bytes = g_socket_receive_from (socket,
-                                       &address,
-                                       buf,
-                                       BUF_SIZE - 1,
-                                       NULL,
-                                       &error);
+        bytes = g_socket_receive_message (socket,
+                                          &address,
+                                          &vector,
+                                          1,
+                                          &messages,
+                                          &num_messages,
+                                          NULL,
+                                          NULL,
+                                          &error);
+
         if (bytes == -1) {
                 g_warning ("Failed to receive from socket: %s",
                            error->message);
@@ -1034,28 +1050,53 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                 goto out;
         }
 
+#ifdef HAVE_PKTINFO
+        {
+                int i;
+                for (i = 0; i < num_messages; i++) {
+                        GSSDPPktinfoMessage *msg;
+                        if (!GSSDP_IS_PKTINFO_MESSAGE (messages[i]))
+                                continue;
+
+                        msg = GSSDP_PKTINFO_MESSAGE (messages[i]);
+                        if (!((gssdp_pktinfo_message_get_ifindex (msg) ==
+                                                        client->priv->device.index) &&
+                                                (g_inet_address_equal (gssdp_pktinfo_message_get_local_addr (msg),
+                                                                       client->priv->device.host_addr))))
+                                goto out;
+                        else
+                                break;
+                }
+        }
+#else
         /* We need the following lines to make sure the right client received
          * the packet. We won't need to do this if there was any way to tell
          * Mr. Unix that we are only interested in receiving multicast packets
          * on this socket from a particular interface but AFAIK that is not
          * possible, at least not in a portable way.
          */
+        {
+                struct sockaddr_in addr;
+                in_addr_t mask;
+                in_addr_t our_addr;
+                if (!g_socket_address_to_native (address,
+                                                 &addr,
+                                                 sizeof (struct sockaddr_in),
+                                                 &error)) {
+                        g_warning ("Could not convert address to native: %s",
+                                   error->message);
 
-        if (!g_socket_address_to_native (address,
-                                         &addr,
-                                         sizeof (struct sockaddr_in),
-                                         &error)) {
-                g_warning ("Could not convert address to native: %s",
-                           error->message);
+                        goto out;
+                }
 
-                goto out;
+                mask = client->priv->device.mask.sin_addr.s_addr;
+                our_addr = inet_addr (gssdp_client_get_host_ip (client));
+
+                if ((addr.sin_addr.s_addr & mask) != (our_addr & mask))
+                        goto out;
+
         }
-
-        mask = client->priv->device.mask.sin_addr.s_addr;
-        our_addr = inet_addr (gssdp_client_get_host_ip (client));
-
-        if ((addr.sin_addr.s_addr & mask) != (our_addr & mask))
-                goto out;
+#endif
 
         if (bytes >= BUF_SIZE) {
                 g_warning ("Received packet of %u bytes, but the maximum "
@@ -1206,6 +1247,33 @@ extract_address_and_prefix (PIP_ADAPTER_UNICAST_ADDRESS  adapter,
         return TRUE;
 }
 #endif
+
+static int
+query_ifindex (const char *iface_name)
+{
+#ifdef HAVE_SIOCGIFINDEX
+        int fd;
+        int result;
+        struct ifreq ifr;
+
+        fd = socket (AF_INET, SOCK_STREAM, 0);
+        if (fd < 0)
+                return -1;
+
+        memset (&ifr, 0, sizeof(struct ifreq));
+        strcpy (ifr.ifr_ifrn.ifrn_name, iface_name);
+
+        result = ioctl (fd, SIOCGIFINDEX, (char *)&ifr);
+        close (fd);
+
+        if (result == 0)
+                return ifr.ifr_ifindex;
+        else
+                return -1;
+#else
+        return -1;
+#endif
+}
 
 /*
  * Get the host IP for the specified interface. If no interface is specified,
@@ -1547,6 +1615,7 @@ success:
                 const char *p, *q;
                 struct sockaddr_in *s4, *s4_mask;
                 struct in_addr net_addr;
+                const guint8 *bytes;
 
                 ifa = ifaceptr->data;
 
@@ -1560,11 +1629,18 @@ success:
                                ip,
                                sizeof (ip));
                 device->host_ip = g_strdup (p);
+
+                bytes = (const guint8 *) &s4->sin_addr;
+                device->host_addr = g_inet_address_new_from_bytes
+                                        (bytes, G_SOCKET_FAMILY_IPV4);
+
                 s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
                 memcpy (&(device->mask), s4_mask, sizeof (struct sockaddr_in));
                 net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
                                   (in_addr_t) s4_mask->sin_addr.s_addr;
                 q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
+
+                device->index = query_ifindex (ifa->ifa_name);
 
                 if (device->iface_name == NULL)
                         device->iface_name = g_strdup (ifa->ifa_name);
