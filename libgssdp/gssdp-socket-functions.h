@@ -32,4 +32,9 @@ G_GNUC_INTERNAL gboolean
 gssdp_socket_reuse_address       (GSocket *socket,
                                   gboolean enable,
                                   GError **error);
+
+G_GNUC_INTERNAL gboolean
+gssdp_socket_enable_info         (GSocket *socket,
+                                  gboolean enable,
+                                  GError **error);
 #endif

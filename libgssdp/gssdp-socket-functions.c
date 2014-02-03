@@ -37,6 +37,7 @@
 
 #include "gssdp-error.h"
 #include "gssdp-socket-functions.h"
+#include "gssdp-pktinfo-message.h"
 
 static char*
 gssdp_socket_error_message (int error) {
@@ -131,4 +132,29 @@ gssdp_socket_reuse_address (GSocket *socket,
         __GSSDP_UNUSED(error);
 #endif
         return TRUE;
+}
+
+gboolean
+gssdp_socket_enable_info         (GSocket *socket,
+                                  gboolean enable,
+                                  GError **error)
+{
+#ifdef HAVE_PKTINFO
+        /* Register the type so g_socket_control_message_deserialize() will
+         * find it */
+        g_object_unref (g_object_new (GSSDP_TYPE_PKTINFO_MESSAGE, NULL));
+
+        return gssdp_socket_option_set (socket,
+                                        IPPROTO_IP,
+                                        IP_PKTINFO,
+                                        (char *) &enable,
+                                        sizeof (enable),
+                                        error);
+#else
+    __GSSDP_UNUSED (socket);
+    __GSSDP_UNUSED (enable);
+    __GSSDP_UNUSED (error);
+
+    return TRUE;
+#endif
 }

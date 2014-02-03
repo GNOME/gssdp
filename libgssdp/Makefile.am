@@ -48,6 +48,11 @@ libgssdp_1_0_la_SOURCES = $(introspection_sources)	\
 			  gssdp-socket-functions.h	\
 			  $(BUILT_SOURCES)
 
+if HAVE_PKTINFO
+libgssdp_1_0_la_SOURCES += gssdp-pktinfo-message.c \
+						   gssdp-pktinfo-message.h
+endif
+
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
 
 if OS_WIN32
