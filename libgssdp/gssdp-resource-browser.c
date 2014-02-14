@@ -91,6 +91,7 @@ typedef struct {
         GSSDPResourceBrowser *resource_browser;
         char                 *usn;
         GSource              *timeout_src;
+        GList                *locations;
 } Resource;
 
 /* Function prototypes */
@@ -118,6 +119,9 @@ static void
 stop_discovery                   (GSSDPResourceBrowser *resource_browser);
 static gboolean
 refresh_cache                    (gpointer data);
+static void
+resource_unavailable             (GSSDPResourceBrowser *resource_browser,
+                                  SoupMessageHeaders   *headers);
 
 static void
 gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
@@ -679,11 +683,48 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         gboolean was_cached;
         guint timeout;
         GList *locations;
+        gboolean destroyLocations;
+        GList *it1, *it2;
         char *canonical_usn;
 
         usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
+
+        /* Build list of locations */
+        locations = NULL;
+        destroyLocations = TRUE;
+
+        header = soup_message_headers_get_one (headers, "Location");
+        if (header)
+                locations = g_list_append (locations, g_strdup (header));
+
+        header = soup_message_headers_get_one (headers, "AL");
+        if (header) {
+                /* Parse AL header. The format is:
+                 * <uri1><uri2>... */
+                const char *start, *end;
+                char *uri;
+
+                start = header;
+                while ((start = strchr (start, '<'))) {
+                        start += 1;
+                        if (!start || !*start)
+                                break;
+
+                        end = strchr (start, '>');
+                        if (!end || !*end)
+                                break;
+
+                        uri = g_strndup (start, end - start);
+                        locations = g_list_append (locations, uri);
+
+                        start = end;
+                }
+        }
+
+        if (!locations)
+                return; /* No location specified */
 
         if (resource_browser->priv->version > 0) {
                 char *version;
@@ -704,6 +745,22 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                                   g_strdup (canonical_usn));
         }
 
+        /* If location does not match, expect that we missed bye bye packet */
+        if (resource) {
+                for (it1 = locations, it2 = resource->locations;
+                     it1 && it2;
+                     it1 = it1->next, it2 = it2->next
+                ) {
+                        if (strcmp((const char *) it1->data,
+                            (const char *) it2->data) != 0
+                        ) {
+                               resource_unavailable(resource_browser, headers);
+                               resource = NULL;
+                               break;
+                        }
+                }
+        }
+
         if (resource) {
                 /* Remove old timeout */
                 g_source_destroy (resource->timeout_src);
@@ -715,6 +772,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
                 resource->resource_browser = resource_browser;
                 resource->usn              = g_strdup (usn);
+                resource->locations        = locations;
+                destroyLocations = FALSE; /* Ownership passed to resource */
                 
                 g_hash_table_insert (resource_browser->priv->resources,
                                      canonical_usn,
@@ -804,52 +863,21 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
         /* Only continue with signal emission if this resource was not
          * cached already */
-        if (was_cached)
-                return;
-
-        /* Build list of locations */
-        locations = NULL;
-
-        header = soup_message_headers_get_one (headers, "Location");
-        if (header)
-                locations = g_list_append (locations, g_strdup (header));
-
-        header = soup_message_headers_get_one (headers, "AL");
-        if (header) {
-                /* Parse AL header. The format is:
-                 * <uri1><uri2>... */
-                const char *start, *end;
-                char *uri;
-                
-                start = header;
-                while ((start = strchr (start, '<'))) {
-                        start += 1;
-                        if (!start || !*start)
-                                break;
-
-                        end = strchr (start, '>');
-                        if (!end || !*end)
-                                break;
-
-                        uri = g_strndup (start, end - start);
-                        locations = g_list_append (locations, uri);
-
-                        start = end;
-                }
+        if (!was_cached) {
+                /* Emit signal */
+                g_signal_emit (resource_browser,
+                               signals[RESOURCE_AVAILABLE],
+                               0,
+                               usn,
+                               locations);
         }
-
-        /* Emit signal */
-        g_signal_emit (resource_browser,
-                       signals[RESOURCE_AVAILABLE],
-                       0,
-                       usn,
-                       locations);
-
         /* Cleanup */
-        while (locations) {
-                g_free (locations->data);
+        if (destroyLocations) {
+                while (locations) {
+                        g_free (locations->data);
 
-                locations = g_list_delete_link (locations, locations);
+                        locations = g_list_delete_link (locations, locations);
+                }
         }
 }
 
@@ -1016,12 +1044,18 @@ static void
 resource_free (gpointer data)
 {
         Resource *resource;
-
         resource = data;
+        GList    *locations;
+        locations = resource->locations;
 
         g_free (resource->usn);
 
         g_source_destroy (resource->timeout_src);
+
+        while (locations) {
+                g_free (locations->data);
+                locations = g_list_delete_link (locations, locations);
+        }
 
         g_slice_free (Resource, resource);
 }
