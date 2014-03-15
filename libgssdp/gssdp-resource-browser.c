@@ -749,13 +749,13 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         if (resource) {
                 for (it1 = locations, it2 = resource->locations;
                      it1 && it2;
-                     it1 = it1->next, it2 = it2->next
-                ) {
-                        if (strcmp((const char *) it1->data,
-                            (const char *) it2->data) != 0
-                        ) {
-                               resource_unavailable(resource_browser, headers);
+                     it1 = it1->next, it2 = it2->next) {
+                        if (strcmp ((const char *) it1->data,
+                                    (const char *) it2->data) != 0) {
+                               resource_unavailable (resource_browser, headers);
+                               /* Will be destroyed by resource_unavailable */
                                resource = NULL;
+
                                break;
                         }
                 }
