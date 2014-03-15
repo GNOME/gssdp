@@ -232,12 +232,8 @@ gssdp_resource_group_dispose (GObject *object)
         resource_group = GSSDP_RESOURCE_GROUP (object);
         priv = resource_group->priv;
 
-        while (priv->resources) {
-                resource_free (priv->resources->data);
-                priv->resources =
-                        g_list_delete_link (priv->resources,
-                                            priv->resources);
-        }
+        g_list_free_full (priv->resources, (GFreeFunc) resource_free);
+        priv->resources = NULL;
 
         if (priv->message_queue) {
                 /* send messages without usual delay */

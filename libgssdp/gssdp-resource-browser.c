@@ -106,7 +106,7 @@ message_received_cb              (GSSDPClient          *client,
                                   SoupMessageHeaders   *headers,
                                   gpointer              user_data);
 static void
-resource_free                    (gpointer              data);
+resource_free                    (Resource             *data);
 static void
 clear_cache                      (GSSDPResourceBrowser *resource_browser);
 static void
@@ -137,7 +137,7 @@ gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
                 g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
                                        g_free,
-                                       resource_free);
+                                       (GFreeFunc) resource_free);
 }
 
 static void
@@ -872,13 +872,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                                locations);
         }
         /* Cleanup */
-        if (destroyLocations) {
-                while (locations) {
-                        g_free (locations->data);
-
-                        locations = g_list_delete_link (locations, locations);
-                }
-        }
+        if (destroyLocations)
+                g_list_free_full (locations, g_free);
 }
 
 static void
@@ -1041,22 +1036,11 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
  * Free a Resource structure and its contained data
  */
 static void
-resource_free (gpointer data)
+resource_free (Resource *resource)
 {
-        Resource *resource;
-        resource = data;
-        GList    *locations;
-        locations = resource->locations;
-
         g_free (resource->usn);
-
         g_source_destroy (resource->timeout_src);
-
-        while (locations) {
-                g_free (locations->data);
-                locations = g_list_delete_link (locations, locations);
-        }
-
+        g_list_free_full (resource->locations, g_free);
         g_slice_free (Resource, resource);
 }
 
