@@ -396,6 +396,11 @@ gssdp_socket_source_finalize (GObject *object)
                 self->priv->host_ip = NULL;
         }
 
+        if (self->priv->device_name != NULL) {
+                g_free (self->priv->device_name);
+                self->priv->device_name = NULL;
+        }
+
         G_OBJECT_CLASS (gssdp_socket_source_parent_class)->finalize (object);
 }
 
