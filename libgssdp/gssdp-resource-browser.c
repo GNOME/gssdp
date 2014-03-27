@@ -955,7 +955,7 @@ check_target_compat (GSSDPResourceBrowser *resource_browser,
             return FALSE;
         }
 
-        return (uint) version >= resource_browser->priv->version;
+        return (guint) version >= resource_browser->priv->version;
 }
 
 static void
