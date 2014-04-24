@@ -1513,8 +1513,8 @@ success:
         up_ifaces = NULL;
 
         if (getifaddrs (&ifa_list) != 0) {
-                g_error ("Failed to retrieve list of network interfaces:\n%s\n",
-                         strerror (errno));
+                g_warning ("Failed to retrieve list of network interfaces: %s",
+                           strerror (errno));
 
                 return FALSE;
         }
