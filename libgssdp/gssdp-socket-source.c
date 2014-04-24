@@ -370,8 +370,8 @@ gssdp_socket_source_dispose (GObject *object)
         self = GSSDP_SOCKET_SOURCE (object);
 
         if (self->priv->source != NULL) {
-                g_source_unref (self->priv->source);
                 g_source_destroy (self->priv->source);
+                g_source_unref (self->priv->source);
                 self->priv->source = NULL;
         }
 
