@@ -28,6 +28,7 @@
 #include <glib.h>
 
 #ifndef G_OS_WIN32
+#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <ifaddrs.h>
