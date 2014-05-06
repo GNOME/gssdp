@@ -113,12 +113,19 @@ struct _GSSDPNetworkDevice {
 };
 typedef struct _GSSDPNetworkDevice GSSDPNetworkDevice;
 
+struct _GSSDPHeaderField {
+        char *name;
+        char *value;
+};
+typedef struct _GSSDPHeaderField GSSDPHeaderField;
+
 struct _GSSDPClientPrivate {
         char              *server_id;
 
         guint              socket_ttl;
         guint              msearch_port;
         GSSDPNetworkDevice device;
+        GList             *headers;
 
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
@@ -832,6 +839,109 @@ gssdp_client_get_active (GSSDPClient *client)
         return client->priv->active;
 }
 
+static void
+header_field_free (GSSDPHeaderField *header)
+{
+        g_free (header->name);
+        g_free (header->value);
+        g_slice_free (GSSDPHeaderField, header);
+}
+
+static gchar *
+append_header_fields (GSSDPClient *client,
+                      const gchar *message)
+{
+        GString *str;
+        GList *iter;
+
+        str = g_string_new (message);
+
+        for (iter = client->priv->headers; iter; iter = iter->next) {
+                GSSDPHeaderField *header = (GSSDPHeaderField *) iter->data;
+                g_string_append_printf (str, "%s: %s\r\n",
+                                        header->name,
+                                        header->value ?: "");
+        }
+
+        g_string_append (str, "\r\n");
+
+        return g_string_free (str, FALSE);
+}
+
+/**
+ * gssdp_client_append_header:
+ * @client: A #GSSDPClient
+ * @name: Header name
+ * @value: Header value
+ *
+ * Adds a header field to the message sent by this @client. It is intended to
+ * be used by clients requiring vendor specific header fields. (If there is an
+ * existing header with name name , then this creates a second one).
+ **/
+void
+gssdp_client_append_header (GSSDPClient *client,
+                            const char  *name,
+                            const char  *value)
+{
+        GSSDPHeaderField *header;
+
+        g_return_if_fail (GSSDP_IS_CLIENT (client));
+        g_return_if_fail (name != NULL);
+
+        header = g_slice_new (GSSDPHeaderField);
+        header->name = g_strdup (name);
+        header->value = g_strdup (value);
+        client->priv->headers = g_list_append (client->priv->headers, header);
+}
+
+/**
+ * gssdp_client_remove_header:
+ * @client: A #GSSDPClient
+ * @name: Header name
+ *
+ * Removes @name from the list of headers . If there are multiple values for
+ * @name, they are all removed.
+ **/
+void
+gssdp_client_remove_header (GSSDPClient *client,
+                            const char  *name)
+{
+        GSSDPClientPrivate *priv;
+        GList *l;
+
+        g_return_if_fail (GSSDP_IS_CLIENT (client));
+        g_return_if_fail (name != NULL);
+
+        priv = client->priv;
+        l = priv->headers;
+        while (l != NULL)
+        {
+                GList *next = l->next;
+                GSSDPHeaderField *header = l->data;
+
+                if (!g_strcmp0 (header->name, name)) {
+                        header_field_free (header);
+                        priv->headers = g_list_delete_link (priv->headers, l);
+                }
+                l = next;
+        }
+}
+
+/**
+ * gssdp_client_clear_headers:
+ * @client: A #GSSDPClient
+ *
+ * Removes all the headers for this @client.
+ **/
+void
+gssdp_client_clear_headers (GSSDPClient *client)
+{
+        g_return_if_fail (GSSDP_IS_CLIENT (client));
+
+        g_list_free_full (client->priv->headers,
+                          (GDestroyNotify) header_field_free);
+}
+
 /**
  * _gssdp_client_send_message:
  * @client: A #GSSDPClient
@@ -853,6 +963,7 @@ _gssdp_client_send_message (GSSDPClient      *client,
         GInetAddress *inet_address = NULL;
         GSocketAddress *address = NULL;
         GSocket *socket;
+        char *extended_message;
 
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         g_return_if_fail (message != NULL);
@@ -878,11 +989,12 @@ _gssdp_client_send_message (GSSDPClient      *client,
 
         inet_address = g_inet_address_new_from_string (dest_ip);
         address = g_inet_socket_address_new (inet_address, dest_port);
+        extended_message = append_header_fields (client, message);
 
         res = g_socket_send_to (socket,
                                 address,
-                                message,
-                                strlen (message),
+                                extended_message,
+                                strlen (extended_message),
                                 NULL,
                                 &error);
 
@@ -893,6 +1005,7 @@ _gssdp_client_send_message (GSSDPClient      *client,
                 g_error_free (error);
         }
 
+        g_free (extended_message);
         g_object_unref (address);
         g_object_unref (inet_address);
 }

@@ -108,6 +108,18 @@ gssdp_client_get_network      (GSSDPClient  *client);
 gboolean
 gssdp_client_get_active       (GSSDPClient  *client);
 
+void
+gssdp_client_append_header    (GSSDPClient *client,
+                               const char  *name,
+                               const char  *value);
+
+void
+gssdp_client_remove_header    (GSSDPClient *client,
+                               const char  *name);
+
+void
+gssdp_client_clear_headers    (GSSDPClient *client);
+
 G_END_DECLS
 
 #endif /* __GSSDP_CLIENT_H__ */

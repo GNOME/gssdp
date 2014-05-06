@@ -34,7 +34,7 @@ G_BEGIN_DECLS
         "Man: \"ssdp:discover\"\r\n"                \
         "ST: %s\r\n"                                \
         "MX: %d\r\n"                                \
-        "User-Agent: %s GSSDP/" VERSION "\r\n\r\n"  \
+        "User-Agent: %s GSSDP/" VERSION "\r\n"  \
 
 #define SSDP_DISCOVERY_RESPONSE                     \
         "HTTP/1.1 200 OK\r\n"                       \
@@ -46,7 +46,7 @@ G_BEGIN_DECLS
         "Cache-Control: max-age=%d\r\n"             \
         "ST: %s\r\n"                                \
         "Date: %s\r\n"                              \
-        "Content-Length: 0\r\n\r\n"
+        "Content-Length: 0\r\n"
 
 #define SSDP_ALIVE_MESSAGE                          \
         "NOTIFY * HTTP/1.1\r\n"                     \
@@ -57,14 +57,14 @@ G_BEGIN_DECLS
         "Server: %s\r\n"                            \
         "NTS: ssdp:alive\r\n"                       \
         "NT: %s\r\n"                                \
-        "USN: %s\r\n\r\n"
+        "USN: %s\r\n"
 
 #define SSDP_BYEBYE_MESSAGE                         \
         "NOTIFY * HTTP/1.1\r\n"                     \
         "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
         "NTS: ssdp:byebye\r\n"                     \
         "NT: %s\r\n"                                \
-        "USN: %s\r\n\r\n"
+        "USN: %s\r\n"
 
 #define SSDP_SEARCH_METHOD "M-SEARCH"
 #define GENA_NOTIFY_METHOD "NOTIFY"

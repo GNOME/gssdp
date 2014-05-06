@@ -71,7 +71,7 @@ create_alive_message (const char *nt, int max_life)
         else
                 usn = g_strconcat (UUID_1, "::", nt, NULL);
 
-        msg = g_strdup_printf (SSDP_ALIVE_MESSAGE,
+        msg = g_strdup_printf (SSDP_ALIVE_MESSAGE "\r\n",
                                max_life,
                                "http://127.0.0.1:1234",
                                "",
@@ -268,7 +268,7 @@ create_alive_message_bgo724030 (const char *location)
 {
         char *msg;
 
-        msg = g_strdup_printf (SSDP_ALIVE_MESSAGE,
+        msg = g_strdup_printf (SSDP_ALIVE_MESSAGE "\r\n",
                                5,
                                location,
                                "",
