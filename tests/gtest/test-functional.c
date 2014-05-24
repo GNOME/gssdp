@@ -385,7 +385,6 @@ test_discovery_versioned (void)
         g_source_remove (timeout_id);
         timeout_id = g_timeout_add_seconds (5, quit_loop, data.loop);
         g_main_loop_run (data.loop);
-        g_source_remove (timeout_id);
 
         g_object_unref (browser);
         g_object_unref (client);
