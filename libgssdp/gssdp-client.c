@@ -860,7 +860,7 @@ append_header_fields (GSSDPClient *client,
                 GSSDPHeaderField *header = (GSSDPHeaderField *) iter->data;
                 g_string_append_printf (str, "%s: %s\r\n",
                                         header->name,
-                                        header->value ?: "");
+                                        header->value ? header->value : "");
         }
 
         g_string_append (str, "\r\n");

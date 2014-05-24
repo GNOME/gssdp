@@ -1082,7 +1082,7 @@ send_discovery_request (GSSDPResourceBrowser *resource_browser)
         message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
                                    resource_browser->priv->target,
                                    resource_browser->priv->mx,
-                                   g_get_prgname () ?: "");
+                                   g_get_prgname () ? g_get_prgname () : "");
 
         _gssdp_client_send_message (resource_browser->priv->client,
                                     NULL,
