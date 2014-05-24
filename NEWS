@@ -1,3 +1,36 @@
+0.14.8
+======
+
+- Recover from lost BYEBYE packets.
+- Some code clean-up.
+- Use GLib's multicast socket functions.
+- Fix compiling on mingw.
+- Don't abort if get_host_ip fails.
+- Fix an issue with unreffing GSources.
+- Fix build on some BSDs.
+- Use pktinfo on Linux to determine the source interface instead of relying on
+  netmasks.
+- Use strncpy() on interface names to not exceed ifrn_name length.
+- Documentation fixes.
+- Add support for vendor-specific headers in SSDP messages.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=678660
+ - https://bugzilla.gnome.org/show_bug.cgi?id=711320
+ - https://bugzilla.gnome.org/show_bug.cgi?id=724030
+ - https://bugzilla.gnome.org/show_bug.cgi?id=728871
+ - https://bugzilla.gnome.org/show_bug.cgi?id=728888
+ - https://bugzilla.gnome.org/show_bug.cgi?id=729613
+ - https://bugzilla.gnome.org/show_bug.cgi?id=730358
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Philip Withnall <philip.withnall@collabora.co.uk>
+ - Jens Georg <jensg@openismus.com>
+ - Riko Yamada <rik0yamada@yahoo.co.jp>
+ - Louis-Francis Ratté-Boulianne <lfrb@collabora.com>
+ - Branislav Katreniak <bkatreniak@nuvotechnologies.com>
+
 0.14.7
 ======
 
