@@ -12,6 +12,9 @@ gssdp_client_get_host_ip
 gssdp_client_set_network
 gssdp_client_get_network
 gssdp_client_get_active
+gssdp_client_append_header
+gssdp_client_clear_headers
+gssdp_client_remove_header
 <SUBSECTION Standard>
 GSSDP_CLIENT
 GSSDP_IS_CLIENT
