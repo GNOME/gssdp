@@ -1222,8 +1222,8 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         /* Find length */
         end = strstr (buf, "\r\n\r\n");
         if (!end) {
-                g_warning ("Received packet lacks \"\\r\\n\\r\\n\" sequence. "
-                           "Packed dropped.");
+                g_debug ("Received packet lacks \"\\r\\n\\r\\n\" sequence. "
+                         "Packed dropped.");
 
                 goto out;
         }
@@ -1242,7 +1242,7 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                                           len,
                                           &headers,
                                           &type)) {
-                        g_warning ("Unhandled message '%s'", buf);
+                        g_debug ("Unhandled packet '%s'", buf);
                 }
         }
         
