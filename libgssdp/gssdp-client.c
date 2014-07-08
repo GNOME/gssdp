@@ -1106,12 +1106,9 @@ parse_http_response (char                *buf,
                                          *headers,
                                          NULL,
                                          &status_code,
-                                         NULL)) {
-                if (status_code == 200)
-                        *type = _GSSDP_DISCOVERY_RESPONSE;
-                else
-                        g_warning ("Unhandled status code '%d'", status_code);
-
+                                         NULL) &&
+            status_code == 200) {
+                *type = _GSSDP_DISCOVERY_RESPONSE;
                 return TRUE;
         } else {
                 soup_message_headers_free (*headers);
