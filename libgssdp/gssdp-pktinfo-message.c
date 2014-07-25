@@ -198,7 +198,7 @@ gssdp_pktinfo_message_class_init (GSSDPPktinfoMessageClass *klass)
 
         g_object_class_install_property
                 (object_class,
-                 PROP_IFACE_ADDR,
+                 PROP_PKT_ADDR,
                  g_param_spec_object ("pkt-address",
                                       "pkt-address",
                                       "IP v4 destination Address of the packet",
