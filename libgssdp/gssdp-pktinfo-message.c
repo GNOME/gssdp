@@ -234,11 +234,15 @@ gssdp_pktinfo_message_get_ifindex (GSSDPPktinfoMessage *message)
 GInetAddress *
 gssdp_pktinfo_message_get_local_addr (GSSDPPktinfoMessage *message)
 {
+        g_return_val_if_fail (GSSDP_IS_PKTINFO_MESSAGE (message), NULL);
+
         return message->priv->iface_addr;
 }
 
 GInetAddress *
 gssdp_pktinfo_message_get_pkt_addr (GSSDPPktinfoMessage *message)
 {
+        g_return_val_if_fail (GSSDP_IS_PKTINFO_MESSAGE (message), NULL);
+
         return message->priv->pkt_addr;
 }
