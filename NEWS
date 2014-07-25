@@ -1,3 +1,22 @@
+0.14.9
+======
+
+- Properly set max age property.
+- Some gtk-doc fixes.
+- Only consider "200 OK" a proper response for SSDP requests.
+- Remove a scary warning.
+- Fix source packet filtering.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=697084
+ - https://bugzilla.gnome.org/show_bug.cgi?id=730946
+ - https://bugzilla.gnome.org/show_bug.cgi?id=733651
+
+All contributors to this release:
+ - Jussi Kukkonen <jku@goto.fi>
+ - Jens Georg <mail@jensge.org>
+ - Andre Moreira Magalhaes (andrunko) <andre.magalhaes@collabora.co.uk>
+
 0.14.8
 ======
 
