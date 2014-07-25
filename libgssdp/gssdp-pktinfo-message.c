@@ -74,7 +74,7 @@ gssdp_pktinfo_message_get_property (GObject    *object,
                 g_value_set_object (value, self->priv->iface_addr);
                 break;
         case PROP_INDEX:
-                g_value_set_uint (value, self->priv->index);
+                g_value_set_int (value, self->priv->index);
                 break;
         case PROP_PKT_ADDR:
                 g_value_set_object (value, self->priv->pkt_addr);
@@ -186,11 +186,11 @@ gssdp_pktinfo_message_class_init (GSSDPPktinfoMessageClass *klass)
         g_object_class_install_property
                 (object_class,
                  PROP_INDEX,
-                 g_param_spec_uint ("index",
+                 g_param_spec_int ("index",
                                     "index",
                                     "Network interface index",
                                     0,
-                                    G_MAXUINT,
+                                    G_MAXINT,
                                     0,
                                     G_PARAM_READWRITE |
                                     G_PARAM_CONSTRUCT |
