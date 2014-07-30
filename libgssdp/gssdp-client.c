@@ -91,6 +91,9 @@ typedef unsigned long in_addr_t;
 /* Size of the buffer used for reading from the socket */
 #define BUF_SIZE 65536
 
+/* interface index for loopback device */
+#define LOOPBACK_IFINDEX 1
+
 static void
 gssdp_client_initable_iface_init (gpointer g_iface,
                                   gpointer iface_data);
@@ -1165,14 +1168,20 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                 int i;
                 for (i = 0; i < num_messages; i++) {
                         GSSDPPktinfoMessage *msg;
+                        gint msg_ifindex;
+
                         if (!GSSDP_IS_PKTINFO_MESSAGE (messages[i]))
                                 continue;
 
                         msg = GSSDP_PKTINFO_MESSAGE (messages[i]);
-                        if (!((gssdp_pktinfo_message_get_ifindex (msg) ==
-                                                        client->priv->device.index) &&
-                                                (g_inet_address_equal (gssdp_pktinfo_message_get_local_addr (msg),
-                                                                       client->priv->device.host_addr))))
+                        msg_ifindex = gssdp_pktinfo_message_get_ifindex (msg);
+                        /* message needs to be on correct interface or on
+                         * loopback (as kernel can be smart and route things
+                         * there even if sent to another network) */
+                        if (!((msg_ifindex == client->priv->device.index ||
+                               msg_ifindex == LOOPBACK_IFINDEX) &&
+                              (g_inet_address_equal (gssdp_pktinfo_message_get_local_addr (msg),
+                                                     client->priv->device.host_addr))))
                                 goto out;
                         else
                                 break;
