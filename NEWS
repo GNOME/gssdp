@@ -1,3 +1,18 @@
+0.14.10
+=======
+
+- DOAP fixes
+- Fix SSDP when running on the same host.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=733851
+
+All contributors to this release:
+ - Olav Vitters <olav@vitters.nl>
+ - Jussi Kukkonen <jku@goto.fi>
+ - Jens Georg <mail@jensge.org>
+ - Andre Klapper <a9016009@gmx.de>
+
 0.14.9
 ======
 
