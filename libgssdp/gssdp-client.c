@@ -1284,6 +1284,14 @@ out:
         if (address)
                 g_object_unref (address);
 
+        if (messages) {
+                int i;
+                for (i = 0; i < num_messages; i++)
+                        g_object_unref (messages[i]);
+
+                g_free (messages);
+        }
+
         return TRUE;
 }
 
