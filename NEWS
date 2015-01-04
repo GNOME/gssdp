@@ -1,3 +1,15 @@
+0.14.11
+=======
+
+- Fix memory leak in GSSDPClient.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=737870
+
+All contributors to this release:
+ - Richard Röjfors <richard@puffinpack.se>
+ - Jens Georg <mail@jensge.org>
+
 0.14.10
 =======
 
