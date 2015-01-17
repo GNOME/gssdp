@@ -330,7 +330,7 @@ resource_available_cb (G_GNUC_UNUSED GSSDPResourceBrowser *resource_browser,
 
         uuid = usn_tokens[0] + 5; /* skip the prefix 'uuid:' */
 
-        if (usn_tokens[1]) {
+        if (usn_tokens[1] && strlen(usn_tokens[1]) != 0) {
                 char **urn_tokens;
 
                 urn_tokens = g_strsplit (usn_tokens[1], ":device:", -1);
