@@ -162,7 +162,7 @@ Makefile
 libgssdp/Makefile
 tools/Makefile
 tests/Makefile
-tests/gtest/Makefile
+examples/Makefile
 vala/Makefile
 doc/Makefile
 doc/version.xml
