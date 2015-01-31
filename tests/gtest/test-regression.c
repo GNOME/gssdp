@@ -136,11 +136,11 @@ test_bgo673150 (void)
         GMainLoop *loop;
         gulong signal_id;
 
-        dest = gssdp_client_new (NULL, "lo", &error);
+        dest = get_client (&error);
         g_assert (dest != NULL);
         g_assert (error == NULL);
 
-        src = gssdp_client_new (NULL, "lo", &error);
+        src = get_client (&error);
         g_assert (src != NULL);
         g_assert (error == NULL);
 
@@ -221,7 +221,7 @@ void test_bgo682099 (void)
 
         loop = g_main_loop_new (NULL, FALSE);
 
-        dest = gssdp_client_new (NULL, "lo", &error);
+        dest = get_client (&error);
         g_assert (dest != NULL);
         g_assert (error == NULL);
 
@@ -336,7 +336,7 @@ void test_bgo724030 (void)
 
         loop = g_main_loop_new (NULL, FALSE);
 
-        dest = gssdp_client_new (NULL, "lo", &error);
+        dest = get_client (&error);
         g_assert (dest != NULL);
         g_assert (error == NULL);
 

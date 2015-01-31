@@ -44,6 +44,9 @@ on_resource_unavailable_assert_not_reached (GSSDPResourceBrowser *src,
                                             const char           *usn,
                                             gpointer              user_data);
 
+GSSDPClient *
+get_client (GError **error);
+
 G_END_DECLS
 
 #endif // TESTUTIL_H

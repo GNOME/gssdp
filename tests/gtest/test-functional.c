@@ -176,7 +176,7 @@ test_discovery_ssdp_all (void)
         data.usn = UUID_1"::MyService:1";
         data.found = FALSE;
 
-        client = gssdp_client_new (NULL, "lo", &error);
+        client = get_client (&error);
         g_assert (client != NULL);
         g_assert (error == NULL);
 
@@ -230,7 +230,7 @@ test_discovery_upnp_rootdevice (void)
         data.usn = UUID_1"::upnp:rootdevice";
         data.found = FALSE;
 
-        client = gssdp_client_new (NULL, "lo", &error);
+        client = get_client (&error);
         g_assert (client != NULL);
         g_assert (error == NULL);
 
@@ -284,7 +284,7 @@ test_discovery_uuid (void)
         data.usn = UUID_1;
         data.found = FALSE;
 
-        client = gssdp_client_new (NULL, "lo", &error);
+        client = get_client (&error);
         g_assert (client != NULL);
         g_assert (error == NULL);
 
@@ -339,7 +339,7 @@ test_discovery_versioned (void)
         data.usn = VERSIONED_USN_1;
         data.found = FALSE;
 
-        client = gssdp_client_new (NULL, "lo", &error);
+        client = get_client (&error);
         g_assert (client != NULL);
         g_assert (error == NULL);
 
@@ -408,7 +408,7 @@ test_discovery_versioned_backwards_compatible (void)
         data.usn = VERSIONED_USN_2;
         data.found = FALSE;
 
-        client = gssdp_client_new (NULL, "lo", &error);
+        client = get_client (&error);
         g_assert (client != NULL);
         g_assert (error == NULL);
 
@@ -461,7 +461,7 @@ test_discovery_versioned_ignore_older (void)
 
         loop = g_main_loop_new (NULL, FALSE);
 
-        client = gssdp_client_new (NULL, "lo", &error);
+        client = get_client (&error);
         g_assert (client != NULL);
         g_assert (error == NULL);
 

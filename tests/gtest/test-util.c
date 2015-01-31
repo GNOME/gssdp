@@ -53,3 +53,37 @@ unref_object (gpointer object)
 
         return FALSE;
 }
+
+GSSDPClient *
+get_client (GError **outer_error)
+{
+        static gsize init_guard = 0;
+        static char *device = NULL;
+
+        if (g_once_init_enter (&init_guard)) {
+                GSSDPClient *client = NULL;
+                GError *error = NULL;
+
+                g_debug ("Detecting network interface to use for tests...");
+
+                client = gssdp_client_new (NULL, "lo", &error);
+                if (error == NULL) {
+                        g_debug ("Using lo");
+                        device = g_strdup ("lo");
+                        g_object_unref (client);
+                } else {
+                        g_clear_error(&error);
+                        client = gssdp_client_new (NULL, "lo0", &error);
+                        if (error == NULL) {
+                                g_debug ("Using lo0");
+                                device = g_strdup ("lo0");
+                                g_object_unref (client);
+                        } else {
+                                g_debug ("Using default interface, expect fails");
+                        }
+                }
+                g_once_init_leave (&init_guard, 1);
+        }
+
+        return gssdp_client_new (NULL, device, outer_error);
+}
