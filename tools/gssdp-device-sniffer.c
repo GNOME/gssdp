@@ -41,8 +41,28 @@ GOptionEntry entries[] =
         { NULL }
 };
 
-G_MODULE_EXPORT
 void
+on_enable_packet_capture_activate (GtkCheckMenuItem *menuitem,
+                                   gpointer          user_data);
+void
+on_details_activate (GtkWidget *scrolled_window, GtkCheckMenuItem *menuitem);
+
+void
+on_clear_packet_capture_activate (GtkMenuItem *menuitem,
+                                  gpointer     user_data);
+
+void
+on_use_filter_radiobutton_toggled (GtkToggleButton *togglebutton,
+                                   gpointer         user_data);
+void
+on_address_filter_dialog_response (GtkDialog *dialog,
+                                   gint       response,
+                                   gpointer   user_data);
+
+gboolean
+on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer   user_data);
+
+G_MODULE_EXPORT void
 on_enable_packet_capture_activate (GtkCheckMenuItem      *menuitem,
                                    G_GNUC_UNUSED gpointer user_data)
 {
@@ -50,7 +70,7 @@ on_enable_packet_capture_activate (GtkCheckMenuItem      *menuitem,
 }
 
 static void
-clear_packet_treeview ()
+clear_packet_treeview (void)
 {
         GtkWidget *treeview;
         GtkTreeModel *model;
@@ -102,7 +122,7 @@ clear_textbuffer (GtkTextBuffer *textbuffer)
 }
 
 static void
-update_packet_details (char *text, unsigned int len)
+update_packet_details (const char *text, unsigned int len)
 {
         GtkWidget *textview;
         GtkTextBuffer *textbuffer;
@@ -164,7 +184,7 @@ on_clear_packet_capture_activate (G_GNUC_UNUSED GtkMenuItem *menuitem,
         clear_packet_treeview ();
 }
 
-static char *message_types[] = {"M-SEARCH", "RESPONSE", "NOTIFY"};
+static const char *message_types[] = {"M-SEARCH", "RESPONSE", "NOTIFY"};
 
 static char **
 packet_to_treeview_data (const gchar        *from_ip,
@@ -233,7 +253,7 @@ append_packet (const gchar *from_ip,
 }
 
 static void
-on_ssdp_message (G_GNUC_UNUSED GSSDPClient *client,
+on_ssdp_message (G_GNUC_UNUSED GSSDPClient *ssdp_client,
                  G_GNUC_UNUSED const gchar *from_ip,
                  G_GNUC_UNUSED gushort      from_port,
                  _GSSDPMessageType          type,
@@ -308,7 +328,7 @@ append_device (const char *uuid,
 }
 
 static void
-resource_available_cb (G_GNUC_UNUSED GSSDPResourceBrowser *resource_browser,
+resource_available_cb (G_GNUC_UNUSED GSSDPResourceBrowser *ssdp_resource_browser,
                        const char                         *usn,
                        GList                              *locations)
 {
@@ -370,7 +390,7 @@ remove_device (const char *uuid)
 }
 
 static void
-resource_unavailable_cb (G_GNUC_UNUSED GSSDPResourceBrowser *resource_browser,
+resource_unavailable_cb (G_GNUC_UNUSED GSSDPResourceBrowser *ssdp_resource_browser,
                          const char                         *usn)
 {
         char **usn_tokens;
@@ -401,7 +421,7 @@ on_use_filter_radiobutton_toggled (GtkToggleButton       *togglebutton,
 }
 
 static char *
-get_ip_filter ()
+get_ip_filter (void)
 {
         int i;
         char *ip;
@@ -483,7 +503,7 @@ create_device_treemodel (void)
 static void
 setup_treeview (GtkWidget *treeview,
                 GtkTreeModel *model,
-                char *headers[])
+                const char *headers[])
 {
         int i;
 
@@ -506,11 +526,11 @@ setup_treeview (GtkWidget *treeview,
 }
 
 static void
-setup_treeviews ()
+setup_treeviews (void)
 {
         GtkWidget *treeviews[2];
         GtkTreeModel *treemodels[2];
-        char *headers[2][6] = { {"Time",
+        const char *headers[2][6] = { {"Time",
                 "Source Address",
                 "Packet Type",
                 "Packet Information",
@@ -561,7 +581,7 @@ init_ui (gint *argc, gchar **argv[])
 {
         GtkWidget *main_window;
         gint window_width, window_height;
-        gchar *ui_path = NULL;
+        const gchar *ui_path = NULL;
         GError *error = NULL;
         GOptionContext *context;
 

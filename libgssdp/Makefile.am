@@ -10,7 +10,7 @@
 
 LTVERSION = 3:0:0
 
-AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir)
+AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir) $(WARN_CFLAGS)
 
 libgssdpincdir = $(includedir)/gssdp-1.0/libgssdp
 
@@ -38,7 +38,7 @@ introspection_sources = $(libgssdpinc_HEADERS)	\
 			gssdp-resource-browser.c\
 			gssdp-resource-group.c
 
-libgssdp_1_0_la_LDFLAGS = -version-info $(LTVERSION)
+libgssdp_1_0_la_LDFLAGS = -version-info $(LTVERSION) $(WARN_LDFLAGS)
 libgssdp_1_0_la_SOURCES = $(introspection_sources)	\
 			  gssdp-client-private.h	\
 			  gssdp-protocol.h		\
@@ -71,11 +71,12 @@ CLEANFILES = $(BUILT_SOURCES)
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
-INTROSPECTION_SCANNER_ARGS = --warn-all				\
+INTROSPECTION_SCANNER_ARGS = \
 			     --symbol-prefix=gssdp		\
 			     --identifier-prefix=GSSDP		\
 			     --add-include-path=$(top_srcdir) \
-			     --pkg-export=gssdp-1.0
+			     --pkg-export=gssdp-1.0 \
+			     $(WARN_SCANNERFLAGS)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)
 
 

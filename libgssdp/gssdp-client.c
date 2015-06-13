@@ -1511,7 +1511,7 @@ get_host_ip (GSSDPNetworkDevice *device)
         g_free (adapters_addresses);
 
         return TRUE;
-#elif __BIONIC__
+#elif defined(__BIONIC__)
         struct      ifreq *ifaces = NULL;
         struct      ifreq *iface = NULL;
         struct      ifreq tmp_iface;

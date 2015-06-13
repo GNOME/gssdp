@@ -21,7 +21,7 @@
 
 #include "test-util.h"
 
-void
+G_GNUC_NORETURN void
 on_resource_unavailable_assert_not_reached (G_GNUC_UNUSED GSSDPResourceBrowser *src,
                                             G_GNUC_UNUSED const char           *usn,
                                             G_GNUC_UNUSED gpointer              user_data)
@@ -29,7 +29,7 @@ on_resource_unavailable_assert_not_reached (G_GNUC_UNUSED GSSDPResourceBrowser *
         g_assert_not_reached ();
 }
 
-void
+G_GNUC_NORETURN void
 on_resource_available_assert_not_reached (G_GNUC_UNUSED GSSDPResourceBrowser *src,
                                           G_GNUC_UNUSED const char           *usn,
                                           G_GNUC_UNUSED GList                *locations,

@@ -467,7 +467,7 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 {
         char *pattern;
         char *version;
-        char *version_pattern;
+        const char *version_pattern;
         GError *error;
 
         g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
@@ -1026,6 +1026,9 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
                 break;
         case _GSSDP_ANNOUNCEMENT:
                 received_announcement (resource_browser, headers);
+                break;
+        case _GSSDP_DISCOVERY_REQUEST:
+                /* Should not happend */
                 break;
         default:
                 break;

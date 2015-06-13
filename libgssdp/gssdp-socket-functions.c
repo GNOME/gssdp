@@ -50,7 +50,7 @@ gssdp_socket_error_message (int error) {
 }
 
 static int
-gssdp_socket_errno () {
+gssdp_socket_errno (void) {
 #ifdef G_OS_WIN32
         return WSAGetLastError ();
 #else

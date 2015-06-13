@@ -16,13 +16,18 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.11 tar-ustar no-dist-gzip dist-xz])
 AM_MAINTAINER_MODE([enable])
 
-GNOME_COMPILE_WARNINGS
-
 AM_SILENT_RULES([yes])
+
+AX_REQUIRE_DEFINED([GTK_DOC_CHECK])
+AX_REQUIRE_DEFINED([GOBJECT_INTROSPECTION_CHECK])
+AX_CHECK_ENABLE_DEBUG([yes])
 
 AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_CC
 AC_HEADER_STDC
+
+AX_IS_RELEASE([git-directory])
+AX_COMPILER_FLAGS([WARN_CFLAGS])
 
 LT_PREREQ([2.2])
 LT_INIT
@@ -68,20 +73,6 @@ AM_CONDITIONAL(USE_LIBGTK, test x$USE_LIBGTK = xyes)
 # glib-genmarshal
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
 AC_SUBST(GLIB_GENMARSHAL)
-
-# Debugging
-AC_ARG_ENABLE(debug,
-	[  --enable-debug          enable debugging],,
-        enable_debug=no)
-if test "x$enable_debug" = "xyes"; then
-        CFLAGS="$CFLAGS -g -Wall"
-fi
-
-AC_ARG_ENABLE([strict-c],
-              AS_HELP_STRING([--enable-strict-c],[Error out on warnings]),,
-              [enable_strict_c=no])
-AS_IF([test "x$[]enable_strict_c" = "xyes"],
-      [CFLAGS="$CFLAGS -Werror"])
 
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
 

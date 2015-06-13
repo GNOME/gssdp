@@ -37,7 +37,7 @@
 /* Helper functions */
 
 static GSocket *
-create_socket()
+create_socket (void)
 {
         GSocket *socket;
         GError *error = NULL;
@@ -61,7 +61,7 @@ create_socket()
         return socket;
 }
 
-char *
+static char *
 create_alive_message (const char *nt)
 {
         char *usn, *msg;
@@ -83,7 +83,7 @@ create_alive_message (const char *nt)
         return msg;
 }
 
-char *
+static char *
 create_byebye_message (const char *nt)
 {
         char *usn, *msg;
