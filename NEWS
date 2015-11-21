@@ -1,3 +1,18 @@
+0.14.12
+=======
+
+- Fix issues with names of loopback device on *BSD.
+- Move gtest code one level up and examples to their own folder.
+- Fix a possible NULL derefence in gssdp-device-sniffer.
+- Remove use of gnome-common for building.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=743070
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Thomas Klausner <tk@giga.or.at>
+
 0.14.11
 =======
 
