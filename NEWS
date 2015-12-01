@@ -1,3 +1,15 @@
+0.14.12.1
+=========
+
+- Update m4 macros from autoconf-archive.
+
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=758778
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 0.14.12
 =======
 
