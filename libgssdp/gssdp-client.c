@@ -397,6 +397,9 @@ gssdp_client_set_property (GObject      *object,
         case PROP_NETWORK:
                 client->priv->device.network = g_value_dup_string (value);
                 break;
+        case PROP_HOST_IP:
+                client->priv->device.host_ip = g_value_dup_string (value);
+                break;
         case PROP_ACTIVE:
                 client->priv->active = g_value_get_boolean (value);
                 break;
@@ -561,7 +564,8 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       "The IP address of the associated"
                                       "network interface",
                                       NULL,
-                                      G_PARAM_READABLE |
+                                      G_PARAM_READWRITE |
+                                      G_PARAM_CONSTRUCT |
                                       G_PARAM_STATIC_NAME |
                                       G_PARAM_STATIC_NICK |
                                       G_PARAM_STATIC_BLURB));
@@ -1795,6 +1799,12 @@ init_network_info (GSSDPClient *client, GError **error)
         if (client->priv->device.iface_name == NULL ||
             client->priv->device.host_ip == NULL)
                 get_host_ip (&(client->priv->device));
+
+        if (client->priv->device.host_addr == NULL) {
+                client->priv->device.host_addr =
+                                g_inet_address_new_from_string
+                                    (client->priv->device.host_ip);
+        }
 
         if (client->priv->device.iface_name == NULL) {
                 g_set_error_literal (error,
