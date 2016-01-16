@@ -1800,7 +1800,8 @@ init_network_info (GSSDPClient *client, GError **error)
             client->priv->device.host_ip == NULL)
                 get_host_ip (&(client->priv->device));
 
-        if (client->priv->device.host_addr == NULL) {
+        if (client->priv->device.host_addr == NULL &&
+            client->priv->device.host_ip != NULL) {
                 client->priv->device.host_addr =
                                 g_inet_address_new_from_string
                                     (client->priv->device.host_ip);
