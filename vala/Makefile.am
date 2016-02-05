@@ -15,6 +15,6 @@ gssdp-1.0.stamp: $(top_builddir)/libgssdp/GSSDP-1.0.gir \
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = gssdp-1.0.vapi $(srcdir)/gssdp-1.0.deps
 CLEANFILES = gssdp-1.0.vapi gssdp-1.0.stamp
-EXTRA_DIST = gssdp-1.0.deps GSSDP-1.0.metadata gssdp-1.0-custom.vala
+EXTRA_DIST = gssdp-1.0.deps GSSDP-1.0.metadata gssdp-1.0-custom.vala gssdp-1.0.vapi gssdp-1.0.stamp
 endif
 endif
