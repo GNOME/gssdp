@@ -1,3 +1,17 @@
+0.14.14
+=======
+
+- Fix warning if the IP address is not known.
+- Fix issue with discovery.
+
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=760702
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Philip Withnall <philip@tecnocode.co.uk>
+
 0.14.13
 =======
 
