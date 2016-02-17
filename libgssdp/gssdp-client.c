@@ -222,7 +222,6 @@ gssdp_client_initable_init (GInitable                   *initable,
                             GError                     **error)
 {
         GSSDPClient *client = GSSDP_CLIENT (initable);
-        GInetAddress *address = NULL;
         GError *internal_error = NULL;
 
         if (client->priv->initialized)
@@ -250,12 +249,10 @@ gssdp_client_initable_init (GInitable                   *initable,
         if (!init_network_info (client, &internal_error))
                 goto errors;
 
-        address = g_inet_address_new_from_string (client->priv->device.host_ip);
-
         /* Set up sockets (Will set errno if it failed) */
         client->priv->request_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                                         address,
+                                         client->priv->device.host_addr,
                                          client->priv->socket_ttl,
                                          client->priv->device.iface_name,
                                          &internal_error);
@@ -270,7 +267,7 @@ gssdp_client_initable_init (GInitable                   *initable,
 
         client->priv->multicast_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
-                                         address,
+                                         client->priv->device.host_addr,
                                          client->priv->socket_ttl,
                                          client->priv->device.iface_name,
                                          &internal_error);
@@ -290,7 +287,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          NULL,
                                          &internal_error,
                                          "type", GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
-                                         "address", address,
+                                         "address", client->priv->device.host_addr,
                                          "ttl", client->priv->socket_ttl,
                                          "port", client->priv->msearch_port,
                                          "device-name", client->priv->device.iface_name,
@@ -304,8 +301,6 @@ gssdp_client_initable_init (GInitable                   *initable,
         }
 
  errors:
-        g_object_unref (address);
-
         if (!client->priv->request_socket ||
             !client->priv->multicast_socket ||
             !client->priv->search_socket) {
@@ -424,8 +419,14 @@ gssdp_client_set_property (GObject      *object,
                 client->priv->device.network = g_value_dup_string (value);
                 break;
         case PROP_HOST_IP:
-                client->priv->device.host_ip = g_value_dup_string (value);
-                break;
+                {
+                        const char *addr = g_value_get_string (value);
+                        if (addr != NULL) {
+                                client->priv->device.host_addr =
+                                    g_inet_address_new_from_string (addr);
+                        }
+                        break;
+                }
         case PROP_ACTIVE:
                 client->priv->active = g_value_get_boolean (value);
                 break;
@@ -822,6 +823,10 @@ const char *
 gssdp_client_get_host_ip (GSSDPClient *client)
 {
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+
+        if (client->priv->device.host_ip == NULL)
+                client->priv->device.host_ip = g_inet_address_to_string
+                                    (client->priv->device.host_addr);
 
         return client->priv->device.host_ip;
 }
@@ -1862,9 +1867,8 @@ success:
         for (ifaceptr = up_ifaces;
              ifaceptr != NULL;
              ifaceptr = ifaceptr->next) {
-                char ip[INET6_ADDRSTRLEN];
                 char net[INET6_ADDRSTRLEN];
-                const char *p, *q;
+                const char *q;
                 struct sockaddr_in *s4, *s4_mask;
                 struct in_addr net_addr;
                 const guint8 *bytes;
@@ -1876,12 +1880,6 @@ success:
                 }
 
                 s4 = (struct sockaddr_in *) ifa->ifa_addr;
-                p = inet_ntop (AF_INET,
-                               &s4->sin_addr,
-                               ip,
-                               sizeof (ip));
-                device->host_ip = g_strdup (p);
-
                 bytes = (const guint8 *) &s4->sin_addr;
                 device->host_addr = g_inet_address_new_from_bytes
                                         (bytes, G_SOCKET_FAMILY_IPV4);
@@ -1918,7 +1916,7 @@ init_network_info (GSSDPClient *client, GError **error)
          * interface.
          */
         if (client->priv->device.iface_name == NULL ||
-            client->priv->device.host_ip == NULL)
+            client->priv->device.host_addr == NULL)
                 get_host_ip (&(client->priv->device));
         else {
                 /* Ugly. Ideally, get_host_ip needs to be run everytime, but
@@ -1932,13 +1930,6 @@ init_network_info (GSSDPClient *client, GError **error)
                                 query_ifindex (client->priv->device.iface_name);
         }
 
-        if (client->priv->device.host_addr == NULL &&
-            client->priv->device.host_ip != NULL) {
-                client->priv->device.host_addr =
-                                g_inet_address_new_from_string
-                                    (client->priv->device.host_ip);
-        }
-
         if (client->priv->device.iface_name == NULL) {
                 g_set_error_literal (error,
                                      GSSDP_ERROR,
@@ -1946,7 +1937,7 @@ init_network_info (GSSDPClient *client, GError **error)
                                      "No default route?");
 
                 ret = FALSE;
-        } else if (client->priv->device.host_ip == NULL) {
+        } else if (client->priv->device.host_addr == NULL) {
                         g_set_error (error,
                                      GSSDP_ERROR,
                                      GSSDP_ERROR_NO_IP_ADDRESS,
