@@ -178,7 +178,6 @@ gssdp_client_initable_init (GInitable                   *initable,
 {
         GSSDPClient *client = GSSDP_CLIENT (initable);
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
-        GInetAddress *address = NULL;
         GError *internal_error = NULL;
 
         if (priv->initialized)
@@ -191,12 +190,10 @@ gssdp_client_initable_init (GInitable                   *initable,
         if (!init_network_info (client, &internal_error))
                 goto errors;
 
-        address = g_inet_address_new_from_string (client->priv->device.host_ip);
-
         /* Set up sockets (Will set errno if it failed) */
         priv->request_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                                         address,
+                                         priv->device.host_addr,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
                                          &internal_error);
@@ -211,7 +208,7 @@ gssdp_client_initable_init (GInitable                   *initable,
 
         priv->multicast_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
-                                         address,
+                                         priv->device.host_addr,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
                                          &internal_error);
@@ -231,7 +228,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          NULL,
                                          &internal_error,
                                          "type", GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
-                                         "address", address,
+                                         "address", priv->device.host_addr,
                                          "ttl", priv->socket_ttl,
                                          "port", priv->msearch_port,
                                          "device-name", priv->device.iface_name,
@@ -245,8 +242,6 @@ gssdp_client_initable_init (GInitable                   *initable,
         }
 
  errors:
-        g_object_unref (address);
-
         if (!priv->request_socket ||
             !priv->multicast_socket ||
             !priv->search_socket) {
@@ -336,8 +331,14 @@ gssdp_client_set_property (GObject      *object,
                 priv->device.network = g_value_dup_string (value);
                 break;
         case PROP_HOST_IP:
-                priv->device.host_ip = g_value_dup_string (value);
-                break;
+                {
+                        const char *addr = g_value_get_string (value);
+                        if (addr != NULL) {
+                                priv->device.host_addr =
+                                    g_inet_address_new_from_string (addr);
+                        }
+                        break;
+                }
         case PROP_ACTIVE:
                 priv->active = g_value_get_boolean (value);
                 break;
@@ -681,6 +682,10 @@ gssdp_client_get_host_ip (GSSDPClient *client)
 
         g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
         priv = gssdp_client_get_instance_private (client);
+
+        if (priv->device.host_ip == NULL)
+                priv->device.host_ip = g_inet_address_to_string
+                                    (priv->device.host_addr);
 
         return priv->device.host_ip;
 }
@@ -1296,7 +1301,7 @@ request_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
 
         request_socket = gssdp_socket_source_new (
                                         GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                                        gssdp_client_get_host_ip (client),
+                                        priv->device.host_addr,
                                         priv->socket_ttl,
                                         gssdp_client_get_interface (client),
                                         &error);
@@ -1332,7 +1337,7 @@ multicast_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
 
         multicast_socket = gssdp_socket_source_new (
                                         GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                                        gssdp_client_get_host_ip (client),
+                                        priv->device.host_addr,
                                         priv->socket_ttl,
                                         gssdp_client_get_interface (client),
                                         &error);
@@ -1368,7 +1373,7 @@ search_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
 
         search_socket = gssdp_socket_source_new (
                                         GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                                        gssdp_client_get_host_ip (client),
+                                        priv->device.host_addr,
                                         priv->socket_ttl,
                                         gssdp_client_get_interface (client),
                                         &error);
@@ -1400,7 +1405,7 @@ init_network_info (GSSDPClient *client, GError **error)
          * interface.
          */
         if (priv->device.iface_name == NULL ||
-            priv->device.host_ip == NULL)
+            priv->device.host_addr == NULL)
                 gssdp_net_get_host_ip (&(priv->device));
         else {
                 /* Ugly. Ideally, get_host_ip needs to be run everytime, but
@@ -1414,13 +1419,6 @@ init_network_info (GSSDPClient *client, GError **error)
                         gssdp_net_query_ifindex (&priv->device);
         }
 
-        if (priv->device.host_addr == NULL &&
-            priv->device.host_ip != NULL) {
-                priv->device.host_addr =
-                                g_inet_address_new_from_string
-                                    (priv->device.host_ip);
-        }
-
         if (priv->device.iface_name == NULL) {
                 g_set_error_literal (error,
                                      GSSDP_ERROR,
@@ -1428,7 +1426,7 @@ init_network_info (GSSDPClient *client, GError **error)
                                      "No default route?");
 
                 ret = FALSE;
-        } else if (priv->device.host_ip == NULL) {
+        } else if (priv->device.host_addr == NULL) {
                 g_set_error (error,
                              GSSDP_ERROR,
                              GSSDP_ERROR_NO_IP_ADDRESS,
