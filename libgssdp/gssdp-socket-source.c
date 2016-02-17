@@ -48,7 +48,7 @@ struct _GSSDPSocketSourcePrivate {
         GSocket              *socket;
         GSSDPSocketSourceType type;
 
-        char                 *host_ip;
+        GInetAddress         *address;
         char                 *device_name;
         guint                 ttl;
         guint                 port;
@@ -70,7 +70,7 @@ G_DEFINE_TYPE_EXTENDED (GSSDPSocketSource,
 enum {
     PROP_0,
     PROP_TYPE,
-    PROP_HOST_IP,
+    PROP_ADDRESS,
     PROP_TTL,
     PROP_PORT,
     PROP_IFA_NAME
@@ -124,11 +124,11 @@ gssdp_socket_source_set_property (GObject          *object,
         case PROP_TYPE:
                 priv->type = g_value_get_int (value);
                 break;
-        case PROP_HOST_IP:
-                priv->host_ip = g_value_dup_string (value);
-                break;
         case PROP_IFA_NAME:
                 priv->device_name = g_value_dup_string (value);
+                break;
+        case PROP_ADDRESS:
+                priv->address = g_value_dup_object (value);
                 break;
         case PROP_TTL:
                 priv->ttl = g_value_get_uint (value);
@@ -149,7 +149,7 @@ gssdp_socket_source_set_property (GObject          *object,
  **/
 GSSDPSocketSource *
 gssdp_socket_source_new (GSSDPSocketSourceType type,
-                         const char           *host_ip,
+                         GInetAddress         *address,
                          guint                 ttl,
                          const char           *device_name,
                          GError              **error)
@@ -159,8 +159,8 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                                error,
                                "type",
                                type,
-                               "host-ip",
-                               host_ip,
+                               "address",
+                               address,
                                "ttl",
                                ttl,
                                "device-name",
@@ -175,7 +175,6 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 {
         GSSDPSocketSource *self = NULL;
         GSSDPSocketSourcePrivate *priv = NULL;
-        GInetAddress *iface_address = NULL;
         GSocketAddress *bind_address = NULL;
         GInetAddress *group = NULL;
         GError *inner_error = NULL;
@@ -185,19 +184,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         self = GSSDP_SOCKET_SOURCE (initable);
         priv = gssdp_socket_source_get_instance_private (self);
 
-        iface_address = g_inet_address_new_from_string (priv->host_ip);
-
-        if (iface_address == NULL) {
-                g_set_error (error,
-                             GSSDP_ERROR,
-                             GSSDP_ERROR_FAILED,
-                             "Invalid host ip: %s",
-                             priv->host_ip);
-
-                goto error;
-        }
-
-        family = g_inet_address_get_family (iface_address);
+        family = g_inet_address_get_family (priv->address);
 
         if (family == G_SOCKET_FAMILY_IPV4)
                 group = g_inet_address_new_from_string (SSDP_ADDR);
@@ -252,7 +239,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 g_socket_set_multicast_loopback (priv->socket, TRUE);
 
                 if (!gssdp_socket_mcast_interface_set (priv->socket,
-                                                       iface_address,
+                                                       priv->address,
                                                        &inner_error)) {
                         g_propagate_prefixed_error (
                                         error,
@@ -277,7 +264,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH)
                         port = priv->port;
 
-                bind_address = g_inet_socket_address_new (iface_address,
+                bind_address = g_inet_socket_address_new (priv->address,
                                                           port);
         }
 
@@ -335,8 +322,6 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         success = TRUE;
 
 error:
-        if (iface_address != NULL)
-                g_object_unref (iface_address);
         if (bind_address != NULL)
                 g_object_unref (bind_address);
         if (group != NULL)
@@ -419,10 +404,7 @@ gssdp_socket_source_finalize (GObject *object)
         self = GSSDP_SOCKET_SOURCE (object);
         priv = gssdp_socket_source_get_instance_private (self);
 
-        if (priv->host_ip != NULL) {
-                g_free (priv->host_ip);
-                priv->host_ip = NULL;
-        }
+        g_clear_object (&priv->address);
 
         if (priv->device_name != NULL) {
                 g_free (priv->device_name);
@@ -460,12 +442,12 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
 
         g_object_class_install_property
                 (object_class,
-                 PROP_HOST_IP,
-                 g_param_spec_string
-                        ("host-ip",
-                         "Host ip",
+                 PROP_ADDRESS,
+                 g_param_spec_object
+                        ("address",
+                         "Host address",
                          "IP address of associated network interface",
-                         NULL,
+                         G_TYPE_INET_ADDRESS,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                          G_PARAM_STATIC_BLURB));

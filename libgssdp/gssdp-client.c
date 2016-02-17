@@ -37,6 +37,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
+#include <gio/gio.h>
+
 
 #include "gssdp-client.h"
 #include "gssdp-client-private.h"
@@ -176,6 +178,7 @@ gssdp_client_initable_init (GInitable                   *initable,
 {
         GSSDPClient *client = GSSDP_CLIENT (initable);
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+        GInetAddress *address = NULL;
         GError *internal_error = NULL;
 
         if (priv->initialized)
@@ -188,10 +191,12 @@ gssdp_client_initable_init (GInitable                   *initable,
         if (!init_network_info (client, &internal_error))
                 goto errors;
 
+        address = g_inet_address_new_from_string (client->priv->device.host_ip);
+
         /* Set up sockets (Will set errno if it failed) */
         priv->request_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
-                                         gssdp_client_get_host_ip (client),
+                                         address,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
                                          &internal_error);
@@ -206,7 +211,7 @@ gssdp_client_initable_init (GInitable                   *initable,
 
         priv->multicast_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
-                                         gssdp_client_get_host_ip (client),
+                                         address,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
                                          &internal_error);
@@ -226,7 +231,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          NULL,
                                          &internal_error,
                                          "type", GSSDP_SOCKET_SOURCE_TYPE_SEARCH,
-                                         "host-ip", gssdp_client_get_host_ip (client),
+                                         "address", address,
                                          "ttl", priv->socket_ttl,
                                          "port", priv->msearch_port,
                                          "device-name", priv->device.iface_name,
@@ -240,6 +245,8 @@ gssdp_client_initable_init (GInitable                   *initable,
         }
 
  errors:
+        g_object_unref (address);
+
         if (!priv->request_socket ||
             !priv->multicast_socket ||
             !priv->search_socket) {
