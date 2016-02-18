@@ -225,9 +225,14 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         }
 
         /* TTL */
-        if (!self->priv->ttl)
+        if (self->priv->ttl == 0) {
                 /* UDA/1.0 says 4, UDA/1.1 says 2 */
                 self->priv->ttl = 4;
+                if (family == G_SOCKET_FAMILY_IPV6) {
+                        /* UDA 2.0, Annex A says 10 hops */
+                        self->priv->ttl = 10;
+                }
+        }
 
         g_socket_set_multicast_ttl (self->priv->socket, self->priv->ttl);
 
