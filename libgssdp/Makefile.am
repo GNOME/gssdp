@@ -50,7 +50,9 @@ libgssdp_1_0_la_SOURCES = $(introspection_sources)	\
 
 if HAVE_PKTINFO
 libgssdp_1_0_la_SOURCES += gssdp-pktinfo-message.c \
-						   gssdp-pktinfo-message.h
+			   gssdp-pktinfo-message.h \
+			   gssdp-pktinfo6-message.c \
+			   gssdp-pktinfo6-message.h
 endif
 
 libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)

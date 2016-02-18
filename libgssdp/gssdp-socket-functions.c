@@ -39,6 +39,7 @@
 #include "gssdp-error.h"
 #include "gssdp-socket-functions.h"
 #include "gssdp-pktinfo-message.h"
+#include "gssdp-pktinfo6-message.h"
 
 static char*
 gssdp_socket_error_message (int error) {
@@ -154,6 +155,14 @@ gssdp_socket_enable_info         (GSocket *socket,
         /* Register the type so g_socket_control_message_deserialize() will
          * find it */
         g_object_unref (g_object_new (GSSDP_TYPE_PKTINFO_MESSAGE, NULL));
+        g_object_unref (g_object_new (GSSDP_TYPE_PKTINFO6_MESSAGE, NULL));
+
+        gssdp_socket_option_set (socket,
+                                 IPPROTO_IPV6,
+                                 IPV6_RECVPKTINFO,
+                                 (char *)&enable,
+                                 sizeof (enable),
+                                 error);
 
         return gssdp_socket_option_set (socket,
                                         IPPROTO_IP,
