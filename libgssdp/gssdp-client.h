@@ -23,6 +23,7 @@
 #define __GSSDP_CLIENT_H__
 
 #include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -107,6 +108,15 @@ gssdp_client_get_network      (GSSDPClient  *client);
 
 gboolean
 gssdp_client_get_active       (GSSDPClient  *client);
+
+GInetAddress *
+gssdp_client_get_address      (GSSDPClient *client);
+
+guint
+gssdp_client_get_index        (GSSDPClient *client);
+
+GSocketFamily
+gssdp_client_get_family       (GSSDPClient *client);
 
 void
 gssdp_client_append_header    (GSSDPClient *client,

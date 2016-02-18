@@ -696,8 +696,40 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         destroyLocations = TRUE;
 
         header = soup_message_headers_get_one (headers, "Location");
-        if (header)
-                locations = g_list_append (locations, g_strdup (header));
+        if (header) {
+                GSocketFamily family;
+                GSSDPClient *client;
+
+                client = resource_browser->priv->client;
+                family = gssdp_client_get_family (client);
+
+                if (family == G_SOCKET_FAMILY_IPV6) {
+                        SoupURI *uri = soup_uri_new (header);
+                        const char *host = NULL;
+                        GInetAddress *addr = NULL;
+
+                        host = soup_uri_get_host (uri);
+                        addr = g_inet_address_new_from_string (host);
+                        if (g_inet_address_get_is_link_local (addr)) {
+                                char *new_host;
+                                int index = 0;
+
+                                index = gssdp_client_get_index (client);
+
+                                new_host = g_strdup_printf ("%s%%%d",
+                                                            host,
+                                                            index);
+                                soup_uri_set_host (uri, new_host);
+                        }
+                        g_object_unref (addr);
+                        locations = g_list_append (locations,
+                                                   soup_uri_to_string (uri,
+                                                                       FALSE));
+                        soup_uri_free (uri);
+                } else {
+                        locations = g_list_append (locations, g_strdup (header));
+                }
+        }
 
         header = soup_message_headers_get_one (headers, "AL");
         if (header) {
