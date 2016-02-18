@@ -1123,10 +1123,23 @@ static void
 send_discovery_request (GSSDPResourceBrowser *resource_browser)
 {
         GSSDPResourceBrowserPrivate *priv;
-        char *message;
+        char *message = NULL;
+        const char *group = NULL;
+        char *dest = NULL;
+
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+        group = _gssdp_client_get_mcast_group (priv->client);
+
+        /* FIXME: Check for IPv6 - ugly and remove strcpys */
+        if (strchr (group, ':')) {
+            dest = g_strdup_printf ("[%s]", group);
+        } else {
+            dest = g_strdup (group);
+        }
 
         priv = gssdp_resource_browser_get_instance_private (resource_browser);
         message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
+                                   dest,
                                    priv->target,
                                    priv->mx,
                                    g_get_prgname () ? g_get_prgname () : "");
@@ -1137,6 +1150,7 @@ send_discovery_request (GSSDPResourceBrowser *resource_browser)
                                     message,
                                     _GSSDP_DISCOVERY_REQUEST);
 
+        g_free (dest);
         g_free (message);
 }
 

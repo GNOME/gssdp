@@ -39,6 +39,9 @@ _gssdp_client_send_message (GSSDPClient       *client,
                             const char        *message,
                             _GSSDPMessageType  type);
 
+G_GNUC_INTERNAL const char *
+_gssdp_client_get_mcast_group (GSSDPClient    *client);
+
 G_END_DECLS
 
 #endif /* GSSDP_CLIENT_PRIVATE_H */
