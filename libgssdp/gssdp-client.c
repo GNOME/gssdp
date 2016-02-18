@@ -196,6 +196,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          priv->device.host_addr,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
+                                         priv->device.index,
                                          &internal_error);
         if (priv->request_socket == NULL) {
                 goto errors;
@@ -211,6 +212,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          priv->device.host_addr,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
+                                         priv->device.index,
                                          &internal_error);
         if (priv->multicast_socket == NULL) {
             goto errors;
@@ -232,6 +234,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          "ttl", priv->socket_ttl,
                                          "port", priv->msearch_port,
                                          "device-name", priv->device.iface_name,
+                                         "index", priv->device.index,
                                          NULL));
 
         if (priv->search_socket != NULL) {
@@ -1326,6 +1329,7 @@ request_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                                         priv->device.host_addr,
                                         priv->socket_ttl,
                                         gssdp_client_get_interface (client),
+                                        priv->device.index,
                                         &error);
         if (request_socket != NULL) {
                 g_clear_object (&priv->request_socket);
@@ -1362,6 +1366,7 @@ multicast_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                                         priv->device.host_addr,
                                         priv->socket_ttl,
                                         gssdp_client_get_interface (client),
+                                        priv->device.index,
                                         &error);
         if (multicast_socket != NULL) {
                 g_clear_object (&priv->multicast_socket);
@@ -1398,6 +1403,7 @@ search_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                                         priv->device.host_addr,
                                         priv->socket_ttl,
                                         gssdp_client_get_interface (client),
+                                        priv->device.index,
                                         &error);
         if (search_socket != NULL) {
                 g_clear_object (&priv->search_socket);
