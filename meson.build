@@ -8,8 +8,10 @@ conf = configuration_data()
 conf.set_quoted('VERSION', meson.project_version())
 
 # Check for struct in_pktinfo
-pktinfo_test = '''#include <netinet/ip.h>
+pktinfo_test = '''#define _GNU_SOURCE
+#include <netinet/ip.h>
 struct in_pktinfo pktinfo;
+struct in6_pktinfo pktinfo6;
 '''
 
 pktinfo_available = cc.compiles(pktinfo_test,

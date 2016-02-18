@@ -28,6 +28,7 @@ sources = files(
 
 if pktinfo_available
   sources += 'gssdp-pktinfo-message.c'
+  sources += 'gssdp-pktinfo6-message.c'
 endif
 
 if host_machine.system() == 'windows'
