@@ -1080,9 +1080,23 @@ clear_cache (GSSDPResourceBrowser *resource_browser)
 static void
 send_discovery_request (GSSDPResourceBrowser *resource_browser)
 {
-        char *message;
+        char *message = NULL;
+        const char *group = NULL;
+        char *dest = NULL;
+        GSSDPClient *client = NULL;
+
+        client = resource_browser->priv->client;
+        group = _gssdp_client_get_mcast_group (client);
+
+        /* FIXME: Check for IPv6 - ugly and remove strcpys */
+        if (strchr (group, ':')) {
+            dest = g_strdup_printf ("[%s]", group);
+        } else {
+            dest = g_strdup (group);
+        }
 
         message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
+                                   dest,
                                    resource_browser->priv->target,
                                    resource_browser->priv->mx,
                                    g_get_prgname () ? g_get_prgname () : "");
@@ -1093,6 +1107,7 @@ send_discovery_request (GSSDPResourceBrowser *resource_browser)
                                     message,
                                     _GSSDP_DISCOVERY_REQUEST);
 
+        g_free (dest);
         g_free (message);
 }
 

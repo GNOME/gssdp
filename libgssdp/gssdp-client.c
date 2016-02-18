@@ -1076,8 +1076,9 @@ _gssdp_client_send_message (GSSDPClient      *client,
                 return;
 
         /* Broadcast if @dest_ip is NULL */
-        if (dest_ip == NULL)
-                dest_ip = SSDP_ADDR;
+        if (dest_ip == NULL) {
+                dest_ip = _gssdp_client_get_mcast_group (client);
+        }
 
         /* Use default port if no port was explicitly specified */
         if (dest_port == 0)
@@ -1111,6 +1112,26 @@ _gssdp_client_send_message (GSSDPClient      *client,
         g_free (extended_message);
         g_object_unref (address);
         g_object_unref (inet_address);
+}
+
+const char*
+_gssdp_client_get_mcast_group (GSSDPClient *client)
+{
+        GSocketFamily family;
+
+        family = g_inet_address_get_family (client->priv->device.host_addr);
+        if (family == G_SOCKET_FAMILY_IPV4)
+                return SSDP_ADDR;
+        else {
+                /* IPv6 */
+                /* According to Annex.A, we need to check the scope of the
+                 * address to use the proper multicast group */
+                if (g_inet_address_get_is_link_local (client->priv->device.host_addr)) {
+                            return SSDP_V6_LL;
+                } else {
+                            return SSDP_V6_SL;
+                }
+        }
 }
 
 /*

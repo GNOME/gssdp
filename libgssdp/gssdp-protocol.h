@@ -25,12 +25,14 @@
 G_BEGIN_DECLS
 
 #define SSDP_ADDR "239.255.255.250"
+#define SSDP_V6_LL "FF02::C"
+#define SSDP_V6_SL "FF05::C"
 #define SSDP_PORT 1900
 #define SSDP_PORT_STR "1900"
 
 #define SSDP_DISCOVERY_REQUEST                      \
         "M-SEARCH * HTTP/1.1\r\n"                   \
-        "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
+        "Host: %s:" SSDP_PORT_STR "\r\n" \
         "Man: \"ssdp:discover\"\r\n"                \
         "ST: %s\r\n"                                \
         "MX: %d\r\n"                                \
@@ -50,7 +52,7 @@ G_BEGIN_DECLS
 
 #define SSDP_ALIVE_MESSAGE                          \
         "NOTIFY * HTTP/1.1\r\n"                     \
-        "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
+        "Host: %s:" SSDP_PORT_STR "\r\n" \
         "Cache-Control: max-age=%d\r\n"             \
         "Location: %s\r\n"                          \
         "%s"                                        \
@@ -61,7 +63,7 @@ G_BEGIN_DECLS
 
 #define SSDP_BYEBYE_MESSAGE                         \
         "NOTIFY * HTTP/1.1\r\n"                     \
-        "Host: " SSDP_ADDR ":" SSDP_PORT_STR "\r\n" \
+        "Host: %s:" SSDP_PORT_STR "\r\n" \
         "NTS: ssdp:byebye\r\n"                     \
         "NT: %s\r\n"                                \
         "USN: %s\r\n"
