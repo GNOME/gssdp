@@ -27,6 +27,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
+#include <gio/gio.h>
 
 #include "gssdp-socket-functions.h"
 #include "gssdp-socket-source.h"
@@ -189,17 +190,19 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         if (family == G_SOCKET_FAMILY_IPV4)
                 group = g_inet_address_new_from_string (SSDP_ADDR);
         else {
-                g_set_error_literal (error,
-                                     GSSDP_ERROR,
-                                     GSSDP_ERROR_FAILED,
-                                     "IPv6 address");
-
-                goto error;
+                /* IPv6 */
+                /* According to Annex.A, we need to check the scope of the
+                 * address to use the proper multicast group */
+                if (g_inet_address_get_is_link_local (priv->address)) {
+                            group = g_inet_address_new_from_string (SSDP_V6_LL);
+                } else {
+                            group = g_inet_address_new_from_string (SSDP_V6_SL);
+                }
         }
 
 
         /* Create socket */
-        priv->socket = g_socket_new (G_SOCKET_FAMILY_IPV4,
+        priv->socket = g_socket_new (family,
                                      G_SOCKET_TYPE_DATAGRAM,
                                      G_SOCKET_PROTOCOL_UDP,
                                      &inner_error);

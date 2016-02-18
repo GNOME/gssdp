@@ -1059,6 +1059,8 @@ resource_alive (Resource *resource)
         GSSDPClient *client;
         guint max_age;
         char *al, *message;
+        const char *group;
+        char *dest;
 
         priv = gssdp_resource_group_get_instance_private
                                         (resource->resource_group);
@@ -1073,7 +1075,15 @@ resource_alive (Resource *resource)
 
         al = construct_al (resource);
 
+        /* FIXME: UGLY V6 stuff */
+        group = _gssdp_client_get_mcast_group (client);
+        if (strchr (group, ':') != NULL)
+                dest = g_strdup_printf ("[%s]", group);
+        else
+                dest = g_strdup (group);
+
         message = g_strdup_printf (SSDP_ALIVE_MESSAGE,
+                                   dest,
                                    max_age,
                                    (char *) resource->locations->data,
                                    al ? al : "",
@@ -1083,6 +1093,7 @@ resource_alive (Resource *resource)
 
         queue_message (resource->resource_group, message);
 
+        g_free (dest);
         g_free (al);
 }
 
@@ -1092,14 +1103,31 @@ resource_alive (Resource *resource)
 static void
 resource_byebye (Resource *resource)
 {
-        char *message;
+        char *message = NULL;
+        const char *group = NULL;
+        char *host = NULL;
+        GSSDPResourceGroupPrivate *priv = NULL;
+        GSSDPClient *client = NULL;
+
+        priv = gssdp_resource_group_get_instance_private (resource->resource_group);
+        client = priv->client;
+
+        /* FIXME: UGLY V6 stuff */
+        group = _gssdp_client_get_mcast_group (client);
+        if (strchr (group, ':') != NULL)
+                host = g_strdup_printf ("[%s]", group);
+        else
+                host = g_strdup (group);
 
         /* Queue message */
         message = g_strdup_printf (SSDP_BYEBYE_MESSAGE,
+                                   host,
                                    resource->target,
                                    resource->usn);
 
         queue_message (resource->resource_group, message);
+
+        g_free (host);
 }
 
 /*
