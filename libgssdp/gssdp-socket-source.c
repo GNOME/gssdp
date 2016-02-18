@@ -51,6 +51,7 @@ struct _GSSDPSocketSourcePrivate {
 
         GInetAddress         *address;
         char                 *device_name;
+        guint                 index;
         guint                 ttl;
         guint                 port;
 };
@@ -61,7 +62,8 @@ enum {
     PROP_ADDRESS,
     PROP_TTL,
     PROP_PORT,
-    PROP_IFA_NAME
+    PROP_IFA_NAME,
+    PROP_IFA_IDX
 };
 
 static void
@@ -125,6 +127,9 @@ gssdp_socket_source_set_property (GObject          *object,
         case PROP_PORT:
                 self->priv->port = g_value_get_uint (value);
                 break;
+        case PROP_IFA_IDX:
+                self->priv->index = g_value_get_uint (value);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -141,6 +146,7 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                          GInetAddress         *address,
                          guint                 ttl,
                          const char           *device_name,
+                         guint                 index,
                          GError              **error)
 {
         return g_initable_new (GSSDP_TYPE_SOCKET_SOURCE,
@@ -154,6 +160,8 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
                                ttl,
                                "device-name",
                                device_name,
+                               "index",
+                               index,
                                NULL);
 }
 
@@ -168,6 +176,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         GError *inner_error = NULL;
         GSocketFamily family;
         gboolean success = FALSE;
+        gboolean link_local = FALSE;
 
         self = GSSDP_SOCKET_SOURCE (initable);
 
@@ -181,6 +190,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                  * address to use the proper multicast group */
                 if (g_inet_address_get_is_link_local (self->priv->address)) {
                             group = g_inet_address_new_from_string (SSDP_V6_LL);
+                            link_local = TRUE;
                 } else {
                             group = g_inet_address_new_from_string (SSDP_V6_SL);
                 }
@@ -202,7 +212,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         }
 
         /* Enable broadcasting */
-        g_socket_set_broadcast (self->priv->socket, TRUE);
+/*        g_socket_set_broadcast (self->priv->socket, TRUE);
 
         if (!gssdp_socket_enable_info (self->priv->socket,
                                        TRUE,
@@ -213,13 +223,13 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 
                 goto error;
         }
-
+*/
         /* TTL */
         if (!self->priv->ttl)
                 /* UDA/1.0 says 4, UDA/1.1 says 2 */
                 self->priv->ttl = 4;
 
-        g_socket_set_multicast_ttl (self->priv->socket, self->priv->ttl);
+        //g_socket_set_multicast_ttl (self->priv->socket, self->priv->ttl);
 
 
         /* Set up additional things according to the type of socket desired */
@@ -229,6 +239,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 
                 if (!gssdp_socket_mcast_interface_set (self->priv->socket,
                                                        self->priv->address,
+                                                       (guint32) self->priv->index,
                                                        &inner_error)) {
                         g_propagate_prefixed_error (
                                         error,
@@ -242,8 +253,11 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 bind_address = g_inet_socket_address_new (iface_address,
                                                           SSDP_PORT);
 #else
-                bind_address = g_inet_socket_address_new (group,
-                                                          SSDP_PORT);
+                bind_address = g_object_new (G_TYPE_INET_SOCKET_ADDRESS,
+                                             "address", group,
+                                             "port", SSDP_PORT,
+                                             "scope-id", self->priv->index,
+                                             NULL);
 #endif
         } else {
                 guint port = SSDP_PORT;
@@ -253,8 +267,17 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH)
                         port = self->priv->port;
 
-                bind_address = g_inet_socket_address_new (self->priv->address,
-                                                          port);
+                if (link_local) {
+                    bind_address = g_object_new (G_TYPE_INET_SOCKET_ADDRESS,
+                                                 "address", self->priv->address,
+                                                 "port", port,
+                                                 "scope-id", self->priv->index,
+                                                 NULL);
+                } else {
+                    bind_address = g_inet_socket_address_new (self->priv->address,
+                                                              port);
+                }
+
         }
 
         /* Normally g_socket_bind does this, but it is disabled on
@@ -262,7 +285,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
          * there, also we nees SO_REUSEPORT on OpenBSD. This is a nop
          * everywhere else.
          */
-        if (!gssdp_socket_reuse_address (self->priv->socket,
+/*        if (!gssdp_socket_reuse_address (self->priv->socket,
                                          TRUE,
                                          &inner_error)) {
                 g_propagate_prefixed_error (
@@ -271,7 +294,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                                 "Failed to enable reuse");
 
                 goto error;
-        }
+        } */
 
         /* Bind to requested port and address */
         if (!g_socket_bind (self->priv->socket,
@@ -465,6 +488,18 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
                         ("port",
                          "UDP port",
                          "UDP port to use for TYPE_SEARCH sockets",
+                         0, G_MAXUINT16,
+                         0,
+                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS));
+
+        g_object_class_install_property
+                (object_class,
+                 PROP_IFA_IDX,
+                 g_param_spec_uint
+                        ("index",
+                         "Interface index",
+                         "Interface index of the network device",
                          0, G_MAXUINT16,
                          0,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |

@@ -93,20 +93,30 @@ gssdp_socket_option_set (GSocket    *socket,
 gboolean
 gssdp_socket_mcast_interface_set (GSocket      *socket,
                                   GInetAddress *iface_address,
+                                  gint          index,
                                   GError      **error) {
 
         const guint8 *address;
         gsize native_size;
 
-        address = g_inet_address_to_bytes (iface_address);
-        native_size = g_inet_address_get_native_size (iface_address);
+        if (g_inet_address_get_family (iface_address) == G_SOCKET_FAMILY_IPV6) {
+                return gssdp_socket_option_set (socket,
+                                                IPPROTO_IPV6,
+                                                IPV6_MULTICAST_IF,
+                                                (char *)&index,
+                                                sizeof (index),
+                                                error);
+        } else {
+                address = g_inet_address_to_bytes (iface_address);
+                native_size = g_inet_address_get_native_size (iface_address);
 
-        return gssdp_socket_option_set (socket,
-                                        IPPROTO_IP,
-                                        IP_MULTICAST_IF,
-                                        (char *) address,
-                                        native_size,
-                                        error);
+                return gssdp_socket_option_set (socket,
+                                                IPPROTO_IP,
+                                                IP_MULTICAST_IF,
+                                                (char *) address,
+                                                native_size,
+                                                error);
+        }
 }
 
 #define __GSSDP_UNUSED(x) (void)(x)

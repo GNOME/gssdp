@@ -27,6 +27,7 @@
 G_GNUC_INTERNAL gboolean
 gssdp_socket_mcast_interface_set (GSocket       *socket,
                                   GInetAddress  *iface_address,
+                                  gint           index,
                                   GError       **error);
 G_GNUC_INTERNAL gboolean
 gssdp_socket_reuse_address       (GSocket *socket,

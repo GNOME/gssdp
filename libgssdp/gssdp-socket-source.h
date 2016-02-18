@@ -77,6 +77,7 @@ gssdp_socket_source_new        (GSSDPSocketSourceType  type,
                                 GInetAddress          *address,
                                 guint                  ttl,
                                 const char            *device_name,
+                                guint                  index,
                                 GError               **error);
 
 G_GNUC_INTERNAL GSocket*

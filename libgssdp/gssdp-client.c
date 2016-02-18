@@ -255,6 +255,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          client->priv->device.host_addr,
                                          client->priv->socket_ttl,
                                          client->priv->device.iface_name,
+                                         client->priv->device.index,
                                          &internal_error);
         if (client->priv->request_socket != NULL) {
                 gssdp_socket_source_set_callback
@@ -270,6 +271,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          client->priv->device.host_addr,
                                          client->priv->socket_ttl,
                                          client->priv->device.iface_name,
+                                         client->priv->device.index,
                                          &internal_error);
         if (client->priv->multicast_socket != NULL) {
                 gssdp_socket_source_set_callback
@@ -291,6 +293,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          "ttl", client->priv->socket_ttl,
                                          "port", client->priv->msearch_port,
                                          "device-name", client->priv->device.iface_name,
+                                         "index", client->priv->device.index,
                                          NULL));
 
         if (client->priv->search_socket != NULL) {
