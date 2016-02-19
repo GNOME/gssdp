@@ -1382,7 +1382,10 @@ extract_address_and_prefix (PIP_ADAPTER_UNICAST_ADDRESS  adapter,
 static int
 query_ifindex (const char *iface_name)
 {
-#ifdef HAVE_SIOCGIFINDEX
+#if defined(HAVE_IFNAMETOINDEX)
+        return if_nametoindex (iface_name);
+
+#elif defied(HAVE_SIOCGIFINDEX)
         int fd;
         int result;
         struct ifreq ifr;

@@ -133,6 +133,18 @@ AC_CHECK_TYPE(struct in_pktinfo,
               ], [#include <netinet/ip.h>])
 AM_CONDITIONAL([HAVE_PKTINFO], [test $HAVE_PKTINFO = yes], [])
 
+dnl Check for if_nametoindex
+AC_MSG_CHECKING([for if_nametoindex])
+AC_TRY_COMPILE([#include <net/if.h>],
+               [if_nametoindex("lo")],
+               [HAVE_IFNAMETOINDEX=yes
+                AC_DEFINE([HAVE_IFNAMETOINDEX], [1], [Whether we have if_nametoindex])
+               ],
+               [
+                HAVE_IFNAMETOINDEX=no
+               ])
+AC_MSG_RESULT([$HAVE_IFNAMETOINDEX])
+
 dnl Check for SIOCGIFINDEX
 AC_MSG_CHECKING([for SIOCGIFINDEX])
 AC_TRY_COMPILE([#include <sys/ioctl.h>],
