@@ -1569,43 +1569,55 @@ get_host_ip (GSSDPNetworkDevice *device)
                 const char *p, *q;
                 PIP_ADAPTER_ADDRESSES adapter;
                 PIP_ADAPTER_UNICAST_ADDRESS address;
+                PIP_ADAPTER_PREFIX address_prefix;
 
                 p = NULL;
 
                 adapter = (PIP_ADAPTER_ADDRESSES) ifaceptr->data;
-                address = adapter->FirstUnicastAddress;
 
-                if (address->Address.lpSockaddr->sa_family != AF_INET)
+                for (address_prefix = adapter->FirstPrefix; address_prefix != NULL; address_prefix = address_prefix->Next)
+                        if (address_prefix->Address.lpSockaddr->sa_family == AF_INET)
+                                break;
+
+                if (address_prefix == NULL)
                         continue;
 
-                if (extract_address_and_prefix (address,
-                                                adapter->FirstPrefix,
-                                                ip,
-                                                prefix)) {
-                                                p = ip;
-                                                q = prefix;
-                }
+                for (address = adapter->FirstUnicastAddress; address != NULL; address = address->Next) {
+                        if (address->Address.lpSockaddr->sa_family != AF_INET)
+                                continue;
 
-                if (p != NULL) {
-                        device->host_ip = g_strdup (p);
-                        /* This relies on the compiler doing an arithmetic
-                         * shift here!
-                         */
-                        gint32 mask = 0;
-                        if (adapter->FirstPrefix->PrefixLength > 0) {
-                                mask = (gint32) 0x80000000;
-                                mask >>= adapter->FirstPrefix->PrefixLength - 1;
+                        if (extract_address_and_prefix (address,
+                                                        address_prefix,
+                                                        ip,
+                                                        prefix)) {
+                                                        p = ip;
+                                                        q = prefix;
                         }
-                        device->mask.sin_family = AF_INET;
-                        device->mask.sin_port = 0;
-                        device->mask.sin_addr.s_addr = htonl ((guint32) mask);
 
-                        if (device->iface_name == NULL)
-                                device->iface_name = g_strdup (adapter->AdapterName);
-                        if (device->network == NULL)
-                                device->network = g_strdup (q);
-                        break;
+                        if (p != NULL) {
+                                device->host_ip = g_strdup (p);
+                                /* This relies on the compiler doing an arithmetic
+                                 * shift here!
+                                 */
+                                gint32 mask = 0;
+                                if (address_prefix->PrefixLength > 0) {
+                                        mask = (gint32) 0x80000000;
+                                        mask >>= address_prefix->PrefixLength - 1;
+                                }
+                                device->mask.sin_family = AF_INET;
+                                device->mask.sin_port = 0;
+                                device->mask.sin_addr.s_addr = htonl ((guint32) mask);
+
+                                if (device->iface_name == NULL)
+                                        device->iface_name = g_strdup (adapter->AdapterName);
+                                if (device->network == NULL)
+                                        device->network = g_strdup (q);
+                                break;
+                        }
                 }
+
+                if (p != NULL)
+                        break;
 
         }
         g_list_free (up_ifaces);
