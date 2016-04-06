@@ -1947,7 +1947,7 @@ arp_lookup (GSSDPClient *client, const char *ip_address)
 
         strncpy (req.arp_dev,
                  client->priv->device.iface_name,
-                 sizeof (req.arp_dev));
+                 sizeof (req.arp_dev) - 1 /* nul terminator */);
         socket = gssdp_socket_source_get_socket (client->priv->search_socket);
 
         if (ioctl (g_socket_get_fd (socket), SIOCGARP, (caddr_t) &req) < 0) {
