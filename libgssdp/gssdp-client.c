@@ -1243,7 +1243,7 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                 goto out;
         }
 
-#ifdef HAVE_PKTINFO
+#if defined(HAVE_PKTINFO) && !defined(__APPLE__)
         {
                 int i;
                 for (i = 0; i < num_messages; i++) {
