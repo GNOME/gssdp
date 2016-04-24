@@ -454,6 +454,11 @@ gssdp_client_dispose (GObject *object)
                 client->priv->search_socket = NULL;
         }
 
+        if (client->priv->device.host_addr != NULL) {
+                g_object_unref (client->priv->device.host_addr);
+                client->priv->device.host_addr = NULL;
+        }
+
         G_OBJECT_CLASS (gssdp_client_parent_class)->dispose (object);
 }
 
