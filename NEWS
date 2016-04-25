@@ -1,3 +1,24 @@
+0.14.15
+=======
+
+- Actually use the TTL that was set by the user
+- Use if_nametoindex instead of IOCTL when available
+- Implement a User Agent cache based on SSDP packages
+- Fix potential strncpy overflow
+- Add missing m4 macros
+- Disable PKTINFO on OS X
+- Do not leak host_addr in clients.
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=653894
+ - https://bugzilla.gnome.org/show_bug.cgi?id=762324
+ - https://bugzilla.gnome.org/show_bug.cgi?id=764677
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Philip Withnall <philip.withnall@collabora.co.uk>
+ - Philip Withnall <philip@tecnocode.co.uk>
+
 0.14.14
 =======
 
