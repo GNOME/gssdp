@@ -1779,6 +1779,8 @@ get_host_ip (GSSDPNetworkDevice *device)
                 if (!device->iface_name)
                     device->iface_name = g_strdup (iface->ifr_name);
 
+                device->index = query_ifindex (device->iface_name);
+
                 goto success;
 
         }
