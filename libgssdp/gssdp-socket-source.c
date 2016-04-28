@@ -27,19 +27,10 @@
 #include <config.h>
 #include <glib.h>
 
-#ifndef G_OS_WIN32
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <ifaddrs.h>
-#endif
 #include "gssdp-socket-functions.h"
 #include "gssdp-socket-source.h"
 #include "gssdp-protocol.h"
 #include "gssdp-error.h"
-
-#include <string.h>
-#include <stdio.h>
 
 static void
 gssdp_socket_source_initable_init (gpointer g_iface,
