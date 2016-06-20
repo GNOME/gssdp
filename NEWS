@@ -1,3 +1,20 @@
+0.14.16
+=======
+
+- Fill the interface index for bionic.
+- Remove unused include.
+- Fix interface lookup on Win32
+
+Bugs fixed in this release:
+ - https://bugzilla.gnome.org/show_bug.cgi?id=762455
+ - https://bugzilla.gnome.org/show_bug.cgi?id=765688
+ - https://bugzilla.gnome.org/show_bug.cgi?id=765709
+
+All contributors to this release:
+ - Aurélien Chabot <aurelien.chabot@parrot.com>
+ - Jens Georg <mail@jensge.org>
+ - Florian Zwoch <fzwoch@gmail.com>
+
 0.14.15
 =======
 
