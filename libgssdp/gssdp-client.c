@@ -188,7 +188,7 @@ gssdp_client_initable_init    (GInitable     *initable,
                                GCancellable  *cancellable,
                                GError       **error);
 
-char *
+static char *
 arp_lookup                    (GSSDPClient   *client,
                                const char    *ip_address);
 
@@ -1949,7 +1949,7 @@ init_network_info (GSSDPClient *client, GError **error)
         return ret;
 }
 
-char *
+static char *
 arp_lookup (GSSDPClient *client, const char *ip_address)
 {
 #if defined(__linux__)
