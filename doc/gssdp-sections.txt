@@ -15,6 +15,8 @@ gssdp_client_get_active
 gssdp_client_append_header
 gssdp_client_clear_headers
 gssdp_client_remove_header
+gssdp_client_add_cache_entry
+gssdp_client_guess_user_agent
 <SUBSECTION Standard>
 GSSDP_CLIENT
 GSSDP_IS_CLIENT
