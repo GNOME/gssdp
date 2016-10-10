@@ -3,9 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: gssdp-1.0
+Name: gssdp-1.2
 Description: GObject-based SSDP library
 Version: @VERSION@
-Libs: -L${libdir} -lgssdp-1.0
-Cflags: -I${includedir}/gssdp-1.0
+Libs: -L${libdir} -lgssdp-1.2
+Cflags: -I${includedir}/gssdp-1.2
 Requires.private: gobject-2.0 gio-2.0

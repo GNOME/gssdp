@@ -8,10 +8,10 @@ SUBDIRS = libgssdp $(TOOLS_DIR) tests examples doc vala
 
 ACLOCAL_AMFLAGS=${ACLOCAL_FLAGS} -I m4
 
-pkgconfig_DATA= gssdp-1.0.pc
+pkgconfig_DATA= gssdp-1.2.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
-EXTRA_DIST = gssdp-1.0.pc.in gssdp-1.0-uninstalled.pc.in m4/introspection.m4
+EXTRA_DIST = gssdp-1.2.pc.in gssdp-1.2-uninstalled.pc.in m4/introspection.m4
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection
 

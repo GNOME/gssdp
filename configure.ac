@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([gssdp],
-        [1.0.0],
+        [1.1.0],
         [http://bugzilla.gnome.org/enter_bug.cgi?product=gupnp&component=gssdp],
         [gssdp],
         [http://www.gupnp.org/])
@@ -169,8 +169,8 @@ examples/Makefile
 vala/Makefile
 doc/Makefile
 doc/version.xml
-gssdp-1.0.pc
-gssdp-1.0-uninstalled.pc
+gssdp-1.2.pc
+gssdp-1.2-uninstalled.pc
 ])
 AC_OUTPUT
 

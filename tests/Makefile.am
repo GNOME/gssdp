@@ -15,7 +15,7 @@ test_functional_SOURCES = test-functional.c
 test_functional_LDFLAGS = $(WARN_LDFLAGS)
 
 LDADD = \
-	$(top_builddir)/libgssdp/libgssdp-1.0.la \
+	$(top_builddir)/libgssdp/libgssdp-1.2.la \
 	libtestutil.a \
 	$(LIBGSSDP_LIBS)
 

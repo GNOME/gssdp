@@ -40,5 +40,5 @@ INSTALL
 
 /tools/gssdp-device-sniffer
 
-/vala/gssdp-1.0.stamp
-/vala/gssdp-1.0.vapi
+/vala/gssdp-1.2.stamp
+/vala/gssdp-1.2.vapi

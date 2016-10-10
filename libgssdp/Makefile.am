@@ -8,13 +8,13 @@
 # If any interfaces have been removed since the last public release, then set
 # age to 0.
 
-LTVERSION = 3:0:0
+LTVERSION = 0:0:0
 
 AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir) $(WARN_CFLAGS)
 
-libgssdpincdir = $(includedir)/gssdp-1.0/libgssdp
+libgssdpincdir = $(includedir)/gssdp-1.2/libgssdp
 
-lib_LTLIBRARIES = libgssdp-1.0.la
+lib_LTLIBRARIES = libgssdp-1.2.la
 
 libgssdpinc_HEADERS = 	gssdp-client.h		 \
 			gssdp-error.h		 \
@@ -38,8 +38,8 @@ introspection_sources = $(libgssdpinc_HEADERS)	\
 			gssdp-resource-browser.c\
 			gssdp-resource-group.c
 
-libgssdp_1_0_la_LDFLAGS = -version-info $(LTVERSION) $(WARN_LDFLAGS)
-libgssdp_1_0_la_SOURCES = $(introspection_sources)	\
+libgssdp_1_2_la_LDFLAGS = -version-info $(LTVERSION) $(WARN_LDFLAGS)
+libgssdp_1_2_la_SOURCES = $(introspection_sources)	\
 			  gssdp-client-private.h	\
 			  gssdp-protocol.h		\
 			  gssdp-socket-source.c		\
@@ -49,20 +49,20 @@ libgssdp_1_0_la_SOURCES = $(introspection_sources)	\
 			  $(BUILT_SOURCES)
 
 if HAVE_PKTINFO
-libgssdp_1_0_la_SOURCES += gssdp-pktinfo-message.c \
+libgssdp_1_2_la_SOURCES += gssdp-pktinfo-message.c \
 						   gssdp-pktinfo-message.h
 endif
 
-libgssdp_1_0_la_LIBADD = $(LIBGSSDP_LIBS)
+libgssdp_1_2_la_LIBADD = $(LIBGSSDP_LIBS)
 
 if OS_WIN32
 
-libgssdp_1_0_la_LIBADD += -lws2_32 -liphlpapi
-libgssdp_1_0_la_LDFLAGS += -no-undefined
+libgssdp_1_2_la_LIBADD += -lws2_32 -liphlpapi
+libgssdp_1_2_la_LDFLAGS += -no-undefined
 endif
 
 if TARGET_ANDROID
-libgssdp_1_0_la_LIBADD += -llog
+libgssdp_1_2_la_LIBADD += -llog
 endif
 
 EXTRA_DIST = gssdp-marshal.list
@@ -75,23 +75,23 @@ INTROSPECTION_SCANNER_ARGS = \
 			     --symbol-prefix=gssdp		\
 			     --identifier-prefix=GSSDP		\
 			     --add-include-path=$(top_srcdir) \
-			     --pkg-export=gssdp-1.0 \
+			     --pkg-export=gssdp-1.2 \
 			     $(WARN_SCANNERFLAGS)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)
 
 
 if HAVE_INTROSPECTION
-GSSDP-1.0.gir: libgssdp-1.0.la
-GSSDP_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 Soup-2.4
-GSSDP_1_0_gir_CFLAGS = $(INCLUDES)
-GSSDP_1_0_gir_LIBS = libgssdp-1.0.la
-GSSDP_1_0_gir_FILES = $(introspection_sources)
-GSSDP_1_0_gir_NAMESPACE = GSSDP
-GSSDP_1_0_gir_VERSION = 1.0
-INTROSPECTION_GIRS += GSSDP-1.0.gir
+GSSDP-1.2.gir: libgssdp-1.2.la
+GSSDP_1_2_gir_INCLUDES = GObject-2.0 Gio-2.0 Soup-2.4
+GSSDP_1_2_gir_CFLAGS = $(INCLUDES)
+GSSDP_1_2_gir_LIBS = libgssdp-1.2.la
+GSSDP_1_2_gir_FILES = $(introspection_sources)
+GSSDP_1_2_gir_NAMESPACE = GSSDP
+GSSDP_1_2_gir_VERSION = 1.2
+INTROSPECTION_GIRS += GSSDP-1.2.gir
 
 girdir = $(datadir)/gir-1.0
-gir_DATA = GSSDP-1.0.gir
+gir_DATA = GSSDP-1.2.gir
 
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(gir_DATA:.gir=.typelib)
