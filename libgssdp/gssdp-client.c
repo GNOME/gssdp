@@ -79,7 +79,6 @@ typedef unsigned long in_addr_t;
 #include "gssdp-client-private.h"
 #include "gssdp-error.h"
 #include "gssdp-socket-source.h"
-#include "gssdp-marshal.h"
 #include "gssdp-protocol.h"
 #include "gssdp-socket-functions.h"
 #ifdef HAVE_PKTINFO
@@ -666,8 +665,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                               GSSDP_TYPE_CLIENT,
                               G_SIGNAL_RUN_LAST,
                               0,
-                              NULL, NULL,
-                              gssdp_marshal_VOID__STRING_UINT_INT_BOXED,
+                              NULL, NULL, NULL,
                               G_TYPE_NONE,
                               4,
                               G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE,

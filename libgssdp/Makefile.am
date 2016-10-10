@@ -23,18 +23,9 @@ libgssdpinc_HEADERS = 	gssdp-client.h		 \
 			gssdp.h \
 			gssdp-enums.h
 
-gssdp-marshal.c: gssdp-marshal.list
-	$(AM_V_GEN) \
-	$(GLIB_GENMARSHAL) --prefix=gssdp_marshal $(srcdir)/gssdp-marshal.list --header --body > gssdp-marshal.c
-
-gssdp-marshal.h: gssdp-marshal.list
-	$(AM_V_GEN) \
-	$(GLIB_GENMARSHAL) --prefix=gssdp_marshal $(srcdir)/gssdp-marshal.list --header > gssdp-marshal.h
-
 enumheaders = $(srcdir)/gssdp-error.h
 
-BUILT_SOURCES = gssdp-marshal.c \
-	gssdp-marshal.h \
+BUILT_SOURCES = \
 	gssdp-enums.c \
 	gssdp-enums.h
 
@@ -102,8 +93,6 @@ endif
 if TARGET_ANDROID
 libgssdp_1_2_la_LIBADD += -llog
 endif
-
-EXTRA_DIST = gssdp-marshal.list
 
 CLEANFILES = $(BUILT_SOURCES)
 

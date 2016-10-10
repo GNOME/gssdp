@@ -39,7 +39,6 @@
 #include "gssdp-resource-browser.h"
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
-#include "gssdp-marshal.h"
 
 #define RESCAN_TIMEOUT 5 /* 5 seconds */
 #define MAX_DISCOVERY_MESSAGES 3
@@ -357,8 +356,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                               G_SIGNAL_RUN_LAST,
                               G_STRUCT_OFFSET (GSSDPResourceBrowserClass,
                                                resource_available),
-                              NULL, NULL,
-                              gssdp_marshal_VOID__STRING_POINTER,
+                              NULL, NULL, NULL,
                               G_TYPE_NONE,
                               2,
                               G_TYPE_STRING,
@@ -379,8 +377,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                               G_SIGNAL_RUN_LAST,
                               G_STRUCT_OFFSET (GSSDPResourceBrowserClass,
                                                resource_unavailable),
-                              NULL, NULL,
-                              gssdp_marshal_VOID__STRING,
+                              NULL, NULL, NULL,
                               G_TYPE_NONE,
                               1,
                               G_TYPE_STRING);
