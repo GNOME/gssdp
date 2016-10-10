@@ -26,39 +26,12 @@
 
 G_BEGIN_DECLS
 
-GType
-gssdp_client_get_type (void) G_GNUC_CONST;
+#define GSSDP_TYPE_CLIENT (gssdp_client_get_type ())
 
-#define GSSDP_TYPE_CLIENT \
-                (gssdp_client_get_type ())
-#define GSSDP_CLIENT(obj) \
-                (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-                 GSSDP_TYPE_CLIENT, \
-                 GSSDPClient))
-#define GSSDP_CLIENT_CLASS(klass) \
-                (G_TYPE_CHECK_CLASS_CAST ((klass), \
-                 GSSDP_TYPE_CLIENT, \
-                 GSSDPClientClass))
-#define GSSDP_IS_CLIENT(obj) \
-                (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-                 GSSDP_TYPE_CLIENT))
-#define GSSDP_IS_CLIENT_CLASS(klass) \
-                (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-                 GSSDP_TYPE_CLIENT))
-#define GSSDP_CLIENT_GET_CLASS(obj) \
-                (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-                 GSSDP_TYPE_CLIENT, \
-                 GSSDPClientClass))
+G_DECLARE_DERIVABLE_TYPE (GSSDPClient, gssdp_client, GSSDP, CLIENT, GObject)
 
-typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
 typedef struct _GSSDPClient GSSDPClient;
 typedef struct _GSSDPClientClass GSSDPClientClass;
-
-struct _GSSDPClient {
-        GObject parent;
-
-        GSSDPClientPrivate *priv;
-};
 
 struct _GSSDPClientClass {
         GObjectClass parent_class;
