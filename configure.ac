@@ -37,7 +37,7 @@ PKG_CHECK_MODULES(LIBGSSDP, glib-2.0 >= 2.32 \
                             gio-2.0 >= 2.32 \
                             libsoup-2.4 >= 2.26.1)
 
-LIBGTK_REQUIRED=3.0
+LIBGTK_REQUIRED=3.12
 
 AC_ARG_WITH( gtk,
   AS_HELP_STRING([--without-gtk],[compile without gtk+ support]),
