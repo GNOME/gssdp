@@ -160,6 +160,13 @@ AC_MSG_RESULT([$HAVE_SIOCGIFINDEX])
 
 GTK_DOC_CHECK([1.14], [--flavour no-tmpl])
 
+AC_MSG_CHECKING([for glib-mkenums script])
+GLIB_MKENUMS=`$PKG_CONFIG --variable=glib_mkenums glib-2.0`
+AS_IF([test "x$GLIB_MKENUMS" = "x"],
+    [AC_MSG_ERROR([glib-mkenums not listed in glib-2.0 pkg-config file])],
+    [AC_SUBST([GLIB_MKENUMS])
+     AC_MSG_RESULT([$GLIB_MKENUMS])])
+
 AC_CONFIG_FILES([
 Makefile
 libgssdp/Makefile

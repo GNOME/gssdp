@@ -20,7 +20,8 @@ libgssdpinc_HEADERS = 	gssdp-client.h		 \
 			gssdp-error.h		 \
 			gssdp-resource-browser.h \
 			gssdp-resource-group.h	 \
-			gssdp.h
+			gssdp.h \
+			gssdp-enums.h
 
 gssdp-marshal.c: gssdp-marshal.list
 	$(AM_V_GEN) \
@@ -30,7 +31,44 @@ gssdp-marshal.h: gssdp-marshal.list
 	$(AM_V_GEN) \
 	$(GLIB_GENMARSHAL) --prefix=gssdp_marshal $(srcdir)/gssdp-marshal.list --header > gssdp-marshal.h
 
-BUILT_SOURCES = gssdp-marshal.c gssdp-marshal.h
+enumheaders = $(srcdir)/gssdp-error.h
+
+BUILT_SOURCES = gssdp-marshal.c \
+	gssdp-marshal.h \
+	gssdp-enums.c \
+	gssdp-enums.h
+
+gssdp-enums.c: $(enumheaders) Makefile
+	$(AM_V_GEN)$(GLIB_MKENUMS) \
+		--identifier-prefix GSSDP \
+		--symbol-prefix gssdp \
+		--fhead "#include \"gssdp-enums.h\"\n\n" \
+		--fprod "/* enumerations from \"@filename@\" */\n" \
+		--fprod "#include \"@filename@\"\n" \
+		--vhead "GType\n@enum_name@_get_type (void)\n{\n" \
+		--vhead "    static GType type = 0;\n\n" \
+		--vhead "    if (!type)\n    {\n" \
+		--vhead "        static const G@Type@Value _@enum_name@_values[] = {" \
+		--vprod "            { @VALUENAME@, \"@VALUENAME@\", \"@valuenick@\" }," \
+		--vtail "            { 0, NULL, NULL }\n        };\n\n" \
+		--vtail "        type = g_@type@_register_static (\"@EnumName@\", _@enum_name@_values);\n    }\n\n" \
+		--vtail "  return type;\n}\n\n" \
+		$(enumheaders) > $@
+
+gssdp-enums.h: $(enumheaders) Makefile
+	$(AM_V_GEN)$(GLIB_MKENUMS) \
+		--identifier-prefix GSSDP \
+		--symbol-prefix gssdp \
+		--fhead "#ifndef GSSDP_ENUMS_H\n" \
+		--fhead "#define GSSDP_ENUMS_H\n\n" \
+		--fhead "#include <glib-object.h>\n\n" \
+		--fhead "G_BEGIN_DECLS\n\n" \
+		--fprod "/* enumerations from @filename@ */\n" \
+		--vhead "GType @enum_name@_get_type (void);\n" \
+		--vhead "#define GSSDP_TYPE_@ENUMSHORT@ (@enum_name@_get_type())\n" \
+		--ftail "G_END_DECLS\n\n" \
+		--ftail "#endif /* GSSDP_ENUMS_H */" \
+		$(enumheaders) > $@
 
 introspection_sources = $(libgssdpinc_HEADERS)	\
 			gssdp-client.c		\
