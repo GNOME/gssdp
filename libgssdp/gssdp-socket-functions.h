@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_SOCKET_FUNCTIONS_H
-#define __GSSDP_SOCKET_FUNCTIONS_H
+#ifndef GSSDP_SOCKET_FUNCTIONS_H
+#define GSSDP_SOCKET_FUNCTIONS_H
 
 #include <gio/gio.h>
 

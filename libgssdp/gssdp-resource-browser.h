@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_RESOURCE_BROWSER_H__
-#define __GSSDP_RESOURCE_BROWSER_H__
+#ifndef GSSDP_RESOURCE_BROWSER_H
+#define GSSDP_RESOURCE_BROWSER_H
 
 #include "gssdp-client.h"
 
@@ -118,4 +118,4 @@ gssdp_resource_browser_rescan     (GSSDPResourceBrowser *resource_browser);
 
 G_END_DECLS
 
-#endif /* __GSSDP_RESOURCE_BROWSER_H__ */
+#endif /* GSSDP_RESOURCE_BROWSER_H */

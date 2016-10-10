@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_CLIENT_H__
-#define __GSSDP_CLIENT_H__
+#ifndef GSSDP_CLIENT_H
+#define GSSDP_CLIENT_H
 
 #include <glib-object.h>
 
@@ -104,4 +104,4 @@ gssdp_client_guess_user_agent (GSSDPClient *client,
 
 G_END_DECLS
 
-#endif /* __GSSDP_CLIENT_H__ */
+#endif /* GSSDP_CLIENT_H */

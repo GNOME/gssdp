@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_PROTOCOL_H__
-#define __GSSDP_PROTOCOL_H__
+#ifndef GSSDP_PROTOCOL_H
+#define GSSDP_PROTOCOL_H
 
 G_BEGIN_DECLS
 
@@ -77,4 +77,4 @@ G_BEGIN_DECLS
 
 G_END_DECLS
 
-#endif /* __GSSDP_PROTOCOL_H__ */
+#endif /* GSSDP_PROTOCOL_H */

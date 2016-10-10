@@ -21,8 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_SOCKET_SOURCE_H__
-#define __GSSDP_SOCKET_SOURCE_H__
+#ifndef GSSDP_SOCKET_SOURCE_H
+#define GSSDP_SOCKET_SOURCE_H
 
 #include <glib-object.h>
 
@@ -92,4 +92,4 @@ gssdp_socket_source_attach       (GSSDPSocketSource   *socket_source);
 
 G_END_DECLS
 
-#endif /* __GSSDP_SOCKET_SOURCE_H__ */
+#endif /* GSSDP_SOCKET_SOURCE_H */

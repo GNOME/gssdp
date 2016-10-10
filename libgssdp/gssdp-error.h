@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_ERROR_H__
-#define __GSSDP_ERROR_H__
+#ifndef GSSDP_ERROR_H
+#define GSSDP_ERROR_H
 
 #include <glib.h>
 
@@ -44,4 +44,4 @@ typedef enum {
 
 G_END_DECLS
 
-#endif /* __GSSDP_ERROR_H__ */
+#endif /* GSSDP_ERROR_H */

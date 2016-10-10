@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_CLIENT_PRIVATE_H__
-#define __GSSDP_CLIENT_PRIVATE_H__
+#ifndef GSSDP_CLIENT_PRIVATE_H
+#define GSSDP_CLIENT_PRIVATE_H
 
 #include "gssdp-client.h"
 
@@ -41,4 +41,4 @@ _gssdp_client_send_message (GSSDPClient       *client,
 
 G_END_DECLS
 
-#endif /* __GSSDP_CLIENT_PRIVATE_H__ */
+#endif /* GSSDP_CLIENT_PRIVATE_H */

@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_PKTINFO_MESSAGE_H__
-#define __GSSDP_PKTINFO_MESSAGE_H__
+#ifndef GSSDP_PKTINFO_MESSAGE_H
+#define GSSDP_PKTINFO_MESSAGE_H
 
 #include <gio/gio.h>
 
@@ -74,4 +74,4 @@ gssdp_pktinfo_message_get_local_addr (GSSDPPktinfoMessage *message);
 G_GNUC_INTERNAL GInetAddress *
 gssdp_pktinfo_message_get_pkt_addr (GSSDPPktinfoMessage *message);
 
-#endif /* __GSSDP_PKTINFO_MESSAGE_H__ */
+#endif /* GSSDP_PKTINFO_MESSAGE_H */

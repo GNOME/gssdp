@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GSSDP_RESOURCE_GROUP_H__
-#define __GSSDP_RESOURCE_GROUP_H__
+#ifndef GSSDP_RESOURCE_GROUP_H
+#define GSSDP_RESOURCE_GROUP_H
 
 #include "gssdp-client.h"
 
@@ -115,4 +115,4 @@ gssdp_resource_group_remove_resource     (GSSDPResourceGroup *resource_group,
 
 G_END_DECLS
 
-#endif /* __GSSDP_RESOURCE_GROUP_H__ */
+#endif /* GSSDP_RESOURCE_GROUP_H */
