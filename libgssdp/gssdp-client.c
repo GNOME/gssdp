@@ -148,7 +148,6 @@ typedef struct _GSSDPHeaderField GSSDPHeaderField;
 
 enum {
         PROP_0,
-        PROP_MAIN_CONTEXT,
         PROP_SERVER_ID,
         PROP_IFACE,
         PROP_NETWORK,
@@ -350,14 +349,6 @@ gssdp_client_get_property (GObject    *object,
                         (value,
                          gssdp_client_get_server_id (client));
                 break;
-        case PROP_MAIN_CONTEXT:
-                g_warning ("GSSDPClient:main-context is deprecated."
-                           " Please use g_main_context_push_thread_default()");
-                g_value_set_pointer
-                        (value,
-                         (gpointer)
-                          g_main_context_get_thread_default ());
-                break;
         case PROP_IFACE:
                 g_value_set_string (value,
                                     gssdp_client_get_interface (client));
@@ -398,11 +389,6 @@ gssdp_client_set_property (GObject      *object,
         case PROP_SERVER_ID:
                 gssdp_client_set_server_id (client,
                                             g_value_get_string (value));
-                break;
-        case PROP_MAIN_CONTEXT:
-                if (g_value_get_pointer (value) != NULL)
-                        g_warning ("GSSDPClient:main-context is deprecated."
-                                   " Please use g_main_context_push_thread_default()");
                 break;
         case PROP_IFACE:
                 priv->device.iface_name = g_value_dup_string (value);
@@ -504,23 +490,6 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           "The SSDP server's identifier.",
                           NULL,
                           G_PARAM_READWRITE |
-                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
-                          G_PARAM_STATIC_BLURB));
-
-        /**
-         * GSSDPClient:main-context: (skip)
-         *
-         * The #GMainContext to use. Set to NULL to use the default.
-         * Deprecated: 0.11.2: Use g_main_context_push_thread_default().
-         **/
-        g_object_class_install_property
-                (object_class,
-                 PROP_MAIN_CONTEXT,
-                 g_param_spec_pointer
-                         ("main-context",
-                          "Main context",
-                          "The associated GMainContext.",
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 
