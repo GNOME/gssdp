@@ -71,6 +71,7 @@ libgssdp_1_2_la_LDFLAGS = -version-info $(LTVERSION) $(WARN_LDFLAGS)
 libgssdp_1_2_la_SOURCES = $(introspection_sources)	\
 			  gssdp-client-private.h	\
 			  gssdp-protocol.h		\
+			  gssdp-net.h			\
 			  gssdp-socket-source.c		\
 			  gssdp-socket-source.h		\
 			  gssdp-socket-functions.c	\
@@ -85,13 +86,18 @@ endif
 libgssdp_1_2_la_LIBADD = $(LIBGSSDP_LIBS)
 
 if OS_WIN32
-
+libgssdp_1_2_la_SOURCES += gssdp-net-win32.c
 libgssdp_1_2_la_LIBADD += -lws2_32 -liphlpapi
 libgssdp_1_2_la_LDFLAGS += -no-undefined
 endif
 
 if TARGET_ANDROID
+libgssdp_1_2_la_SOURCES += gssdp-net-bionic.c
 libgssdp_1_2_la_LIBADD += -llog
+endif
+
+if TARGET_GENERIC
+libgssdp_1_2_la_SOURCES += gssdp-net-posix.c
 endif
 
 CLEANFILES = $(BUILT_SOURCES)
