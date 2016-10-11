@@ -1303,9 +1303,9 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
 #endif
 
         if (bytes >= BUF_SIZE) {
-                g_warning ("Received packet of %u bytes, but the maximum "
-                           "buffer size is %d. Packed dropped.",
-                           (unsigned int) bytes, BUF_SIZE);
+                g_warning ("Received packet of %" G_GSSIZE_FORMAT " bytes, "
+                           "but the maximum buffer size is %d. Packed dropped.",
+                           bytes, BUF_SIZE);
 
                 goto out;
         }
