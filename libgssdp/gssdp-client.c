@@ -299,23 +299,9 @@ gssdp_client_initable_init (GInitable                   *initable,
             !priv->search_socket) {
                 g_propagate_error (error, internal_error);
 
-                if (priv->request_socket) {
-                        g_object_unref (priv->request_socket);
-
-                        priv->request_socket = NULL;
-                }
-
-                if (priv->multicast_socket) {
-                        g_object_unref (priv->multicast_socket);
-
-                        priv->multicast_socket = NULL;
-                }
-
-                if (priv->search_socket) {
-                        g_object_unref (priv->search_socket);
-
-                        priv->search_socket = NULL;
-                }
+                g_clear_object (&priv->request_socket);
+                g_clear_object (&priv->multicast_socket);
+                g_clear_object (&priv->search_socket);
 
                 return FALSE;
         }
@@ -421,25 +407,10 @@ gssdp_client_dispose (GObject *object)
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
 
         /* Destroy the SocketSources */
-        if (priv->request_socket) {
-                g_object_unref (priv->request_socket);
-                priv->request_socket = NULL;
-        }
-
-        if (priv->multicast_socket) {
-                g_object_unref (priv->multicast_socket);
-                priv->multicast_socket = NULL;
-        }
-
-        if (priv->search_socket) {
-                g_object_unref (priv->search_socket);
-                priv->search_socket = NULL;
-        }
-
-        if (priv->device.host_addr != NULL) {
-                g_object_unref (priv->device.host_addr);
-                priv->device.host_addr = NULL;
-        }
+        g_clear_object (&priv->request_socket);
+        g_clear_object (&priv->multicast_socket);
+        g_clear_object (&priv->search_socket);
+        g_clear_object (&priv->device.host_addr);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->dispose (object);
 }
@@ -453,13 +424,12 @@ gssdp_client_finalize (GObject *object)
         WSACleanup ();
 #endif
 
-        g_free (priv->server_id);
-        g_free (priv->device.iface_name);
-        g_free (priv->device.host_ip);
-        g_free (priv->device.network);
+        g_clear_pointer (&priv->server_id, g_free);
+        g_clear_pointer (&priv->device.iface_name, g_free);
+        g_clear_pointer (&priv->device.host_ip, g_free);
+        g_clear_pointer (&priv->device.network, g_free);
 
-        if (priv->user_agent_cache)
-                g_hash_table_unref (priv->user_agent_cache);
+        g_clear_pointer (&priv->user_agent_cache, g_hash_table_unref);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->finalize (object);
 }
@@ -699,10 +669,7 @@ gssdp_client_set_server_id (GSSDPClient *client,
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         priv = gssdp_client_get_instance_private (client);
 
-        if (priv->server_id) {
-                g_free (priv->server_id);
-                priv->server_id = NULL;
-        }
+        g_clear_pointer (&priv->server_id, g_free);
 
         if (server_id)
                 priv->server_id = g_strdup (server_id);
@@ -782,10 +749,7 @@ gssdp_client_set_network (GSSDPClient *client,
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         priv = gssdp_client_get_instance_private (client);
 
-        if (priv->device.network) {
-                g_free (priv->device.network);
-                priv->device.network = NULL;
-        }
+        g_clear_pointer (&priv->device.network, g_free);
 
         if (network)
                 priv->device.network = g_strdup (network);
@@ -1133,20 +1097,15 @@ parse_http_request (char                *buf,
                         g_warning ("Unhandled method '%s'", req_method);
 
                 g_free (req_method);
-
-                if (path)
-                        g_free (path);
+                g_free (path);
 
                 return TRUE;
         } else {
                 soup_message_headers_free (*headers);
                 *headers = NULL;
 
-                if (path)
-                        g_free (path);
-
-                if (req_method)
-                        g_free (req_method);
+                g_free (path);
+                g_free (req_method);
 
                 return FALSE;
         }
@@ -1347,8 +1306,7 @@ out:
         if (error)
                 g_error_free (error);
 
-        if (ip_string)
-                g_free (ip_string);
+        g_free (ip_string);
 
         if (headers)
                 soup_message_headers_free (headers);
@@ -1751,10 +1709,9 @@ get_host_ip (GSSDPNetworkDevice *device)
                                         "Failed to get nw for: %s, %s",
                                         iface->ifr_name, strerror (errno));
 
-                                g_free (device->host_ip);
-                                device->host_ip = NULL;
-                                g_free (device->network);
-                                device->network = NULL;
+                                g_clear_pointer (&device->host_ip, g_free);
+                                g_clear_pointer (&device->network, g_free);
+
                                 continue;
                         }
                 }
@@ -1805,7 +1762,7 @@ success:
                         continue;
 
                 if (device->iface_name &&
-                    strcmp (device->iface_name, ifa->ifa_name) != 0)
+                    !g_str_equal (device->iface_name, ifa->ifa_name))
                         continue;
                 else if (!(ifa->ifa_flags & IFF_UP))
                         continue;
