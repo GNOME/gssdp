@@ -28,7 +28,11 @@ G_BEGIN_DECLS
 
 #define GSSDP_TYPE_PKTINFO_MESSAGE (gssdp_pktinfo_message_get_type())
 
-G_DECLARE_FINAL_TYPE (GSSDPPktinfoMessage, gssdp_pktinfo_message, GSSDP, PKTINFO_MESSAGE, GSocketControlMessage)
+G_DECLARE_FINAL_TYPE (GSSDPPktinfoMessage,
+                      gssdp_pktinfo_message,
+                      GSSDP,
+                      PKTINFO_MESSAGE,
+                      GSocketControlMessage)
 
 G_GNUC_INTERNAL GSocketControlMessage *
 gssdp_pktinfo_message_new (GInetAddress *addr, GInetAddress *dst, gint ifindex);

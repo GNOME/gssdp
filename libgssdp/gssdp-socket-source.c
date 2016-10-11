@@ -32,16 +32,13 @@
 #include "gssdp-protocol.h"
 #include "gssdp-error.h"
 
-static void
-gssdp_socket_source_initable_init (gpointer g_iface,
-                                   gpointer iface_data);
+struct _GSSDPSocketSource {
+        GObject parent;
+};
 
-G_DEFINE_TYPE_EXTENDED (GSSDPSocketSource,
-                        gssdp_socket_source,
-                        G_TYPE_OBJECT,
-                        0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                    gssdp_socket_source_initable_init));
+struct _GSSDPSocketSourceClass {
+        GObjectClass parent_class;
+};
 
 struct _GSSDPSocketSourcePrivate {
         GSource              *source;
@@ -53,6 +50,19 @@ struct _GSSDPSocketSourcePrivate {
         guint                 ttl;
         guint                 port;
 };
+typedef struct _GSSDPSocketSourcePrivate GSSDPSocketSourcePrivate;
+
+static void
+gssdp_socket_source_initable_init (gpointer g_iface,
+                                   gpointer iface_data);
+
+G_DEFINE_TYPE_EXTENDED (GSSDPSocketSource,
+                        gssdp_socket_source,
+                        G_TYPE_OBJECT,
+                        0,
+                        G_ADD_PRIVATE (GSSDPSocketSource)
+                        G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                    gssdp_socket_source_initable_init));
 
 enum {
     PROP_0,
@@ -66,9 +76,6 @@ enum {
 static void
 gssdp_socket_source_init (GSSDPSocketSource *self)
 {
-        self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                                  GSSDP_TYPE_SOCKET_SOURCE,
-                                                  GSSDPSocketSourcePrivate);
 }
 
 static gboolean
@@ -105,24 +112,26 @@ gssdp_socket_source_set_property (GObject          *object,
                                   GParamSpec       *pspec)
 {
         GSSDPSocketSource *self;
+        GSSDPSocketSourcePrivate *priv;
 
         self = GSSDP_SOCKET_SOURCE (object);
+        priv = gssdp_socket_source_get_instance_private (self);
 
         switch (property_id) {
         case PROP_TYPE:
-                self->priv->type = g_value_get_int (value);
+                priv->type = g_value_get_int (value);
                 break;
         case PROP_HOST_IP:
-                self->priv->host_ip = g_value_dup_string (value);
+                priv->host_ip = g_value_dup_string (value);
                 break;
         case PROP_IFA_NAME:
-                self->priv->device_name = g_value_dup_string (value);
+                priv->device_name = g_value_dup_string (value);
                 break;
         case PROP_TTL:
-                self->priv->ttl = g_value_get_uint (value);
+                priv->ttl = g_value_get_uint (value);
                 break;
         case PROP_PORT:
-                self->priv->port = g_value_get_uint (value);
+                priv->port = g_value_get_uint (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -162,6 +171,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                              GError                     **error)
 {
         GSSDPSocketSource *self = NULL;
+        GSSDPSocketSourcePrivate *priv = NULL;
         GInetAddress *iface_address = NULL;
         GSocketAddress *bind_address = NULL;
         GInetAddress *group = NULL;
@@ -170,13 +180,16 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         gboolean success = FALSE;
 
         self = GSSDP_SOCKET_SOURCE (initable);
-        iface_address = g_inet_address_new_from_string (self->priv->host_ip);
+        priv = gssdp_socket_source_get_instance_private (self);
+
+        iface_address = g_inet_address_new_from_string (priv->host_ip);
+
         if (iface_address == NULL) {
                 g_set_error (error,
                              GSSDP_ERROR,
                              GSSDP_ERROR_FAILED,
                              "Invalid host ip: %s",
-                             self->priv->host_ip);
+                             priv->host_ip);
 
                 goto error;
         }
@@ -196,12 +209,12 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 
 
         /* Create socket */
-        self->priv->socket = g_socket_new (G_SOCKET_FAMILY_IPV4,
+        priv->socket = g_socket_new (G_SOCKET_FAMILY_IPV4,
                                            G_SOCKET_TYPE_DATAGRAM,
                                            G_SOCKET_PROTOCOL_UDP,
                                            &inner_error);
 
-        if (!self->priv->socket) {
+        if (!priv->socket) {
                 g_propagate_prefixed_error (error,
                                             inner_error,
                                             "Could not create socket");
@@ -210,9 +223,9 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         }
 
         /* Enable broadcasting */
-        g_socket_set_broadcast (self->priv->socket, TRUE);
+        g_socket_set_broadcast (priv->socket, TRUE);
 
-        if (!gssdp_socket_enable_info (self->priv->socket,
+        if (!gssdp_socket_enable_info (priv->socket,
                                        TRUE,
                                        &inner_error)) {
                 g_propagate_prefixed_error (error,
@@ -223,19 +236,19 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         }
 
         /* TTL */
-        if (!self->priv->ttl)
+        if (!priv->ttl)
                 /* UDA/1.0 says 4, UDA/1.1 says 2 */
-                self->priv->ttl = 4;
+                priv->ttl = 4;
 
-        g_socket_set_multicast_ttl (self->priv->socket, self->priv->ttl);
+        g_socket_set_multicast_ttl (priv->socket, priv->ttl);
 
 
         /* Set up additional things according to the type of socket desired */
-        if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
+        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
                 /* Enable multicast loopback */
-                g_socket_set_multicast_loopback (self->priv->socket, TRUE);
+                g_socket_set_multicast_loopback (priv->socket, TRUE);
 
-                if (!gssdp_socket_mcast_interface_set (self->priv->socket,
+                if (!gssdp_socket_mcast_interface_set (priv->socket,
                                                        iface_address,
                                                        &inner_error)) {
                         g_propagate_prefixed_error (
@@ -258,8 +271,8 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 
                 /* Use user-supplied or random port for the socket source used
                  * by M-SEARCH */
-                if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH)
-                        port = self->priv->port;
+                if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH)
+                        port = priv->port;
 
                 bind_address = g_inet_socket_address_new (iface_address,
                                                           port);
@@ -270,7 +283,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
          * there, also we nees SO_REUSEPORT on OpenBSD. This is a nop
          * everywhere else.
          */
-        if (!gssdp_socket_reuse_address (self->priv->socket,
+        if (!gssdp_socket_reuse_address (priv->socket,
                                          TRUE,
                                          &inner_error)) {
                 g_propagate_prefixed_error (
@@ -282,7 +295,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         }
 
         /* Bind to requested port and address */
-        if (!g_socket_bind (self->priv->socket,
+        if (!g_socket_bind (priv->socket,
                             bind_address,
                             TRUE,
                             &inner_error)) {
@@ -293,14 +306,14 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 goto error;
         }
 
-        if (self->priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
+        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
                 /* The 4th argument 'iface_name' can't be NULL even though Glib API doc says you
                  * can. 'NULL' will fail the test.
                  */
-                if (!g_socket_join_multicast_group (self->priv->socket,
+                if (!g_socket_join_multicast_group (priv->socket,
                                                     group,
                                                     FALSE,
-                                                    self->priv->device_name,  /*   e.g. 'lo' */
+                                                    priv->device_name,  /*   e.g. 'lo' */
                                                     &inner_error)) {
                         char *address = g_inet_address_to_string (group);
                         g_propagate_prefixed_error (error,
@@ -313,7 +326,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 }
         }
 
-        self->priv->source = g_socket_create_source (self->priv->socket,
+        priv->source = g_socket_create_source (priv->socket,
                                                      G_IO_IN | G_IO_ERR,
                                                      NULL);
         success = TRUE;
@@ -338,9 +351,11 @@ error:
 GSocket *
 gssdp_socket_source_get_socket (GSSDPSocketSource *socket_source)
 {
+        GSSDPSocketSourcePrivate *priv;
         g_return_val_if_fail (socket_source != NULL, NULL);
+        priv = gssdp_socket_source_get_instance_private (socket_source);
 
-        return socket_source->priv->socket;
+        return priv->socket;
 }
 
 void
@@ -348,19 +363,23 @@ gssdp_socket_source_set_callback (GSSDPSocketSource *self,
                                   GSourceFunc        callback,
                                   gpointer           user_data)
 {
+        GSSDPSocketSourcePrivate *priv;
         g_return_if_fail (self != NULL);
         g_return_if_fail (GSSDP_IS_SOCKET_SOURCE (self));
+        priv = gssdp_socket_source_get_instance_private (self);
 
-        g_source_set_callback (self->priv->source, callback, user_data, NULL);
+        g_source_set_callback (priv->source, callback, user_data, NULL);
 }
 
 void
 gssdp_socket_source_attach (GSSDPSocketSource *self)
 {
+        GSSDPSocketSourcePrivate *priv;
         g_return_if_fail (self != NULL);
         g_return_if_fail (GSSDP_IS_SOCKET_SOURCE (self));
+        priv = gssdp_socket_source_get_instance_private (self);
 
-        g_source_attach (self->priv->source,
+        g_source_attach (priv->source,
                          g_main_context_get_thread_default ());
 }
 
@@ -368,19 +387,21 @@ static void
 gssdp_socket_source_dispose (GObject *object)
 {
         GSSDPSocketSource *self;
+        GSSDPSocketSourcePrivate *priv;
 
         self = GSSDP_SOCKET_SOURCE (object);
+        priv = gssdp_socket_source_get_instance_private (self);
 
-        if (self->priv->source != NULL) {
-                g_source_destroy (self->priv->source);
-                g_source_unref (self->priv->source);
-                self->priv->source = NULL;
+        if (priv->source != NULL) {
+                g_source_destroy (priv->source);
+                g_source_unref (priv->source);
+                priv->source = NULL;
         }
 
-        if (self->priv->socket != NULL) {
-                g_socket_close (self->priv->socket, NULL);
-                g_object_unref (self->priv->socket);
-                self->priv->socket = NULL;
+        if (priv->socket != NULL) {
+                g_socket_close (priv->socket, NULL);
+                g_object_unref (priv->socket);
+                priv->socket = NULL;
         }
 
         G_OBJECT_CLASS (gssdp_socket_source_parent_class)->dispose (object);
@@ -390,17 +411,19 @@ static void
 gssdp_socket_source_finalize (GObject *object)
 {
         GSSDPSocketSource *self;
+        GSSDPSocketSourcePrivate *priv;
 
         self = GSSDP_SOCKET_SOURCE (object);
+        priv = gssdp_socket_source_get_instance_private (self);
 
-        if (self->priv->host_ip != NULL) {
-                g_free (self->priv->host_ip);
-                self->priv->host_ip = NULL;
+        if (priv->host_ip != NULL) {
+                g_free (priv->host_ip);
+                priv->host_ip = NULL;
         }
 
-        if (self->priv->device_name != NULL) {
-                g_free (self->priv->device_name);
-                self->priv->device_name = NULL;
+        if (priv->device_name != NULL) {
+                g_free (priv->device_name);
+                priv->device_name = NULL;
         }
 
         G_OBJECT_CLASS (gssdp_socket_source_parent_class)->finalize (object);
@@ -417,8 +440,6 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
         object_class->set_property = gssdp_socket_source_set_property;
         object_class->dispose = gssdp_socket_source_dispose;
         object_class->finalize = gssdp_socket_source_finalize;
-
-        g_type_class_add_private (klass, sizeof (GSSDPSocketSourcePrivate));
 
         g_object_class_install_property
                 (object_class,
