@@ -313,9 +313,9 @@ gssdp_client_initable_init (GInitable                   *initable,
         priv->initialized = TRUE;
 
         priv->user_agent_cache = g_hash_table_new_full (g_str_hash,
-                                                                g_str_equal,
-                                                                g_free,
-                                                                g_free);
+                                                        g_str_equal,
+                                                        g_free,
+                                                        g_free);
 
         return TRUE;
 }
@@ -1129,6 +1129,7 @@ parse_http_response (char                *buf,
                                          NULL) &&
             status_code == 200) {
                 *type = _GSSDP_DISCOVERY_RESPONSE;
+
                 return TRUE;
         } else {
                 soup_message_headers_free (*headers);
@@ -1175,8 +1176,7 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                                           &error);
 
         if (bytes == -1) {
-                g_warning ("Failed to receive from socket: %s",
-                           error->message);
+                g_warning ("Failed to receive from socket: %s", error->message);
 
                 goto out;
         }
@@ -1256,7 +1256,7 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         }
 
         len = end - buf + 2;
-        
+
         /* Parse message */
         type = -1;
         headers = NULL;
@@ -1272,7 +1272,7 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                         g_debug ("Unhandled packet '%s'", buf);
                 }
         }
-        
+
         /* Emit signal if parsing succeeded */
         inetaddr = g_inet_socket_address_get_address (
                                         G_INET_SOCKET_ADDRESS (address));
@@ -1504,14 +1504,18 @@ get_host_ip (GSSDPNetworkDevice *device)
 
                 adapter = (PIP_ADAPTER_ADDRESSES) ifaceptr->data;
 
-                for (address_prefix = adapter->FirstPrefix; address_prefix != NULL; address_prefix = address_prefix->Next)
+                for (address_prefix = adapter->FirstPrefix;
+                     address_prefix != NULL;
+                     address_prefix = address_prefix->Next)
                         if (address_prefix->Address.lpSockaddr->sa_family == AF_INET)
                                 break;
 
                 if (address_prefix == NULL)
                         continue;
 
-                for (address = adapter->FirstUnicastAddress; address != NULL; address = address->Next) {
+                for (address = adapter->FirstUnicastAddress;
+                     address != NULL;
+                     address = address->Next) {
                         if (address->Address.lpSockaddr->sa_family != AF_INET)
                                 continue;
 
@@ -1519,8 +1523,8 @@ get_host_ip (GSSDPNetworkDevice *device)
                                                         address_prefix,
                                                         ip,
                                                         prefix)) {
-                                                        p = ip;
-                                                        q = prefix;
+                                p = ip;
+                                q = prefix;
                         }
 
                         if (p != NULL) {
@@ -1648,7 +1652,7 @@ get_host_ip (GSSDPNetworkDevice *device)
                         if_list = g_list_prepend (if_list, ifaces + i);
 
                 if (device->iface_name)
-                    break;
+                        break;
         }
 
         if (!g_list_length (if_list)) {
@@ -1662,7 +1666,8 @@ get_host_ip (GSSDPNetworkDevice *device)
          * we can get complete config info for and return
          */
 
-        for (if_ptr = if_list; if_ptr != NULL;
+        for (if_ptr = if_list;
+             if_ptr != NULL;
              if_ptr = g_list_next (if_ptr)) {
 
                 iface   = (struct ifreq *) if_ptr->data;
@@ -1682,6 +1687,7 @@ get_host_ip (GSSDPNetworkDevice *device)
 
                         g_free (device->host_ip);
                         device->host_ip = NULL;
+
                         continue;
                 }
 
@@ -1692,6 +1698,7 @@ get_host_ip (GSSDPNetworkDevice *device)
                                 "Couldn't get netmask. Discarding");
                         g_free (device->host_ip);
                         device->host_ip = NULL;
+
                         continue;
                 }
 
@@ -1717,7 +1724,7 @@ get_host_ip (GSSDPNetworkDevice *device)
                 }
 
                 if (!device->iface_name)
-                    device->iface_name = g_strdup (iface->ifr_name);
+                        device->iface_name = g_strdup (iface->ifr_name);
 
                 device->index = query_ifindex (device->iface_name);
 
@@ -1735,6 +1742,7 @@ fail:
         g_free (ifaces);
         g_list_free (if_list);
         close (sock);
+
         return FALSE;
 success:
         __android_log_print (ANDROID_LOG_DEBUG, "gssdp",
@@ -1794,10 +1802,7 @@ success:
                 }
 
                 s4 = (struct sockaddr_in *) ifa->ifa_addr;
-                p = inet_ntop (AF_INET,
-                               &s4->sin_addr,
-                               ip,
-                               sizeof (ip));
+                p = inet_ntop (AF_INET, &s4->sin_addr, ip, sizeof (ip));
                 device->host_ip = g_strdup (p);
 
                 bytes = (const guint8 *) &s4->sin_addr;
