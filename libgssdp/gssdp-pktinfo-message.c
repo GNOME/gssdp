@@ -23,9 +23,13 @@
 
 #include "gssdp-pktinfo-message.h"
 
-G_DEFINE_TYPE (GSSDPPktinfoMessage,
-               gssdp_pktinfo_message,
-               G_TYPE_SOCKET_CONTROL_MESSAGE)
+struct _GSSDPPktinfoMessage {
+        GSocketControlMessage parent;
+};
+
+struct _GSSDPPktinfoMessageClass {
+        GSocketControlMessageClass parent_class;
+};
 
 struct _GSSDPPktinfoMessagePrivate
 {
@@ -33,6 +37,11 @@ struct _GSSDPPktinfoMessagePrivate
         GInetAddress *iface_addr;
         gint          index;
 };
+typedef struct _GSSDPPktinfoMessagePrivate GSSDPPktinfoMessagePrivate;
+
+G_DEFINE_TYPE_WITH_PRIVATE (GSSDPPktinfoMessage,
+                            gssdp_pktinfo_message,
+                            G_TYPE_SOCKET_CONTROL_MESSAGE)
 
 enum {
         PROP_0,
@@ -66,18 +75,21 @@ gssdp_pktinfo_message_get_property (GObject    *object,
                                     GParamSpec *pspec)
 {
         GSSDPPktinfoMessage *self;
+        GSSDPPktinfoMessagePrivate *priv;
 
         self = GSSDP_PKTINFO_MESSAGE (object);
+        priv = gssdp_pktinfo_message_get_instance_private (self);
+
         switch (property_id)
         {
         case PROP_IFACE_ADDR:
-                g_value_set_object (value, self->priv->iface_addr);
+                g_value_set_object (value, priv->iface_addr);
                 break;
         case PROP_INDEX:
-                g_value_set_int (value, self->priv->index);
+                g_value_set_int (value, priv->index);
                 break;
         case PROP_PKT_ADDR:
-                g_value_set_object (value, self->priv->pkt_addr);
+                g_value_set_object (value, priv->pkt_addr);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -92,18 +104,20 @@ gssdp_pktinfo_message_set_property (GObject      *object,
                                     GParamSpec   *pspec)
 {
         GSSDPPktinfoMessage *self;
+        GSSDPPktinfoMessagePrivate *priv;
 
         self = GSSDP_PKTINFO_MESSAGE (object);
+        priv = gssdp_pktinfo_message_get_instance_private (self);
         switch (property_id)
         {
         case PROP_IFACE_ADDR:
-                self->priv->iface_addr = g_value_get_object (value);
+                priv->iface_addr = g_value_get_object (value);
                 break;
         case PROP_INDEX:
-                self->priv->index = g_value_get_int (value);
+                priv->index = g_value_get_int (value);
                 break;
         case PROP_PKT_ADDR:
-                self->priv->pkt_addr = g_value_get_object (value);
+                priv->pkt_addr = g_value_get_object (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -115,9 +129,12 @@ static void
 gssdp_pktinfo_dispose (GObject *object)
 {
         GSSDPPktinfoMessage *self = GSSDP_PKTINFO_MESSAGE (object);
+        GSSDPPktinfoMessagePrivate *priv = NULL;
 
-        g_clear_object (&self->priv->iface_addr);
-        g_clear_object (&self->priv->pkt_addr);
+        priv = gssdp_pktinfo_message_get_instance_private (self);
+
+        g_clear_object (&priv->iface_addr);
+        g_clear_object (&priv->pkt_addr);
 }
 
 static GSocketControlMessage *
@@ -148,9 +165,6 @@ gssdp_pktinfo_message_deserialize (int      level,
 static void
 gssdp_pktinfo_message_init (GSSDPPktinfoMessage *self)
 {
-        self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                                  GSSDP_TYPE_PKTINFO_MESSAGE,
-                                                  GSSDPPktinfoMessagePrivate);
 }
 
 static void
@@ -160,8 +174,6 @@ gssdp_pktinfo_message_class_init (GSSDPPktinfoMessageClass *klass)
                 G_SOCKET_CONTROL_MESSAGE_CLASS (klass);
 
         GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-        g_type_class_add_private (klass, sizeof (GSSDPPktinfoMessagePrivate));
 
         scm_class->get_size = gssdp_pktinfo_message_get_size;
         scm_class->get_level = gssdp_pktinfo_message_get_level;
@@ -226,23 +238,32 @@ gssdp_pktinfo_message_new (GInetAddress *addr, GInetAddress *dst, gint ifindex)
 gint
 gssdp_pktinfo_message_get_ifindex (GSSDPPktinfoMessage *message)
 {
+        GSSDPPktinfoMessagePrivate *priv;
         g_return_val_if_fail (GSSDP_IS_PKTINFO_MESSAGE (message), -1);
 
-        return message->priv->index;
+        priv = gssdp_pktinfo_message_get_instance_private (message);
+
+        return priv->index;
 }
 
 GInetAddress *
 gssdp_pktinfo_message_get_local_addr (GSSDPPktinfoMessage *message)
 {
+        GSSDPPktinfoMessagePrivate *priv;
         g_return_val_if_fail (GSSDP_IS_PKTINFO_MESSAGE (message), NULL);
 
-        return message->priv->iface_addr;
+        priv = gssdp_pktinfo_message_get_instance_private (message);
+
+        return priv->iface_addr;
 }
 
 GInetAddress *
 gssdp_pktinfo_message_get_pkt_addr (GSSDPPktinfoMessage *message)
 {
+        GSSDPPktinfoMessagePrivate *priv;
         g_return_val_if_fail (GSSDP_IS_PKTINFO_MESSAGE (message), NULL);
 
-        return message->priv->pkt_addr;
+        priv = gssdp_pktinfo_message_get_instance_private (message);
+
+        return priv->pkt_addr;
 }

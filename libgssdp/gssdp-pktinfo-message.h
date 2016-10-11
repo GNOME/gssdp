@@ -26,41 +26,9 @@
 
 G_BEGIN_DECLS
 
-G_GNUC_INTERNAL GType
-gssdp_pktinfo_message_get_type (void) G_GNUC_CONST;
-
 #define GSSDP_TYPE_PKTINFO_MESSAGE (gssdp_pktinfo_message_get_type())
-#define GSSDP_PKTINFO_MESSAGE(obj) \
-                            (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-                             GSSDP_TYPE_PKTINFO_MESSAGE, \
-                             GSSDPPktinfoMessage))
-#define GSSDP_PKTINFO_MESAGE_CLASS(klass) \
-                            (G_TYPE_CHECK_CLASS_CAST ((klass), \
-                             GSSDP_TYPE_PKTINFO_MESSAGE, \
-                             GSSDPPktinfoClass))
-#define GSSDP_IS_PKTINFO_MESSAGE(obj) \
-                            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-                             GSSDP_TYPE_PKTINFO_MESSAGE))
-#define GSSDP_IS_PKTINFO_MESSAGE_CLASS(klass) \
-                            (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-                             GSSDP_TYPE_PKTINFO_MESSAGE))
-#define GSSDP_PKTINFO_MESSAGE_GET_CLASS(obj) \
-                            (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-                             GSSDP_TYPE_PKTINFO_MESSAGE, \
-                             GSSDPPktinfoMessageClass))
 
-typedef struct _GSSDPPktinfoMessagePrivate GSSDPPktinfoMessagePrivate;
-typedef struct _GSSDPPktInfoMessage GSSDPPktinfoMessage;
-typedef struct _GSSDPPktinfoMessageClass GSSDPPktinfoMessageClass;
-
-struct _GSSDPPktInfoMessage {
-        GSocketControlMessage parent;
-        GSSDPPktinfoMessagePrivate *priv;
-};
-
-struct _GSSDPPktinfoMessageClass {
-        GSocketControlMessageClass parent_class;
-};
+G_DECLARE_FINAL_TYPE (GSSDPPktinfoMessage, gssdp_pktinfo_message, GSSDP, PKTINFO_MESSAGE, GSocketControlMessage)
 
 G_GNUC_INTERNAL GSocketControlMessage *
 gssdp_pktinfo_message_new (GInetAddress *addr, GInetAddress *dst, gint ifindex);
