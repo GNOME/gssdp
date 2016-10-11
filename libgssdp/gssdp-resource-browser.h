@@ -26,39 +26,13 @@
 
 G_BEGIN_DECLS
 
-GType
-gssdp_resource_browser_get_type (void) G_GNUC_CONST;
+#define GSSDP_TYPE_RESOURCE_BROWSER (gssdp_resource_browser_get_type ())
 
-#define GSSDP_TYPE_RESOURCE_BROWSER \
-                (gssdp_resource_browser_get_type ())
-#define GSSDP_RESOURCE_BROWSER(obj) \
-                (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-                 GSSDP_TYPE_RESOURCE_BROWSER, \
-                 GSSDPResourceBrowser))
-#define GSSDP_RESOURCE_BROWSER_CLASS(klass) \
-                (G_TYPE_CHECK_CLASS_CAST ((klass), \
-                 GSSDP_TYPE_RESOURCE_BROWSER, \
-                 GSSDPResourceBrowserClass))
-#define GSSDP_IS_RESOURCE_BROWSER(obj) \
-                (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-                 GSSDP_TYPE_RESOURCE_BROWSER))
-#define GSSDP_IS_RESOURCE_BROWSER_CLASS(klass) \
-                (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-                 GSSDP_TYPE_RESOURCE_BROWSER))
-#define GSSDP_RESOURCE_BROWSER_GET_CLASS(obj) \
-                (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-                 GSSDP_TYPE_RESOURCE_BROWSER, \
-                 GSSDPResourceBrowserClass))
-
-typedef struct _GSSDPResourceBrowserPrivate GSSDPResourceBrowserPrivate;
-typedef struct _GSSDPResourceBrowser GSSDPResourceBrowser;
-typedef struct _GSSDPResourceBrowserClass GSSDPResourceBrowserClass;
-
-struct _GSSDPResourceBrowser {
-        GObject parent;
-
-        GSSDPResourceBrowserPrivate *priv;
-};
+G_DECLARE_DERIVABLE_TYPE (GSSDPResourceBrowser,
+                          gssdp_resource_browser,
+                          GSSDP,
+                          RESOURCE_BROWSER,
+                          GObject)
 
 struct _GSSDPResourceBrowserClass {
         GObjectClass parent_class;

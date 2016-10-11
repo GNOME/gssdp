@@ -44,10 +44,6 @@
 #define MAX_DISCOVERY_MESSAGES 3
 #define DISCOVERY_FREQUENCY    500 /* 500 ms */
 
-G_DEFINE_TYPE (GSSDPResourceBrowser,
-               gssdp_resource_browser,
-               G_TYPE_OBJECT);
-
 struct _GSSDPResourceBrowserPrivate {
         GSSDPClient *client;
 
@@ -69,6 +65,11 @@ struct _GSSDPResourceBrowserPrivate {
         GSource     *refresh_cache_src;
         GHashTable  *fresh_resources;
 };
+typedef struct _GSSDPResourceBrowserPrivate GSSDPResourceBrowserPrivate;
+
+G_DEFINE_TYPE_WITH_PRIVATE (GSSDPResourceBrowser,
+                            gssdp_resource_browser,
+                            G_TYPE_OBJECT);
 
 enum {
         PROP_0,
@@ -125,14 +126,12 @@ resource_unavailable             (GSSDPResourceBrowser *resource_browser,
 static void
 gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
 {
-        resource_browser->priv = G_TYPE_INSTANCE_GET_PRIVATE
-                                        (resource_browser,
-                                         GSSDP_TYPE_RESOURCE_BROWSER,
-                                         GSSDPResourceBrowserPrivate);
+        GSSDPResourceBrowserPrivate *priv = NULL;
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
-        resource_browser->priv->mx = SSDP_DEFAULT_MX;
+        priv->mx = SSDP_DEFAULT_MX;
 
-        resource_browser->priv->resources =
+        priv->resources =
                 g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
                                        g_free,
@@ -213,22 +212,24 @@ static void
 gssdp_resource_browser_dispose (GObject *object)
 {
         GSSDPResourceBrowser *resource_browser;
+        GSSDPResourceBrowserPrivate *priv;
 
         resource_browser = GSSDP_RESOURCE_BROWSER (object);
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
-        if (resource_browser->priv->client) {
+        if (priv->client) {
                 if (g_signal_handler_is_connected
-                        (resource_browser->priv->client,
-                         resource_browser->priv->message_received_id)) {
+                        (priv->client,
+                         priv->message_received_id)) {
                         g_signal_handler_disconnect
-                                (resource_browser->priv->client,
-                                 resource_browser->priv->message_received_id);
+                                (priv->client,
+                                 priv->message_received_id);
                 }
 
                 stop_discovery (resource_browser);
 
-                g_object_unref (resource_browser->priv->client);
-                resource_browser->priv->client = NULL;
+                g_object_unref (priv->client);
+                priv->client = NULL;
         }
 
         clear_cache (resource_browser);
@@ -240,15 +241,17 @@ static void
 gssdp_resource_browser_finalize (GObject *object)
 {
         GSSDPResourceBrowser *resource_browser;
+        GSSDPResourceBrowserPrivate *priv;
 
         resource_browser = GSSDP_RESOURCE_BROWSER (object);
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
-        if (resource_browser->priv->target_regex)
-                g_regex_unref (resource_browser->priv->target_regex);
+        if (priv->target_regex)
+                g_regex_unref (priv->target_regex);
 
-        g_free (resource_browser->priv->target);
+        g_free (priv->target);
 
-        g_hash_table_destroy (resource_browser->priv->resources);
+        g_hash_table_destroy (priv->resources);
 
         G_OBJECT_CLASS (gssdp_resource_browser_parent_class)->finalize (object);
 }
@@ -264,8 +267,6 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
         object_class->get_property = gssdp_resource_browser_get_property;
         object_class->dispose      = gssdp_resource_browser_dispose;
         object_class->finalize     = gssdp_resource_browser_finalize;
-
-        g_type_class_add_private (klass, sizeof (GSSDPResourceBrowserPrivate));
 
         /**
          * GSSDPResourceBrowser:client:
@@ -421,13 +422,17 @@ static void
 gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
                                    GSSDPClient          *client)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
         g_return_if_fail (GSSDP_IS_CLIENT (client));
 
-        resource_browser->priv->client = g_object_ref (client);
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
-        resource_browser->priv->message_received_id =
-                g_signal_connect_object (resource_browser->priv->client,
+        priv->client = g_object_ref (client);
+
+        priv->message_received_id =
+                g_signal_connect_object (priv->client,
                                          "message-received",
                                          G_CALLBACK (message_received_cb),
                                          resource_browser,
@@ -445,10 +450,14 @@ gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
 GSSDPClient *
 gssdp_resource_browser_get_client (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
         g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser),
                               NULL);
 
-        return resource_browser->priv->client;
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
+        return priv->client;
 }
 
 /**
@@ -466,16 +475,19 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
         char *version;
         const char *version_pattern;
         GError *error;
+        GSSDPResourceBrowserPrivate *priv;
 
         g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
         g_return_if_fail (target != NULL);
-        g_return_if_fail (!resource_browser->priv->active);
-        
-        g_free (resource_browser->priv->target);
-        resource_browser->priv->target = g_strdup (target);
 
-        if (resource_browser->priv->target_regex)
-                g_regex_unref (resource_browser->priv->target_regex);
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+        g_return_if_fail (!priv->active);
+
+        g_free (priv->target);
+        priv->target = g_strdup (target);
+
+        if (priv->target_regex)
+                g_regex_unref (priv->target_regex);
 
         version_pattern = "([0-9]+)";
         /* Make sure we have enough room for version pattern */
@@ -490,12 +502,12 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
                                   version + 1,
                                   G_REGEX_ANCHORED,
                                   G_REGEX_MATCH_ANCHORED)) {
-                resource_browser->priv->version = atoi (version + 1);
+                priv->version = atoi (version + 1);
                 strcpy (version + 1, version_pattern);
         }
 
         error = NULL;
-        resource_browser->priv->target_regex = g_regex_new (pattern,
+        priv->target_regex = g_regex_new (pattern,
                                                             0,
                                                             0,
                                                             &error);
@@ -520,10 +532,12 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 const char *
 gssdp_resource_browser_get_target (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
         g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser),
                               NULL);
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
-        return resource_browser->priv->target;
+        return priv->target;
 }
 
 /**
@@ -537,12 +551,16 @@ void
 gssdp_resource_browser_set_mx (GSSDPResourceBrowser *resource_browser,
                                gushort               mx)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
 
-        if (resource_browser->priv->mx == mx)
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
+        if (priv->mx == mx)
                 return;
 
-        resource_browser->priv->mx = mx;
+        priv->mx = mx;
         
         g_object_notify (G_OBJECT (resource_browser), "mx");
 }
@@ -556,9 +574,13 @@ gssdp_resource_browser_set_mx (GSSDPResourceBrowser *resource_browser,
 gushort
 gssdp_resource_browser_get_mx (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
         g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser), 0);
 
-        return resource_browser->priv->mx;
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
+        return priv->mx;
 }
 
 /**
@@ -572,12 +594,15 @@ void
 gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
                                    gboolean              active)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser));
 
-        if (resource_browser->priv->active == active)
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+        if (priv->active == active)
                 return;
 
-        resource_browser->priv->active = active;
+        priv->active = active;
 
         if (active) {
                 start_discovery (resource_browser);
@@ -599,9 +624,13 @@ gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
 gboolean
 gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
         g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser), 0);
 
-        return resource_browser->priv->active;
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
+        return priv->active;
 }
 
 /**
@@ -616,11 +645,15 @@ gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser)
 gboolean
 gssdp_resource_browser_rescan (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
         g_return_val_if_fail (GSSDP_IS_RESOURCE_BROWSER (resource_browser), 0);
 
-        if (resource_browser->priv->active &&
-            resource_browser->priv->timeout_src == NULL &&
-            resource_browser->priv->refresh_cache_src == NULL) {
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
+        if (priv->active &&
+            priv->timeout_src == NULL &&
+            priv->refresh_cache_src == NULL) {
                 start_discovery (resource_browser);
                 return TRUE;
         }
@@ -635,12 +668,14 @@ static gboolean
 resource_expire (gpointer user_data)
 {
         GSSDPResourceBrowser *resource_browser;
+        GSSDPResourceBrowserPrivate *priv;
         Resource *resource;
         char *usn;
         char *canonical_usn;
 
         resource = user_data;
         resource_browser = resource->resource_browser;
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
         /* Steal the USN pointer from the resource as we need it for the signal
          * emission.
@@ -648,7 +683,7 @@ resource_expire (gpointer user_data)
         usn = resource->usn;
         resource->usn = NULL;
 
-        if (resource_browser->priv->version > 0) {
+        if (priv->version > 0) {
                 char *version;
 
                 version = g_strrstr (usn, ":");
@@ -657,8 +692,7 @@ resource_expire (gpointer user_data)
                 canonical_usn = g_strdup (usn);
         }
 
-        g_hash_table_remove (resource->resource_browser->priv->resources,
-                             canonical_usn);
+        g_hash_table_remove (priv->resources, canonical_usn);
 
         g_signal_emit (resource_browser,
                        signals[RESOURCE_UNAVAILABLE],
@@ -674,6 +708,7 @@ static void
 resource_available (GSSDPResourceBrowser *resource_browser,
                     SoupMessageHeaders   *headers)
 {
+        GSSDPResourceBrowserPrivate *priv;
         const char *usn;
         const char *header;
         Resource *resource;
@@ -684,6 +719,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         GList *it1, *it2;
         char *canonical_usn;
 
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
         usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
@@ -723,7 +759,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         if (!locations)
                 return; /* No location specified */
 
-        if (resource_browser->priv->version > 0) {
+        if (priv->version > 0) {
                 char *version;
 
                 version = g_strrstr (usn, ":");
@@ -733,12 +769,12 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         }
 
         /* Get from cache, if possible */
-        resource = g_hash_table_lookup (resource_browser->priv->resources,
+        resource = g_hash_table_lookup (priv->resources,
                                         canonical_usn);
         /* Put usn into fresh resources, so this resource will not be
          * removed on cache refreshing. */
-        if (resource_browser->priv->fresh_resources != NULL) {
-                g_hash_table_add (resource_browser->priv->fresh_resources,
+        if (priv->fresh_resources != NULL) {
+                g_hash_table_add (priv->fresh_resources,
                                   g_strdup (canonical_usn));
         }
 
@@ -772,7 +808,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                 resource->locations        = locations;
                 destroyLocations = FALSE; /* Ownership passed to resource */
                 
-                g_hash_table_insert (resource_browser->priv->resources,
+                g_hash_table_insert (priv->resources,
                                      canonical_usn,
                                      resource);
                 
@@ -877,14 +913,16 @@ static void
 resource_unavailable (GSSDPResourceBrowser *resource_browser,
                       SoupMessageHeaders   *headers)
 {
+        GSSDPResourceBrowserPrivate *priv;
         const char *usn;
         char *canonical_usn;
 
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
         usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
 
-        if (resource_browser->priv->version > 0) {
+        if (priv->version > 0) {
                 char *version;
 
                 version = g_strrstr (usn, ":");
@@ -894,11 +932,11 @@ resource_unavailable (GSSDPResourceBrowser *resource_browser,
         }
 
         /* Only process if we were cached */
-        if (!g_hash_table_lookup (resource_browser->priv->resources,
+        if (!g_hash_table_lookup (priv->resources,
                                   canonical_usn))
                 goto out;
 
-        g_hash_table_remove (resource_browser->priv->resources,
+        g_hash_table_remove (priv->resources,
                              canonical_usn);
 
         g_signal_emit (resource_browser,
@@ -914,15 +952,18 @@ static gboolean
 check_target_compat (GSSDPResourceBrowser *resource_browser,
                      const char           *st)
 {
+        GSSDPResourceBrowserPrivate *priv;
         GMatchInfo *info;
         int         version;
         char       *tmp;
 
-        if (strcmp (resource_browser->priv->target,
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
+        if (strcmp (priv->target,
                     GSSDP_ALL_RESOURCES) == 0)
                 return TRUE;
 
-        if (!g_regex_match (resource_browser->priv->target_regex,
+        if (!g_regex_match (priv->target_regex,
                             st,
                             0,
                             &info)) {
@@ -932,7 +973,7 @@ check_target_compat (GSSDPResourceBrowser *resource_browser,
         }
 
         /* If there was no version to match, we're done */
-        if (resource_browser->priv->version == 0) {
+        if (priv->version == 0) {
                 g_match_info_free (info);
 
                 return TRUE;
@@ -952,7 +993,7 @@ check_target_compat (GSSDPResourceBrowser *resource_browser,
             return FALSE;
         }
 
-        return (guint) version >= resource_browser->priv->version;
+        return (guint) version >= priv->version;
 }
 
 static void
@@ -1011,10 +1052,12 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
                      gpointer                   user_data)
 {
         GSSDPResourceBrowser *resource_browser;
+        GSSDPResourceBrowserPrivate *priv;
 
         resource_browser = GSSDP_RESOURCE_BROWSER (user_data);
 
-        if (!resource_browser->priv->active)
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+        if (!priv->active)
                 return;
 
         switch (type) {
@@ -1067,8 +1110,11 @@ clear_cache_helper (G_GNUC_UNUSED gpointer key,
 static void
 clear_cache (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
         /* Clear cache */
-        g_hash_table_foreach_remove (resource_browser->priv->resources,
+        g_hash_table_foreach_remove (priv->resources,
                                      clear_cache_helper,
                                      NULL);
 }
@@ -1077,14 +1123,16 @@ clear_cache (GSSDPResourceBrowser *resource_browser)
 static void
 send_discovery_request (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
         char *message;
 
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
         message = g_strdup_printf (SSDP_DISCOVERY_REQUEST,
-                                   resource_browser->priv->target,
-                                   resource_browser->priv->mx,
+                                   priv->target,
+                                   priv->mx,
                                    g_get_prgname () ? g_get_prgname () : "");
 
-        _gssdp_client_send_message (resource_browser->priv->client,
+        _gssdp_client_send_message (priv->client,
                                     NULL,
                                     0,
                                     message,
@@ -1096,29 +1144,31 @@ send_discovery_request (GSSDPResourceBrowser *resource_browser)
 static gboolean
 discovery_timeout (gpointer data)
 {
+        GSSDPResourceBrowserPrivate *priv;
         GSSDPResourceBrowser *resource_browser;
 
         resource_browser = GSSDP_RESOURCE_BROWSER (data);
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
         send_discovery_request (resource_browser);
 
-        resource_browser->priv->num_discovery += 1;
+        priv->num_discovery += 1;
 
-        if (resource_browser->priv->num_discovery >= MAX_DISCOVERY_MESSAGES) {
-                resource_browser->priv->timeout_src = NULL;
-                resource_browser->priv->num_discovery = 0;
+        if (priv->num_discovery >= MAX_DISCOVERY_MESSAGES) {
+                priv->timeout_src = NULL;
+                priv->num_discovery = 0;
 
                 /* Setup cache refreshing */
-                resource_browser->priv->refresh_cache_src =
+                priv->refresh_cache_src =
                                   g_timeout_source_new_seconds (RESCAN_TIMEOUT);
                 g_source_set_callback
-                                     (resource_browser->priv->refresh_cache_src,
+                                     (priv->refresh_cache_src,
                                       refresh_cache,
                                       resource_browser,
                                       NULL);
-                g_source_attach (resource_browser->priv->refresh_cache_src,
+                g_source_attach (priv->refresh_cache_src,
                                  g_main_context_get_thread_default ());
-                g_source_unref (resource_browser->priv->refresh_cache_src);
+                g_source_unref (priv->refresh_cache_src);
 
                 return FALSE;
         } else
@@ -1129,24 +1179,28 @@ discovery_timeout (gpointer data)
 static void
 start_discovery (GSSDPResourceBrowser *resource_browser)
 {
+        GSSDPResourceBrowserPrivate *priv;
+
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+
         /* Send one now */
         send_discovery_request (resource_browser);
 
         /* And schedule the rest for later */
-        resource_browser->priv->num_discovery = 1;
-        resource_browser->priv->timeout_src =
+        priv->num_discovery = 1;
+        priv->timeout_src =
                 g_timeout_source_new (DISCOVERY_FREQUENCY);
-        g_source_set_callback (resource_browser->priv->timeout_src,
+        g_source_set_callback (priv->timeout_src,
                                discovery_timeout,
                                resource_browser, NULL);
 
-        g_source_attach (resource_browser->priv->timeout_src,
+        g_source_attach (priv->timeout_src,
                          g_main_context_get_thread_default ());
 
-        g_source_unref (resource_browser->priv->timeout_src);
+        g_source_unref (priv->timeout_src);
 
         /* Setup a set of responsive resources for cache refreshing */
-        resource_browser->priv->fresh_resources = g_hash_table_new_full
+        priv->fresh_resources = g_hash_table_new_full
                                         (g_str_hash,
                                          g_str_equal,
                                          g_free,
@@ -1157,18 +1211,21 @@ start_discovery (GSSDPResourceBrowser *resource_browser)
 static void
 stop_discovery (GSSDPResourceBrowser *resource_browser)
 {
-        if (resource_browser->priv->timeout_src) {
-                g_source_destroy (resource_browser->priv->timeout_src);
-                resource_browser->priv->timeout_src = NULL;
-                resource_browser->priv->num_discovery = 0;
+        GSSDPResourceBrowserPrivate *priv;
+
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+        if (priv->timeout_src) {
+                g_source_destroy (priv->timeout_src);
+                priv->timeout_src = NULL;
+                priv->num_discovery = 0;
         }
-        if (resource_browser->priv->refresh_cache_src) {
-                g_source_destroy (resource_browser->priv->refresh_cache_src);
-                resource_browser->priv->refresh_cache_src = NULL;
+        if (priv->refresh_cache_src) {
+                g_source_destroy (priv->refresh_cache_src);
+                priv->refresh_cache_src = NULL;
         }
-        if (resource_browser->priv->fresh_resources) {
-                g_hash_table_unref (resource_browser->priv->fresh_resources);
-                resource_browser->priv->fresh_resources = NULL;
+        if (priv->fresh_resources) {
+                g_hash_table_unref (priv->fresh_resources);
+                priv->fresh_resources = NULL;
         }
 }
 
@@ -1198,14 +1255,16 @@ static gboolean
 refresh_cache (gpointer data)
 {
         GSSDPResourceBrowser *resource_browser;
+        GSSDPResourceBrowserPrivate *priv;
 
         resource_browser = GSSDP_RESOURCE_BROWSER (data);
-        g_hash_table_foreach_remove (resource_browser->priv->resources,
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+        g_hash_table_foreach_remove (priv->resources,
                                      refresh_cache_helper,
-                                     resource_browser->priv->fresh_resources);
-        g_hash_table_unref (resource_browser->priv->fresh_resources);
-        resource_browser->priv->fresh_resources = NULL;
-        resource_browser->priv->refresh_cache_src = NULL;
+                                     priv->fresh_resources);
+        g_hash_table_unref (priv->fresh_resources);
+        priv->fresh_resources = NULL;
+        priv->refresh_cache_src = NULL;
 
         return FALSE;
 }
