@@ -40,10 +40,6 @@
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
 
-G_DEFINE_TYPE (GSSDPResourceGroup,
-               gssdp_resource_group,
-               G_TYPE_OBJECT);
-
 #define DEFAULT_MAN_HEADER "\"ssdp:discover\""
 
 struct _GSSDPResourceGroupPrivate {
@@ -65,6 +61,11 @@ struct _GSSDPResourceGroupPrivate {
         GQueue      *message_queue;
         GSource     *message_src;
 };
+typedef struct _GSSDPResourceGroupPrivate GSSDPResourceGroupPrivate;
+
+G_DEFINE_TYPE_WITH_PRIVATE (GSSDPResourceGroup,
+                            gssdp_resource_group,
+                            G_TYPE_OBJECT);
 
 enum {
         PROP_0,
@@ -141,15 +142,14 @@ send_initial_resource_byebye    (Resource          *resource);
 static void
 gssdp_resource_group_init (GSSDPResourceGroup *resource_group)
 {
-        resource_group->priv = G_TYPE_INSTANCE_GET_PRIVATE
-                                        (resource_group,
-                                         GSSDP_TYPE_RESOURCE_GROUP,
-                                         GSSDPResourceGroupPrivate);
+        GSSDPResourceGroupPrivate *priv;
 
-        resource_group->priv->max_age = SSDP_DEFAULT_MAX_AGE;
-        resource_group->priv->message_delay = DEFAULT_MESSAGE_DELAY;
+        priv = gssdp_resource_group_get_instance_private (resource_group);
 
-        resource_group->priv->message_queue = g_queue_new ();
+        priv->max_age = SSDP_DEFAULT_MAX_AGE;
+        priv->message_delay = DEFAULT_MESSAGE_DELAY;
+
+        priv->message_queue = g_queue_new ();
 }
 
 static void
@@ -230,7 +230,7 @@ gssdp_resource_group_dispose (GObject *object)
         GSSDPResourceGroupPrivate *priv;
 
         resource_group = GSSDP_RESOURCE_GROUP (object);
-        priv = resource_group->priv;
+        priv = gssdp_resource_group_get_instance_private (resource_group);
 
         g_list_free_full (priv->resources, (GFreeFunc) resource_free);
         priv->resources = NULL;
@@ -285,8 +285,6 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
         object_class->set_property = gssdp_resource_group_set_property;
         object_class->get_property = gssdp_resource_group_get_property;
         object_class->dispose      = gssdp_resource_group_dispose;
-
-        g_type_class_add_private (klass, sizeof (GSSDPResourceGroupPrivate));
 
         /**
          * GSSDPResourceGroup:client:
@@ -385,13 +383,16 @@ static void
 gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
                                  GSSDPClient        *client)
 {
+        GSSDPResourceGroupPrivate *priv;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group));
         g_return_if_fail (GSSDP_IS_CLIENT (client));
 
-        resource_group->priv->client = g_object_ref (client);
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+        priv->client = g_object_ref (client);
 
-        resource_group->priv->message_received_id =
-                g_signal_connect_object (resource_group->priv->client,
+        priv->message_received_id =
+                g_signal_connect_object (priv->client,
                                          "message-received",
                                          G_CALLBACK (message_received_cb),
                                          resource_group,
@@ -409,9 +410,13 @@ gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
 GSSDPClient *
 gssdp_resource_group_get_client (GSSDPResourceGroup *resource_group)
 {
+        GSSDPResourceGroupPrivate *priv;
+
         g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), NULL);
 
-        return resource_group->priv->client;
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+
+        return priv->client;
 }
 
 /**
@@ -425,12 +430,15 @@ void
 gssdp_resource_group_set_max_age (GSSDPResourceGroup *resource_group,
                                   guint               max_age)
 {
+        GSSDPResourceGroupPrivate *priv;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group));
 
-        if (resource_group->priv->max_age == max_age)
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+        if (priv->max_age == max_age)
                 return;
 
-        resource_group->priv->max_age = max_age;
+        priv->max_age = max_age;
         
         g_object_notify (G_OBJECT (resource_group), "max-age");
 }
@@ -444,9 +452,12 @@ gssdp_resource_group_set_max_age (GSSDPResourceGroup *resource_group,
 guint
 gssdp_resource_group_get_max_age (GSSDPResourceGroup *resource_group)
 {
-        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
+        GSSDPResourceGroupPrivate *priv;
 
-        return resource_group->priv->max_age;
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+
+        return priv->max_age;
 }
 
 /**
@@ -460,12 +471,15 @@ void
 gssdp_resource_group_set_message_delay (GSSDPResourceGroup *resource_group,
                                         guint               message_delay)
 {
+        GSSDPResourceGroupPrivate *priv;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group));
 
-        if (resource_group->priv->message_delay == message_delay)
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+        if (priv->message_delay == message_delay)
                 return;
 
-        resource_group->priv->message_delay = message_delay;
+        priv->message_delay = message_delay;
         
         g_object_notify (G_OBJECT (resource_group), "message-delay");
 }
@@ -479,9 +493,12 @@ gssdp_resource_group_set_message_delay (GSSDPResourceGroup *resource_group,
 guint
 gssdp_resource_group_get_message_delay (GSSDPResourceGroup *resource_group)
 {
-        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
+        GSSDPResourceGroupPrivate *priv;
 
-        return resource_group->priv->message_delay;
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+
+        return priv->message_delay;
 }
 
 static void
@@ -521,12 +538,15 @@ void
 gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                                     gboolean            available)
 {
+        GSSDPResourceGroupPrivate *priv;
+
         g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group));
 
-        if (resource_group->priv->available == available)
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+        if (priv->available == available)
                 return;
 
-        resource_group->priv->available = available;
+        priv->available = available;
 
         if (available) {
                 int timeout;
@@ -537,37 +557,37 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                  * Read the paragraphs about 'CACHE-CONTROL' on pages 21-22 of
                  * UPnP Device Architecture Document v1.1 for further details.
                  * */
-                timeout = resource_group->priv->max_age;
+                timeout = priv->max_age;
                 if (G_LIKELY (timeout > 6))
                         timeout = (timeout / 3) - 1;
 
                 /* Add re-announcement timer */
-                resource_group->priv->timeout_src =
+                priv->timeout_src =
                         g_timeout_source_new_seconds (timeout);
-                g_source_set_callback (resource_group->priv->timeout_src,
+                g_source_set_callback (priv->timeout_src,
                                        resource_group_timeout,
                                        resource_group, NULL);
 
-                g_source_attach (resource_group->priv->timeout_src,
+                g_source_attach (priv->timeout_src,
                                  g_main_context_get_thread_default ());
 
-                g_source_unref (resource_group->priv->timeout_src);
+                g_source_unref (priv->timeout_src);
 
                 /* Make sure initial byebyes are sent grouped before initial
                  * alives */
-                send_announcement_set (resource_group->priv->resources,
+                send_announcement_set (priv->resources,
                                        (GFunc) send_initial_resource_byebye);
 
-                send_announcement_set (resource_group->priv->resources,
+                send_announcement_set (priv->resources,
                                        (GFunc) resource_alive);
         } else {
                 /* Unannounce all resources */
-                send_announcement_set (resource_group->priv->resources,
+                send_announcement_set (priv->resources,
                                        (GFunc) resource_byebye);
 
                 /* Remove re-announcement timer */
-                g_source_destroy (resource_group->priv->timeout_src);
-                resource_group->priv->timeout_src = NULL;
+                g_source_destroy (priv->timeout_src);
+                priv->timeout_src = NULL;
         }
         
         g_object_notify (G_OBJECT (resource_group), "available");
@@ -582,9 +602,12 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
 gboolean
 gssdp_resource_group_get_available (GSSDPResourceGroup *resource_group)
 {
-        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), FALSE);
+        GSSDPResourceGroupPrivate *priv;
 
-        return resource_group->priv->available;
+        g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), FALSE);
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+
+        return priv->available;
 }
 
 /**
@@ -605,6 +628,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
                                    const char         *usn,
                                    GList              *locations)
 {
+        GSSDPResourceGroupPrivate *priv;
         Resource *resource;
         GList *l;
         GError *error;
@@ -613,6 +637,8 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
         g_return_val_if_fail (target != NULL, 0);
         g_return_val_if_fail (usn != NULL, 0);
         g_return_val_if_fail (locations != NULL, 0);
+
+        priv = gssdp_resource_group_get_instance_private (resource_group);
 
         resource = g_slice_new0 (Resource);
 
@@ -641,12 +667,12 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
                                                     g_strdup (l->data));
         }
 
-        resource_group->priv->resources =
-                g_list_prepend (resource_group->priv->resources, resource);
+        priv->resources =
+                g_list_prepend (priv->resources, resource);
 
-        resource->id = ++resource_group->priv->last_resource_id;
+        resource->id = ++priv->last_resource_id;
 
-        if (resource_group->priv->available)
+        if (priv->available)
                 resource_alive (resource);
 
         return resource->id;
@@ -692,19 +718,21 @@ void
 gssdp_resource_group_remove_resource (GSSDPResourceGroup *resource_group,
                                       guint               resource_id)
 {
+        GSSDPResourceGroupPrivate *priv;
         GList *l;
 
         g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group));
         g_return_if_fail (resource_id > 0);
 
-        for (l = resource_group->priv->resources; l; l = l->next) {
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+        for (l = priv->resources; l; l = l->next) {
                 Resource *resource;
 
                 resource = l->data;
 
                 if (resource->id == resource_id) {
-                        resource_group->priv->resources = 
-                                g_list_remove (resource_group->priv->resources,
+                        priv->resources = 
+                                g_list_remove (priv->resources,
                                                resource);
                         
                         resource_free (resource);
@@ -721,10 +749,12 @@ static gboolean
 resource_group_timeout (gpointer user_data)
 {
         GSSDPResourceGroup *resource_group;
+        GSSDPResourceGroupPrivate *priv;
 
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
+        priv = gssdp_resource_group_get_instance_private (resource_group);
 
-        send_announcement_set (resource_group->priv->resources,
+        send_announcement_set (priv->resources,
                                (GFunc) resource_alive);
 
         return TRUE;
@@ -742,15 +772,17 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
                      gpointer                   user_data)
 {
         GSSDPResourceGroup *resource_group;
+        GSSDPResourceGroupPrivate *priv;
         const char *target, *mx_str, *version_str, *man;
         gboolean want_all;
         int mx, version;
         GList *l;
 
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
+        priv = gssdp_resource_group_get_instance_private (resource_group);
 
         /* Only process if we are available */
-        if (!resource_group->priv->available)
+        if (!priv->available)
                 return;
 
         /* We only handle discovery requests */
@@ -793,7 +825,7 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
                 version = 0;
 
         /* Find matching resource */
-        for (l = resource_group->priv->resources; l; l = l->next) {
+        for (l = priv->resources; l; l = l->next) {
                 Resource *resource;
 
                 resource = l->data;
@@ -893,19 +925,21 @@ construct_usn (const char *usn,
 static gboolean
 discovery_response_timeout (gpointer user_data)
 {
-        DiscoveryResponse *response;
+        DiscoveryResponse *response = user_data;
         GSSDPClient *client;
         SoupDate *date;
         char *al, *date_str, *message;
         guint max_age;
         char *usn;
+        GSSDPResourceGroup *self = response->resource->resource_group;
+        GSSDPResourceGroupPrivate *priv;
 
-        response = user_data;
+        priv = gssdp_resource_group_get_instance_private (self);
 
         /* Send message */
-        client = response->resource->resource_group->priv->client;
+        client = priv->client;
 
-        max_age = response->resource->resource_group->priv->max_age;
+        max_age = priv->max_age;
 
         al = construct_al (response->resource);
         usn = construct_usn (response->resource->usn,
@@ -964,21 +998,23 @@ static gboolean
 process_queue (gpointer data)
 {
         GSSDPResourceGroup *resource_group;
+        GSSDPResourceGroupPrivate *priv;
 
         resource_group = GSSDP_RESOURCE_GROUP (data);
+        priv = gssdp_resource_group_get_instance_private (resource_group);
 
-        if (g_queue_is_empty (resource_group->priv->message_queue)) {
+        if (g_queue_is_empty (priv->message_queue)) {
                 /* this is the timeout after last message in queue */
-                resource_group->priv->message_src = NULL;
+                priv->message_src = NULL;
 
                 return FALSE;
         } else {
                 GSSDPClient *client;
                 char *message;
 
-                client = resource_group->priv->client;
+                client = priv->client;
                 message = g_queue_pop_head
-                        (resource_group->priv->message_queue);
+                        (priv->message_queue);
 
                 _gssdp_client_send_message (client,
                                             NULL,
@@ -1000,20 +1036,23 @@ static void
 queue_message (GSSDPResourceGroup *resource_group,
                char               *message)
 {
-        g_queue_push_tail (resource_group->priv->message_queue, 
+        GSSDPResourceGroupPrivate *priv;
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+
+        g_queue_push_tail (priv->message_queue, 
                            message);
 
-        if (resource_group->priv->message_src == NULL) {
+        if (priv->message_src == NULL) {
                 /* nothing in the queue: process message immediately 
                    and add a timeout for (possible) next message */
                 process_queue (resource_group);
-                resource_group->priv->message_src = g_timeout_source_new (
-                    resource_group->priv->message_delay);
-                g_source_set_callback (resource_group->priv->message_src,
+                priv->message_src = g_timeout_source_new (
+                    priv->message_delay);
+                g_source_set_callback (priv->message_src,
                     process_queue, resource_group, NULL);
-                g_source_attach (resource_group->priv->message_src,
+                g_source_attach (priv->message_src,
                                  g_main_context_get_thread_default ());
-                g_source_unref (resource_group->priv->message_src);
+                g_source_unref (priv->message_src);
         }
 }
 
@@ -1023,17 +1062,21 @@ queue_message (GSSDPResourceGroup *resource_group,
 static void
 resource_alive (Resource *resource)
 {
+        GSSDPResourceGroupPrivate *priv;
         GSSDPClient *client;
         guint max_age;
         char *al, *message;
+
+        priv = gssdp_resource_group_get_instance_private
+                                        (resource->resource_group);
 
         /* Send initial byebye if not sent already */
         send_initial_resource_byebye (resource);
 
         /* Send message */
-        client = resource->resource_group->priv->client;
+        client = priv->client;
 
-        max_age = resource->resource_group->priv->max_age;
+        max_age = priv->max_age;
 
         al = construct_al (resource);
 
@@ -1072,10 +1115,14 @@ resource_byebye (Resource *resource)
 static void
 resource_free (Resource *resource)
 {
+        GSSDPResourceGroupPrivate *priv;
+
+        priv = gssdp_resource_group_get_instance_private
+                                        (resource->resource_group);
         while (resource->responses)
                 discovery_response_free (resource->responses->data);
 
-        if (resource->resource_group->priv->available)
+        if (priv->available)
                 resource_byebye (resource);
 
         g_free (resource->usn);

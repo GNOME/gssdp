@@ -26,39 +26,12 @@
 
 G_BEGIN_DECLS
 
-GType
-gssdp_resource_group_get_type (void) G_GNUC_CONST;
-
-#define GSSDP_TYPE_RESOURCE_GROUP \
-                (gssdp_resource_group_get_type ())
-#define GSSDP_RESOURCE_GROUP(obj) \
-                (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-                 GSSDP_TYPE_RESOURCE_GROUP, \
-                 GSSDPResourceGroup))
-#define GSSDP_RESOURCE_GROUP_CLASS(klass) \
-                (G_TYPE_CHECK_CLASS_CAST ((klass), \
-                 GSSDP_TYPE_RESOURCE_GROUP, \
-                 GSSDPResourceGroupClass))
-#define GSSDP_IS_RESOURCE_GROUP(obj) \
-                (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-                 GSSDP_TYPE_RESOURCE_GROUP))
-#define GSSDP_IS_RESOURCE_GROUP_CLASS(klass) \
-                (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-                 GSSDP_TYPE_RESOURCE_GROUP))
-#define GSSDP_RESOURCE_GROUP_GET_CLASS(obj) \
-                (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-                 GSSDP_TYPE_RESOURCE_GROUP, \
-                 GSSDPResourceGroupClass))
-
-typedef struct _GSSDPResourceGroupPrivate GSSDPResourceGroupPrivate;
-typedef struct _GSSDPResourceGroup GSSDPResourceGroup;
-typedef struct _GSSDPResourceGroupClass GSSDPResourceGroupClass;
-
-struct _GSSDPResourceGroup {
-        GObject parent;
-
-        GSSDPResourceGroupPrivate *priv;
-};
+#define GSSDP_TYPE_RESOURCE_GROUP (gssdp_resource_group_get_type ())
+G_DECLARE_DERIVABLE_TYPE (GSSDPResourceGroup,
+                          gssdp_resource_group,
+                          GSSDP,
+                          RESOURCE_GROUP,
+                          GObject)
 
 struct _GSSDPResourceGroupClass {
         GObjectClass parent_class;
@@ -69,6 +42,7 @@ struct _GSSDPResourceGroupClass {
         void (* _gssdp_reserved3) (void);
         void (* _gssdp_reserved4) (void);
 };
+typedef struct _GSSDPResourceGroupClass GSSDPResourceGroupClass;
 
 GSSDPResourceGroup *
 gssdp_resource_group_new                 (GSSDPClient        *client);
