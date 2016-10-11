@@ -66,14 +66,14 @@ get_client (GError **outer_error)
 
                 g_debug ("Detecting network interface to use for tests...");
 
-                client = gssdp_client_new (NULL, "lo", &error);
+                client = gssdp_client_new ("lo", &error);
                 if (error == NULL) {
                         g_debug ("Using lo");
                         device = g_strdup ("lo");
                         g_object_unref (client);
                 } else {
                         g_clear_error(&error);
-                        client = gssdp_client_new (NULL, "lo0", &error);
+                        client = gssdp_client_new ("lo0", &error);
                         if (error == NULL) {
                                 g_debug ("Using lo0");
                                 device = g_strdup ("lo0");
@@ -85,5 +85,5 @@ get_client (GError **outer_error)
                 g_once_init_leave (&init_guard, 1);
         }
 
-        return gssdp_client_new (NULL, device, outer_error);
+        return gssdp_client_new (device, outer_error);
 }

@@ -645,23 +645,14 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 
 /**
  * gssdp_client_new:
- * @main_context: (allow-none): Deprecated: 0.11.2: Always set to NULL. If you want to
- *                specify a context use g_main_context_push_thread_default()
  * @iface: (allow-none): The name of the network interface, or %NULL for auto-detection.
  * @error: Location to store error, or NULL
  *
  * Return value: A new #GSSDPClient object.
  **/
 GSSDPClient *
-gssdp_client_new (GMainContext *main_context,
-                  const char   *iface,
-                  GError      **error)
+gssdp_client_new (const char *iface, GError **error)
 {
-        if (main_context) {
-                g_warning ("GSSDPClient:main-context is deprecated."
-                           " Please use g_main_context_push_thread_default()");
-        }
-
         return g_initable_new (GSSDP_TYPE_CLIENT,
                                NULL,
                                error,
@@ -690,21 +681,6 @@ gssdp_client_new_with_port (const char *iface,
                                "interface", iface,
                                "msearch-port", msearch_port,
                                NULL);
-}
-
-/*
- * gssdp_client_get_main_context: (skip)
- * @client: A #GSSDPClient
- *
- * Returns: (transfer none): The #GMainContext @client is associated with, or %NULL.
- * Deprecated: 0.11.2: Returns g_main_context_get_thread_default()
- **/
-GMainContext *
-gssdp_client_get_main_context (GSSDPClient *client)
-{
-        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
-
-        return g_main_context_get_thread_default ();
 }
 
 /**
