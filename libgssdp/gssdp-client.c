@@ -32,7 +32,20 @@
  * and #GSSDPResourceGroup.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+#include "gssdp-client.h"
+#include "gssdp-client-private.h"
+#include "gssdp-error.h"
+#include "gssdp-socket-source.h"
+#include "gssdp-protocol.h"
+#include "gssdp-socket-functions.h"
+#ifdef HAVE_PKTINFO
+#include "gssdp-pktinfo-message.h"
+#endif
+
 #include <sys/types.h>
 #include <glib.h>
 #ifndef G_OS_WIN32
@@ -73,16 +86,6 @@ typedef unsigned long in_addr_t;
 
 #ifdef HAVE_SIOCGIFINDEX
 #include <sys/ioctl.h>
-#endif
-
-#include "gssdp-client.h"
-#include "gssdp-client-private.h"
-#include "gssdp-error.h"
-#include "gssdp-socket-source.h"
-#include "gssdp-protocol.h"
-#include "gssdp-socket-functions.h"
-#ifdef HAVE_PKTINFO
-#include "gssdp-pktinfo-message.h"
 #endif
 
 #ifndef INET6_ADDRSTRLEN

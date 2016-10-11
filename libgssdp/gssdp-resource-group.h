@@ -24,6 +24,8 @@
 
 #include "gssdp-client.h"
 
+#include <glib-object.h>
+
 G_BEGIN_DECLS
 
 #define GSSDP_TYPE_RESOURCE_GROUP (gssdp_resource_group_get_type ())

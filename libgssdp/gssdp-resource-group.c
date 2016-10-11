@@ -28,17 +28,20 @@
  * service as multiple SSDP resources (UPnP does this for example).
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-
-#include <libsoup/soup.h>
+#endif /* HAVE_CONFIG_H */
 
 #include "gssdp-resource-group.h"
 #include "gssdp-resource-browser.h"
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
+
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include <libsoup/soup.h>
 
 #define DEFAULT_MAN_HEADER "\"ssdp:discover\""
 

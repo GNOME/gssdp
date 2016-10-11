@@ -24,13 +24,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
-#include <glib.h>
+#endif /* HAVE_CONFIG_H */
 
 #include "gssdp-socket-functions.h"
 #include "gssdp-socket-source.h"
 #include "gssdp-protocol.h"
 #include "gssdp-error.h"
+
+#include <glib.h>
 
 struct _GSSDPSocketSource {
         GObject parent;

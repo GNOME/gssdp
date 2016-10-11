@@ -19,7 +19,14 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+#include "gssdp-error.h"
+#include "gssdp-socket-functions.h"
+#include "gssdp-pktinfo-message.h"
+
 #include <errno.h>
 #include <string.h>
 
@@ -35,10 +42,6 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
 #endif
-
-#include "gssdp-error.h"
-#include "gssdp-socket-functions.h"
-#include "gssdp-pktinfo-message.h"
 
 static char*
 gssdp_socket_error_message (int error) {

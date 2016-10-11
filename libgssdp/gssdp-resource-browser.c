@@ -30,15 +30,18 @@
  * automatically when activating the browser.
  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
-#include <libsoup/soup.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#endif /* HAVE_CONFIG_H */
 
 #include "gssdp-resource-browser.h"
 #include "gssdp-client-private.h"
 #include "gssdp-protocol.h"
+
+#include <libsoup/soup.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define RESCAN_TIMEOUT 5 /* 5 seconds */
 #define MAX_DISCOVERY_MESSAGES 3

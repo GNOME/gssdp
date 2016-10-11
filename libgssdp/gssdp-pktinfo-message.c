@@ -19,9 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <netinet/ip.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
 #include "gssdp-pktinfo-message.h"
+
+#include <netinet/ip.h>
 
 struct _GSSDPPktinfoMessage {
         GSocketControlMessage parent;
