@@ -1117,6 +1117,8 @@ resource_free (Resource *resource)
 
         priv = gssdp_resource_group_get_instance_private
                                         (resource->resource_group);
+        /* discovery_response_free will take clear of freeing the list
+         * elements and data */
         while (resource->responses)
                 discovery_response_free (resource->responses->data);
 
@@ -1165,6 +1167,9 @@ create_target_regex (const char *target, guint *version, GError **error)
 
         version_str = get_version_for_target (pattern);
         if (version_str != NULL) {
+                /* version_str is now at : + 1 in the pattern string, so this
+                 * replaces the actual version with the number matching regex
+                 */
                 *version = atoi (version_str);
                 strcpy (version_str, VERSION_PATTERN);
         }
