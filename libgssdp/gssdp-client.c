@@ -226,18 +226,20 @@ gssdp_client_initable_init (GInitable                   *initable,
                 return TRUE;
 
 #ifdef G_OS_WIN32
-        WSADATA wsaData = {0};
-        if (WSAStartup (MAKEWORD (2,2), &wsaData) != 0) {
-                gchar *message;
+        {
+            WSADATA wsaData = {0};
+            if (WSAStartup (MAKEWORD (2,2), &wsaData) != 0) {
+                    gchar *message;
 
-                message = g_win32_error_message (WSAGetLastError ());
-                g_set_error_literal (error,
-                                     GSSDP_ERROR,
-                                     GSSDP_ERROR_FAILED,
-                                     message);
-                g_free (message);
+                    message = g_win32_error_message (WSAGetLastError ());
+                    g_set_error_literal (error,
+                                         GSSDP_ERROR,
+                                         GSSDP_ERROR_FAILED,
+                                         message);
+                    g_free (message);
 
-                return FALSE;
+                    return FALSE;
+            }
         }
 #endif
 
@@ -1567,7 +1569,6 @@ get_host_ip (GSSDPNetworkDevice *device)
                 char ip[INET6_ADDRSTRLEN];
                 char prefix[INET6_ADDRSTRLEN];
                 const char *p, *q;
-                PIP_ADAPTER_ADDRESSES adapter;
                 PIP_ADAPTER_UNICAST_ADDRESS address;
                 PIP_ADAPTER_PREFIX address_prefix;
 
@@ -1595,11 +1596,12 @@ get_host_ip (GSSDPNetworkDevice *device)
                         }
 
                         if (p != NULL) {
+                                gint32 mask = 0;
+
                                 device->host_ip = g_strdup (p);
                                 /* This relies on the compiler doing an arithmetic
                                  * shift here!
                                  */
-                                gint32 mask = 0;
                                 if (address_prefix->PrefixLength > 0) {
                                         mask = (gint32) 0x80000000;
                                         mask >>= address_prefix->PrefixLength - 1;
