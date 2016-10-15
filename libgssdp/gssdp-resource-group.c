@@ -435,7 +435,7 @@ gssdp_resource_group_set_max_age (GSSDPResourceGroup *resource_group,
                 return;
 
         priv->max_age = max_age;
-        
+
         g_object_notify (G_OBJECT (resource_group), "max-age");
 }
 
@@ -476,7 +476,7 @@ gssdp_resource_group_set_message_delay (GSSDPResourceGroup *resource_group,
                 return;
 
         priv->message_delay = message_delay;
-        
+
         g_object_notify (G_OBJECT (resource_group), "message-delay");
 }
 
@@ -558,8 +558,7 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                         timeout = (timeout / 3) - 1;
 
                 /* Add re-announcement timer */
-                priv->timeout_src =
-                        g_timeout_source_new_seconds (timeout);
+                priv->timeout_src = g_timeout_source_new_seconds (timeout);
                 g_source_set_callback (priv->timeout_src,
                                        resource_group_timeout,
                                        resource_group, NULL);
@@ -585,7 +584,7 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
                 g_source_destroy (priv->timeout_src);
                 priv->timeout_src = NULL;
         }
-        
+
         g_object_notify (G_OBJECT (resource_group), "available");
 }
 
@@ -644,7 +643,9 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
         resource->usn    = g_strdup (usn);
 
         error = NULL;
-        resource->target_regex = create_target_regex (target, &resource->version, &error);
+        resource->target_regex = create_target_regex (target,
+                                                      &resource->version,
+                                                      &error);
         if (error) {
                 g_warning ("Error compiling regular expression for '%s': %s",
                            target,
@@ -660,11 +661,10 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 
         for (l = locations; l; l = l->next) {
                 resource->locations = g_list_append (resource->locations,
-                                                    g_strdup (l->data));
+                                                     g_strdup (l->data));
         }
 
-        priv->resources =
-                g_list_prepend (priv->resources, resource);
+        priv->resources = g_list_prepend (priv->resources, resource);
 
         resource->id = ++priv->last_resource_id;
 
@@ -696,7 +696,10 @@ gssdp_resource_group_add_resource_simple (GSSDPResourceGroup *resource_group,
         guint  resource_id;
 
         locations = g_list_append (locations, (gpointer) location);
-        resource_id = gssdp_resource_group_add_resource (resource_group, target, usn, locations);
+        resource_id = gssdp_resource_group_add_resource (resource_group,
+                                                         target,
+                                                         usn,
+                                                         locations);
 
         g_list_free (locations);
 
@@ -727,10 +730,9 @@ gssdp_resource_group_remove_resource (GSSDPResourceGroup *resource_group,
                 resource = l->data;
 
                 if (resource->id == resource_id) {
-                        priv->resources = 
-                                g_list_remove (priv->resources,
-                                               resource);
-                        
+                        priv->resources = g_list_remove (priv->resources,
+                                                         resource);
+
                         resource_free (resource);
 
                         return;
@@ -750,8 +752,7 @@ resource_group_timeout (gpointer user_data)
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
         priv = gssdp_resource_group_get_instance_private (resource_group);
 
-        send_announcement_set (priv->resources,
-                               (GFunc) resource_alive);
+        send_announcement_set (priv->resources, (GFunc) resource_alive);
 
         return TRUE;
 }
@@ -787,7 +788,7 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
 
         /* Extract target */
         target = soup_message_headers_get_one (headers, "ST");
-        if (!target) {
+        if (target == NULL) {
                 g_warning ("Discovery request did not have an ST header");
 
                 return;
@@ -798,14 +799,14 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
 
         /* Extract MX */
         mx_str = soup_message_headers_get_one (headers, "MX");
-        if (!mx_str || atoi (mx_str) <= 0) {
+        if (mx_str == NULL || atoi (mx_str) <= 0) {
                 g_warning ("Discovery request did not have a valid MX header");
 
                 return;
         }
 
         man = soup_message_headers_get_one (headers, "MAN");
-        if (!man || strcmp (man, DEFAULT_MAN_HEADER) != 0) {
+        if (man == NULL || strcmp (man, DEFAULT_MAN_HEADER) != 0) {
                 g_warning ("Discovery request did not have a valid MAN header");
 
                 return;
@@ -821,7 +822,7 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
                 version = 0;
 
         /* Find matching resource */
-        for (l = priv->resources; l; l = l->next) {
+        for (l = priv->resources; l != NULL; l = l->next) {
                 Resource *resource;
 
                 resource = l->data;
@@ -841,7 +842,7 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
 
                         /* Prepare response */
                         response = g_slice_new (DiscoveryResponse);
-                        
+
                         response->dest_ip   = g_strdup (from_ip);
                         response->dest_port = from_port;
                         response->resource  = resource;
@@ -861,7 +862,7 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
                                          g_main_context_get_thread_default ());
 
                         g_source_unref (response->timeout_src);
-                        
+
                         /* Add to resource */
                         resource->responses =
                                 g_list_prepend (resource->responses, response);
@@ -875,23 +876,24 @@ message_received_cb (G_GNUC_UNUSED GSSDPClient *client,
 static char *
 construct_al (Resource *resource)
 {
-       if (resource->locations->next) {
-                GString *al_string;
-                GList *l;
+        GString *al_string;
+        GList *l;
 
-                al_string = g_string_new ("AL: ");
+        if (resource->locations->next == NULL) {
+                return NULL;
+        }
 
-                for (l = resource->locations->next; l; l = l->next) {
-                        g_string_append_c (al_string, '<');
-                        g_string_append (al_string, l->data);
-                        g_string_append_c (al_string, '>');
-                }
+        al_string = g_string_new ("AL: ");
 
-                g_string_append (al_string, "\r\n");
+        for (l = resource->locations->next; l; l = l->next) {
+                g_string_append_c (al_string, '<');
+                g_string_append (al_string, l->data);
+                g_string_append_c (al_string, '>');
+        }
 
-                return g_string_free (al_string, FALSE);
-        } else
-                return NULL; 
+        g_string_append (al_string, "\r\n");
+
+        return g_string_free (al_string, FALSE);
 }
 
 static char *
@@ -980,7 +982,7 @@ discovery_response_free (DiscoveryResponse *response)
                 g_list_remove (response->resource->responses, response);
 
         g_source_destroy (response->timeout_src);
-        
+
         g_free (response->dest_ip);
         g_free (response->target);
 
@@ -995,6 +997,8 @@ process_queue (gpointer data)
 {
         GSSDPResourceGroup *resource_group;
         GSSDPResourceGroupPrivate *priv;
+        GSSDPClient *client;
+        char *message;
 
         resource_group = GSSDP_RESOURCE_GROUP (data);
         priv = gssdp_resource_group_get_instance_private (resource_group);
@@ -1004,23 +1008,19 @@ process_queue (gpointer data)
                 priv->message_src = NULL;
 
                 return FALSE;
-        } else {
-                GSSDPClient *client;
-                char *message;
-
-                client = priv->client;
-                message = g_queue_pop_head
-                        (priv->message_queue);
-
-                _gssdp_client_send_message (client,
-                                            NULL,
-                                            0,
-                                            message,
-                                            _GSSDP_DISCOVERY_RESPONSE);
-                g_free (message);
-
-                return TRUE;
         }
+
+        client = priv->client;
+        message = g_queue_pop_head (priv->message_queue);
+
+        _gssdp_client_send_message (client,
+                                    NULL,
+                                    0,
+                                    message,
+                                    _GSSDP_DISCOVERY_RESPONSE);
+        g_free (message);
+
+        return TRUE;
 }
 
 /*
@@ -1035,21 +1035,23 @@ queue_message (GSSDPResourceGroup *resource_group,
         GSSDPResourceGroupPrivate *priv;
         priv = gssdp_resource_group_get_instance_private (resource_group);
 
-        g_queue_push_tail (priv->message_queue, 
-                           message);
+        g_queue_push_tail (priv->message_queue, message);
 
-        if (priv->message_src == NULL) {
-                /* nothing in the queue: process message immediately 
-                   and add a timeout for (possible) next message */
-                process_queue (resource_group);
-                priv->message_src = g_timeout_source_new (
-                    priv->message_delay);
-                g_source_set_callback (priv->message_src,
-                    process_queue, resource_group, NULL);
-                g_source_attach (priv->message_src,
-                                 g_main_context_get_thread_default ());
-                g_source_unref (priv->message_src);
+        if (priv->message_src != NULL) {
+                return;
         }
+
+        /* nothing in the queue: process message immediately
+           and add a timeout for (possible) next message */
+        process_queue (resource_group);
+        priv->message_src = g_timeout_source_new (priv->message_delay);
+        g_source_set_callback (priv->message_src,
+                               process_queue,
+                               resource_group,
+                               NULL);
+        g_source_attach (priv->message_src,
+                        g_main_context_get_thread_default ());
+        g_source_unref (priv->message_src);
 }
 
 /*
