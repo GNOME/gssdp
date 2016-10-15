@@ -248,19 +248,13 @@ gssdp_resource_group_dispose (GObject *object)
                                         (priv->message_queue));
                 }
 
-                g_queue_free (priv->message_queue);
-                priv->message_queue = NULL;
+                g_clear_pointer (&priv->message_queue, g_queue_free);
         }
 
-        if (priv->message_src) {
-                g_source_destroy (priv->message_src);
-                priv->message_src = NULL;
-        }
 
-        if (priv->timeout_src) {
-                g_source_destroy (priv->timeout_src);
-                priv->timeout_src = NULL;
-        }
+        /* No need to unref sources, already done on creation */
+        g_clear_pointer (&priv->message_src, g_source_destroy);
+        g_clear_pointer (&priv->timeout_src, g_source_destroy);
 
         if (priv->client) {
                 if (g_signal_handler_is_connected
@@ -270,9 +264,8 @@ gssdp_resource_group_dispose (GObject *object)
                                 (priv->client,
                                  priv->message_received_id);
                 }
-                                                   
-                g_object_unref (priv->client);
-                priv->client = NULL;
+
+                g_clear_object (priv->client);
         }
 
         G_OBJECT_CLASS (gssdp_resource_group_parent_class)->dispose (object);
@@ -1131,14 +1124,8 @@ resource_free (Resource *resource)
         g_free (resource->usn);
         g_free (resource->target);
 
-        if (resource->target_regex)
-                g_regex_unref (resource->target_regex);
-
-        while (resource->locations) {
-                g_free (resource->locations->data);
-                resource->locations = g_list_delete_link (resource->locations,
-                                                         resource->locations);
-        }
+        g_clear_pointer (&resource->target_regex, g_regex_unref);
+        g_list_free_full (resource->locations, g_free);
 
         g_slice_free (Resource, resource);
 }
