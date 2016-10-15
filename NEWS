@@ -1,3 +1,19 @@
+1.0.1
+=====
+
+- Fix some compiler/c89 issues with recent mingw
+- Use proper ssize_t modifier in printf
+- Make documentation point to itself by declaring it stable
+- Use correct FSF address in documentation text
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
+1.0.0
+=====
+
+- No difference to 0.99.0
+
 0.99.0
 ======
 

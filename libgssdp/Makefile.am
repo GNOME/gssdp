@@ -8,7 +8,7 @@
 # If any interfaces have been removed since the last public release, then set
 # age to 0.
 
-LTVERSION = 3:0:0
+LTVERSION = 3:1:0
 
 AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir) $(WARN_CFLAGS)
 
