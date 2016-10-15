@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "gssdp-client.h"
-#include "gssdp-error.h"
-#include "gssdp-resource-browser.h"
-#include "gssdp-resource-group.h"
-#include "gssdp-enums.h"
+#include <libgssdp/gssdp-client.h>
+#include <libgssdp/gssdp-error.h>
+#include <libgssdp/gssdp-resource-browser.h>
+#include <libgssdp/gssdp-resource-group.h>
+#include <libgssdp/gssdp-enums.h>

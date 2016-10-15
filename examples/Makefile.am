@@ -1,4 +1,4 @@
-AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir)
+AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir) -I$(top_builddir)
 
 noinst_PROGRAMS = test-browser test-publish
 

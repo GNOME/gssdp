@@ -10,7 +10,7 @@
 
 LTVERSION = 0:0:0
 
-AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir) $(WARN_CFLAGS)
+AM_CFLAGS = $(LIBGSSDP_CFLAGS) -I$(top_srcdir) -I$(top_builddir) $(WARN_CFLAGS)
 
 libgssdpincdir = $(includedir)/gssdp-1.2/libgssdp
 
@@ -110,13 +110,13 @@ INTROSPECTION_SCANNER_ARGS = \
 			     --add-include-path=$(top_srcdir) \
 			     --pkg-export=gssdp-1.2 \
 			     $(WARN_SCANNERFLAGS)
-INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)
+INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir) --includedir=$(top_builddir)
 
 
 if HAVE_INTROSPECTION
 GSSDP-1.2.gir: libgssdp-1.2.la
 GSSDP_1_2_gir_INCLUDES = GObject-2.0 Gio-2.0 Soup-2.4
-GSSDP_1_2_gir_CFLAGS = $(INCLUDES)
+GSSDP_1_2_gir_CFLAGS = $(AM_CFLAGS)
 GSSDP_1_2_gir_LIBS = libgssdp-1.2.la
 GSSDP_1_2_gir_FILES = $(introspection_sources)
 GSSDP_1_2_gir_NAMESPACE = GSSDP
