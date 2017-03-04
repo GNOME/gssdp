@@ -584,6 +584,7 @@ init_ui (gint *argc, gchar **argv[])
         const gchar *ui_path = NULL;
         GError *error = NULL;
         GOptionContext *context;
+        double w, h;
 
         context = g_option_context_new ("- graphical SSDP debug tool");
         g_option_context_add_main_entries (context, entries, NULL);
@@ -617,9 +618,28 @@ init_ui (gint *argc, gchar **argv[])
         main_window = GTK_WIDGET(gtk_builder_get_object (builder, "main-window"));
         g_assert (main_window != NULL);
 
-        /* 80% of the screen but don't get bigger than 1000x800 */
-        window_width = CLAMP ((gdk_screen_width () * 80 / 100), 10, 1000);
-        window_height = CLAMP ((gdk_screen_height () * 80 / 100), 10, 800);
+
+#if GTK_CHECK_VERSION(3,22,0)
+        gtk_widget_realize (main_window);
+        {
+            GdkWindow *window = gtk_widget_get_window (main_window);
+            GdkDisplay *display = gdk_display_get_default ();
+            GdkMonitor *monitor = gdk_display_get_monitor_at_window (display,
+                                                                     window);
+            GdkRectangle rectangle;
+
+            gdk_monitor_get_geometry (monitor, &rectangle);
+            w = rectangle.width * 0.75;
+            h = rectangle.height * 0.75;
+        }
+
+#else
+        w = gdk_screen_width () * 0.75;
+        h = gdk_screen_height () * 0.75;
+#endif
+
+        window_width = CLAMP ((int) w, 10, 1000);
+        window_height = CLAMP ((int) h, 10, 800);
         gtk_window_set_default_size (GTK_WINDOW (main_window),
                                      window_width,
                                      window_height);
