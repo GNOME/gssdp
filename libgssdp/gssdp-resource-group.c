@@ -265,7 +265,7 @@ gssdp_resource_group_dispose (GObject *object)
                                  priv->message_received_id);
                 }
 
-                g_clear_object (priv->client);
+                g_clear_object (&priv->client);
         }
 
         G_OBJECT_CLASS (gssdp_resource_group_parent_class)->dispose (object);
