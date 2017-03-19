@@ -65,7 +65,7 @@ if TARGET_ANDROID
 libgssdp_1_0_la_LIBADD += -llog
 endif
 
-EXTRA_DIST = gssdp-marshal.list
+EXTRA_DIST = gssdp-marshal.list meson.build
 
 CLEANFILES = $(BUILT_SOURCES)
 
@@ -76,6 +76,7 @@ INTROSPECTION_SCANNER_ARGS = \
 			     --identifier-prefix=GSSDP		\
 			     --add-include-path=$(top_srcdir) \
 			     --pkg-export=gssdp-1.0 \
+				 --c-include=gssdp/gssdp.h \
 			     $(WARN_SCANNERFLAGS)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)
 

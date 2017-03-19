@@ -5,6 +5,8 @@ AM_CFLAGS = $(LIBGSSDP_CFLAGS) $(LIBGTK_CFLAGS) -I$(top_srcdir) -DUI_DIR='"$(uid
 
 bin_PROGRAMS = gssdp-device-sniffer
 
+EXTRA_DIST = meson.build
+
 gssdp_device_sniffer_SOURCES = gssdp-device-sniffer.c
 gssdp_device_sniffer_LDADD = $(LIBGSSDP_LIBS) $(LIBGTK_LIBS) $(top_builddir)/libgssdp/libgssdp-1.0.la
 gssdp_device_sniffer_LDFLAGS = -export-dynamic $(WARN_LDFLAGS)

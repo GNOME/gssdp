@@ -7,6 +7,8 @@ check_PROGRAMS = test-regression test-functional
 
 noinst_LIBRARIES = libtestutil.a
 
+EXTRA_DIST = meson.build
+
 libtestutil_a_SOURCES = test-util.h test-util.c
 
 test_regression_SOURCES = test-regression.c

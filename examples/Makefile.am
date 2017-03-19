@@ -11,3 +11,4 @@ test_publish_LDADD   = $(top_builddir)/libgssdp/libgssdp-1.0.la $(LIBGSSDP_LIBS)
 CLEANFILES = $(BUILT_SOURCES)
 DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
+EXTRA_DIST = meson.build
