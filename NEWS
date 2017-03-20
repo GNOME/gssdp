@@ -1,3 +1,11 @@
+1.0.2
+=====
+- Small documentation fixes
+- Fix deprecation warning with GTK+-3.22
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.0.1
 =====
 
