@@ -1,3 +1,10 @@
+enums = gnome.mkenums('gssdp-enums', sources : 'gssdp-error.h',
+                      identifier_prefix : 'GSSDP',
+                      symbol_prefix : 'gssdp',
+                      c_template : 'gssdp-enums.c.template',
+                      h_template : 'gssdp-enums.h.template'
+                      )
+
 headers = [
     'gssdp-client.h',
     'gssdp-resource-browser.h',
@@ -17,7 +24,7 @@ sources = [
     'gssdp-socket-source.h',
     'gssdp-socket-functions.c',
     'gssdp-socket-functions.h'
-    ]
+    ] + enums
 
 if host_machine.system() == 'windows'
   sources += 'gssdp-net-win32.c'
