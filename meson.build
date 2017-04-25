@@ -8,13 +8,52 @@ as_major_version = ver_arr[0]
 as_minor_version = ver_arr[1]
 as_micro_version = ver_arr[2]
 
+cc = meson.get_compiler('c')
+
 conf = configuration_data()
 conf.set('VERSION', '"@0@"'.format(meson.project_version()))
+
+# Check for struct in_pktinfo
+pktinfo_test = '''#include <netinet/ip.h>
+struct in_pktinfo pktinfo;
+'''
+
+pktinfo_available = cc.compiles(pktinfo_test,
+                                name : 'struct in_pktinfo is available')
+if pktinfo_available
+  conf.set('HAVE_PKTINFO', '1')
+endif
+
+# Check for if_nametoindex
+if_nametoindex_test = '''#include <net/if.h>
+int main(int argc, char *argv[]) {
+  (void) argc;
+  (void) argv;
+  if_nametoindex("lo");
+  return 0;
+}
+'''
+
+ifnametoindex_available = cc.compiles(if_nametoindex_test,
+                                      name : 'if_nametoindex is available')
+if ifnametoindex_available
+  conf.set('HAVE_IFNAMETOINDEX', '1')
+endif
+
+# Check for SIOCGIFINDEX
+siocgifindex_test = '''#include <sys/ioctl.h>
+static const int foo = SIOCGIFINDEX;
+'''
+siocgifindex_available = cc.compiles(siocgifindex_test,
+                                     name : 'SIOCGIFINDEX is available')
+if siocgifindex_available
+  conf.set('HAVE_SIOCGIFINDEX', '1')
+endif
+
 configure_file(output : 'config.h', configuration : conf)
 
 add_global_arguments('-DHAVE_CONFIG_H=1', language : 'c')
 
-cc = meson.get_compiler('c')
 system_deps = []
 
 # Check whether we are compiling against Android libc

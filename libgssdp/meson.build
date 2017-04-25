@@ -29,6 +29,13 @@ sources = introspection_sources + [
     'gssdp-socket-functions.h'
     ]
 
+if pktinfo_available
+  sources += [
+    'gssdp-pktinfo-message.c',
+    'gssdp-pktinfo-message.h'
+    ]
+endif
+
 if host_machine.system() == 'windows'
   sources += 'gssdp-net-win32.c'
 endif
