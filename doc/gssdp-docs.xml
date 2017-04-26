@@ -4,7 +4,6 @@
 <!ENTITY version SYSTEM "version.xml">               
 ]>
 <book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
-  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
   <bookinfo>
     <title>GSSDP Reference Manual</title>
 
@@ -54,4 +53,6 @@
     <xi:include href="xml/gssdp-resource-group.xml"/>
     <xi:include href="xml/gssdp-error.xml"/>
   </chapter>
+
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
 </book>
