@@ -87,3 +87,4 @@ if (gtk.found())
   subdir('tools')
 endif
 subdir('vala')
+subdir('doc')
