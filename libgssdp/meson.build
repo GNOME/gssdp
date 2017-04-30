@@ -57,6 +57,14 @@ libgssdp = shared_library('gssdp-1.2', sources,
     include_directories : include_directories('..'),
     install : true)
 
+pkg.generate(libraries: [ libgssdp ],
+             subdirs: 'gssdp-1.2',
+             version: meson.project_version(),
+             name: 'gssdp-1.2',
+             filebase : 'gssdp-1.2',
+             description: 'GObject-based SSDP library',
+             requires_private: ['gobject-2.0', 'gio-2.0'])
+
 gir = gnome.generate_gir(libgssdp,
                    sources : introspection_sources,
                    namespace : 'GSSDP',
