@@ -70,10 +70,6 @@ fi
 AC_SUBST(HAVE_LIBGTK)
 AM_CONDITIONAL(USE_LIBGTK, test x$USE_LIBGTK = xyes)
 
-# glib-genmarshal
-GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
-AC_SUBST(GLIB_GENMARSHAL)
-
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
 
 # vapigen
