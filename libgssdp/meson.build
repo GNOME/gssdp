@@ -65,13 +65,14 @@ pkg.generate(libraries: [ libgssdp ],
              description: 'GObject-based SSDP library',
              requires_private: ['gobject-2.0', 'gio-2.0'])
 
-gir = gnome.generate_gir(libgssdp,
-                   sources : introspection_sources,
-                   namespace : 'GSSDP',
-                   nsversion : '1.2',
-                   symbol_prefix : 'gssdp',
-                   identifier_prefix : 'GSSDP',
-                   export_packages : 'gssdp-1.2',
-                   includes : ['GObject-2.0', 'Gio-2.0', 'Soup-2.4'],
-                   install: true
-                   )
+if introspection_available
+    gir = gnome.generate_gir(libgssdp,
+            sources : introspection_sources,
+            namespace : 'GSSDP',
+            nsversion : '1.2',
+            symbol_prefix : 'gssdp',
+            identifier_prefix : 'GSSDP',
+            export_packages : 'gssdp-1.2',
+            includes : ['GObject-2.0', 'Gio-2.0', 'Soup-2.4'],
+            install: true)
+endif

@@ -85,12 +85,21 @@ if not get_option('without-gtk')
   gtk = dependency('gtk+-3.0', version : '>= 3.12', required: false)
 endif
 
+gir = find_program('g-ir-scanner', required: false)
+vapigen = find_program('vapigen', required: false)
+
+introspection_available = gir.found() and not get_option('disable-introspection')
+vapi_available = introspection_available and vapigen.found() and not get_option('disable-vala')
+
 subdir('libgssdp')
 subdir('tests')
 if not get_option('without-gtk') and gtk.found()
   subdir('tools')
 endif
-subdir('vala')
+
+if vapi_available
+  subdir('vala')
+endif
 
 if get_option('enable-gtk-doc')
   subdir('doc')
