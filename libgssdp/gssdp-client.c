@@ -193,14 +193,14 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
                                          &internal_error);
-        if (priv->request_socket != NULL) {
-                gssdp_socket_source_set_callback
+        if (priv->request_socket == NULL) {
+                goto errors;
+        }
+
+        gssdp_socket_source_set_callback
                         (priv->request_socket,
                         (GSourceFunc) request_socket_source_cb,
                         client);
-        } else {
-                goto errors;
-        }
 
         priv->multicast_socket =
                 gssdp_socket_source_new (GSSDP_SOCKET_SOURCE_TYPE_MULTICAST,
@@ -208,14 +208,14 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          priv->socket_ttl,
                                          priv->device.iface_name,
                                          &internal_error);
-        if (priv->multicast_socket != NULL) {
-                gssdp_socket_source_set_callback
+        if (priv->multicast_socket == NULL) {
+            goto errors;
+        }
+
+        gssdp_socket_source_set_callback
                         (priv->multicast_socket,
                          (GSourceFunc) multicast_socket_source_cb,
                          client);
-        } else {
-                goto errors;
-        }
 
         /* Setup send socket. For security reasons, it is not recommended to
          * send M-SEARCH with source port == SSDP_PORT */
@@ -236,6 +236,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          (GSourceFunc) search_socket_source_cb,
                                          client);
         }
+
  errors:
         if (!priv->request_socket ||
             !priv->multicast_socket ||

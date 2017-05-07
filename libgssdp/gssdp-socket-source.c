@@ -213,9 +213,9 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 
         /* Create socket */
         priv->socket = g_socket_new (G_SOCKET_FAMILY_IPV4,
-                                           G_SOCKET_TYPE_DATAGRAM,
-                                           G_SOCKET_PROTOCOL_UDP,
-                                           &inner_error);
+                                     G_SOCKET_TYPE_DATAGRAM,
+                                     G_SOCKET_PROTOCOL_UDP,
+                                     &inner_error);
 
         if (!priv->socket) {
                 g_propagate_prefixed_error (error,
@@ -330,8 +330,8 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         }
 
         priv->source = g_socket_create_source (priv->socket,
-                                                     G_IO_IN | G_IO_ERR,
-                                                     NULL);
+                                               G_IO_IN | G_IO_ERR,
+                                               NULL);
         success = TRUE;
 
 error:
