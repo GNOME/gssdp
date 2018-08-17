@@ -67,6 +67,7 @@ if introspection_available
             sources : headers + sources + enums,
             namespace : 'GSSDP',
             nsversion : '1.2',
+            header : 'libgssdp/gssdp.h',
             symbol_prefix : 'gssdp',
             identifier_prefix : 'GSSDP',
             export_packages : 'gssdp-1.2',
