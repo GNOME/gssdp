@@ -81,19 +81,19 @@ gobject_dep = dependency('gobject-2.0', version : '>= 2.32')
 gio_dep = dependency('gio-2.0', version : '>= 2.32')
 soup_dep = dependency('libsoup-2.4', version : '>= 2.26.1')
 
-if not get_option('without-gtk')
+if get_option('ui')
   gtk = dependency('gtk+-3.0', version : '>= 3.12', required: false)
 endif
 
 gir = find_program('g-ir-scanner', required: false)
 vapigen = find_program('vapigen', required: false)
 
-introspection_available = gir.found() and not get_option('disable-introspection')
-vapi_available = introspection_available and vapigen.found() and not get_option('disable-vala')
+introspection_available = gir.found() and get_option('introspection')
+vapi_available = introspection_available and vapigen.found() and get_option('vapi')
 
 subdir('libgssdp')
 subdir('tests')
-if not get_option('without-gtk') and gtk.found()
+if get_option('ui') and gtk.found()
   subdir('tools')
 endif
 
@@ -101,6 +101,6 @@ if vapi_available
   subdir('vala')
 endif
 
-if get_option('enable-gtk-doc')
+if get_option('docs')
   subdir('doc')
 endif

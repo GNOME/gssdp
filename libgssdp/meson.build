@@ -20,6 +20,7 @@ introspection_sources = headers + [
     'gssdp-resource-browser.c',
     'gssdp-resource-group.c'
     ] + enums
+
 sources = introspection_sources + [
     'gssdp-client-private.h',
     'gssdp-protocol.h',
