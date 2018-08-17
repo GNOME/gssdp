@@ -1,9 +1,8 @@
 sniffer_uidir = join_paths(get_option('datadir'), 'gssdp-1.2')
 
-sniffer_deps = [glib_dep, gobject_dep, gio_dep, gtk, soup_dep]
 sniffer = executable('gssdp-device-sniffer',
                      ['gssdp-device-sniffer.c'],
-                     dependencies : sniffer_deps,
+                     dependencies : dependencies + [gtk],
                      include_directories : include_directories('..'),
                      link_with: libgssdp,
                      install: true,

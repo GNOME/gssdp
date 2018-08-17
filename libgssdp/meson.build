@@ -2,39 +2,32 @@ enums = gnome.mkenums('gssdp-enums', sources : 'gssdp-error.h',
                       identifier_prefix : 'GSSDP',
                       symbol_prefix : 'gssdp',
                       c_template : 'gssdp-enums.c.template',
-                      h_template : 'gssdp-enums.h.template'
+                      h_template : 'gssdp-enums.h.template',
+                      install_header : true,
+                      install_dir : join_paths(get_option('includedir'), 'gssdp-1.2/libgssdp')
                       )
 
-headers = [
+headers = files(
     'gssdp-client.h',
     'gssdp-resource-browser.h',
     'gssdp-resource-group.h',
-    'gssdp.h'
-    ]
-install_headers(headers, subdir : 'gssdp-1.0/libgssdp')
+    'gssdp-error.h',
+    'gssdp.h',
+)
 
-introspection_sources = headers + [
+install_headers(headers, subdir : 'gssdp-1.2/libgssdp')
+
+sources = files(
     'gssdp-client.c',
     'gssdp-error.c',
-    'gssdp-error.h',
     'gssdp-resource-browser.c',
-    'gssdp-resource-group.c'
-    ] + enums
-
-sources = introspection_sources + [
-    'gssdp-client-private.h',
-    'gssdp-protocol.h',
+    'gssdp-resource-group.c',
     'gssdp-socket-source.c',
-    'gssdp-socket-source.h',
     'gssdp-socket-functions.c',
-    'gssdp-socket-functions.h'
-    ]
+)
 
 if pktinfo_available
-  sources += [
-    'gssdp-pktinfo-message.c',
-    'gssdp-pktinfo-message.h'
-    ]
+  sources += 'gssdp-pktinfo-message.c'
 endif
 
 if host_machine.system() == 'windows'
@@ -49,12 +42,10 @@ if generic_unix
   sources += 'gssdp-net-posix.c'
 endif
 
-deps = [glib_dep, gobject_dep, gio_dep, soup_dep] + system_deps
-
-libgssdp = shared_library('gssdp-1.2', sources,
+libgssdp = library('gssdp-1.2', sources + enums,
     soversion : 0,
     version : '0.0.0',
-    dependencies : deps,
+    dependencies : dependencies + system_deps,
     include_directories : include_directories('..'),
     install : true)
 
@@ -68,7 +59,7 @@ pkg.generate(libraries: [ libgssdp ],
 
 if introspection_available
     gir = gnome.generate_gir(libgssdp,
-            sources : introspection_sources,
+            sources : headers + sources + enums,
             namespace : 'GSSDP',
             nsversion : '1.2',
             symbol_prefix : 'gssdp',
