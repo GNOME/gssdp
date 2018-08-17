@@ -100,3 +100,7 @@ endif
 if get_option('docs')
   subdir('doc')
 endif
+
+if get_option('examples')
+  subdir('examples')
+endif

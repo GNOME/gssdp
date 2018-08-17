@@ -49,6 +49,11 @@ libgssdp = library('gssdp-1.2', sources + enums,
     include_directories : include_directories('..'),
     install : true)
 
+gssdp = declare_dependency(link_with : libgssdp,
+                           include_directories: include_directories('..'),
+                           dependencies : dependencies
+                       )
+
 pkg.generate(libraries: [ libgssdp ],
              subdirs: 'gssdp-1.2',
              version: meson.project_version(),

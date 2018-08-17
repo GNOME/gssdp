@@ -2,3 +2,4 @@ option('docs', type: 'boolean', value: false, description: 'Enable generating th
 option('ui', type: 'boolean', value: true, description: 'Build GTK+ UI tool')
 option('introspection', type: 'boolean', value : true, description: 'Enable or disable GObject Introspection')
 option('vapi', type: 'boolean', value: true, description: 'Enable or disable generation of vala vapi file')
+option('examples', type: 'boolean', value: true, description : 'Enable or disable examples')
