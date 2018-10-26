@@ -50,7 +50,9 @@ endif
 
 deps = [glib_dep, gobject_dep, gio_dep, soup_dep] + system_deps
 
-libgssdp = shared_library('gssdp-1.2', sources,
+libgssdp = library(
+    'gssdp-1.2',
+    sources,
     soversion : 0,
     version : '0.0.0',
     dependencies : deps,
