@@ -2,13 +2,6 @@ project('GSSDP', 'c', version: '1.1.0')
 gnome = import('gnome')
 pkg = import('pkgconfig')
 
-as_version = meson.project_version() # set in project() below
-ver_arr = as_version.split('.')
-
-as_major_version = ver_arr[0]
-as_minor_version = ver_arr[1]
-as_micro_version = ver_arr[2]
-
 cc = meson.get_compiler('c')
 
 conf = configuration_data()
@@ -77,27 +70,19 @@ dependencies = [
     dependency('libsoup-2.4', version : '>= 2.26.1')
 ]
 
-if get_option('ui')
-  gtk = dependency('gtk+-3.0', version : '>= 3.12', required: false)
-endif
-
-gir = find_program('g-ir-scanner', required: false)
-vapigen = find_program('vapigen', required: false)
-
-introspection_available = gir.found() and get_option('introspection')
-vapi_available = introspection_available and vapigen.found() and get_option('vapi')
-
 subdir('libgssdp')
 subdir('tests')
-if get_option('ui') and gtk.found()
+
+if get_option('sniffer')
+  gtk = dependency('gtk+-3.0', version : '>= 3.12')
   subdir('tools')
 endif
 
-if vapi_available
+if get_option('vapi') and get_option('introspection')
   subdir('vala')
 endif
 
-if get_option('docs')
+if get_option('gtk_doc')
   subdir('doc')
 endif
 

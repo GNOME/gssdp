@@ -62,7 +62,7 @@ pkg.generate(libraries: [ libgssdp ],
              description: 'GObject-based SSDP library',
              requires_private: ['gobject-2.0', 'gio-2.0'])
 
-if introspection_available
+if get_option('introspection')
     gir = gnome.generate_gir(libgssdp,
             sources : headers + sources + enums,
             namespace : 'GSSDP',
