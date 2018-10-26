@@ -1,0 +1,66 @@
+image: debian:unstable
+
+before_script:
+  - apt update -qq
+  - apt install -y -qq gnome-pkg-tools
+                       gtk-doc-tools
+                       autotools-dev
+                       libglib2.0-dev
+                       gobject-introspection
+                       libgirepository1.0-dev
+                       gir1.2-glib-2.0
+                       libsoup2.4-dev
+                       libgtk-3-dev
+                       valac lcov
+  - export LANG=C.UTF-8
+
+stages:
+  - build
+  - test
+  - deploy
+
+build-job:
+  stage: build
+  script:
+    - meson --prefix /usr --libdir /usr/lib64 --buildtype debug --werror _build .
+    - ninja -C _build
+  except:
+    - tags
+  artifacts:
+    when: on_failure
+    name: "gssdp-_${CI_COMMIT_REF_NAME}"
+    paths:
+      - "${CI_PROJECT_DIR}/_build/meson-logs"
+
+test:
+  stage: test
+  script:
+    - meson _build .
+    - ninja -C _build test
+
+# FIXME: Run gtkdoc-check when we can. See:
+# https://github.com/mesonbuild/meson/issues/3580
+
+dist-job:
+  stage: build
+  only:
+    - tags
+  script:
+    - meson --prefix /usr --libdir /usr/lib64 --buildtype release _build .
+    - ninja -C _build dist
+  artifacts:
+    paths:
+      - "${CI_PROJECT_DIR}/_build/meson-dist/gssdp-*.tar.xz"
+
+#pages:
+#  stage: deploy
+#  only:
+#    - master
+#  script:
+#    - meson -Dgtk_doc=true _build .
+#    - ninja -C _build test gssdp-doc
+#    - mkdir -p public/
+#    - mv _build/docs/reference/html/ public/docs/
+#  artifacts:
+#    paths:
+#      - public
