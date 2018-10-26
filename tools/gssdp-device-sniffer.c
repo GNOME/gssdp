@@ -581,7 +581,6 @@ init_ui (gint *argc, gchar **argv[])
 {
         GtkWidget *main_window;
         gint window_width, window_height;
-        const gchar *ui_path = NULL;
         GError *error = NULL;
         GOptionContext *context;
         double w, h;
@@ -596,24 +595,23 @@ init_ui (gint *argc, gchar **argv[])
                 return FALSE;
         }
 
-        /* Try to fetch the ui file from the CWD first */
-        ui_path = UI_FILE;
-        if (!g_file_test (ui_path, G_FILE_TEST_EXISTS)) {
-                /* Then Try to fetch it from the system path */
-                ui_path = UI_DIR "/" UI_FILE;
-
-                if (!g_file_test (ui_path, G_FILE_TEST_EXISTS))
-                        ui_path = NULL;
-        }
-        
-        if (ui_path == NULL) {
-                g_critical ("Unable to load the GUI file %s", UI_FILE);
-                return FALSE;
-        }
-
         builder = gtk_builder_new();
-        if (gtk_builder_add_from_file(builder, ui_path, NULL) == 0)
-                return FALSE;
+
+        /* Try to fetch the ui file from the CWD first */
+        if (gtk_builder_add_from_file (builder, UI_FILE, NULL) == 0) {
+            /* Apparently not. let's check next to the executable */
+            char *path = g_strconcat (g_path_get_dirname (*argv[0]), G_DIR_SEPARATOR_S, UI_FILE, NULL);
+            if (gtk_builder_add_from_file (builder, path, NULL) == 0) {
+                g_clear_pointer (&path, g_free);
+                /* Also not... Check the install path */
+                if (gtk_builder_add_from_file (builder, UI_DIR G_DIR_SEPARATOR_S UI_FILE, NULL) == 0) {
+                    g_critical ("Unable to load the GUI file %s", UI_FILE);
+
+                    return FALSE;
+                }
+            }
+            g_clear_pointer (&path, g_free);
+        }
 
         main_window = GTK_WIDGET(gtk_builder_get_object (builder, "main-window"));
         g_assert (main_window != NULL);
