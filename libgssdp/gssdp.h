@@ -23,4 +23,3 @@
 #include <libgssdp/gssdp-error.h>
 #include <libgssdp/gssdp-resource-browser.h>
 #include <libgssdp/gssdp-resource-group.h>
-#include <libgssdp/gssdp-enums.h>

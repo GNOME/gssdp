@@ -1,4 +1,5 @@
 project('GSSDP', 'c', version: '1.1.0')
+gnome = import('gnome')
 
 as_version = meson.project_version() # set in project() below
 ver_arr = as_version.split('.')
