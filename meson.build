@@ -80,12 +80,18 @@ glib_dep = dependency('glib-2.0', version : '>= 2.32')
 gobject_dep = dependency('gobject-2.0', version : '>= 2.32')
 gio_dep = dependency('gio-2.0', version : '>= 2.32')
 soup_dep = dependency('libsoup-2.4', version : '>= 2.26.1')
-gtk = dependency('gtk+-3.0', version : '>= 3.12', required: false)
+
+if not get_option('without-gtk')
+  gtk = dependency('gtk+-3.0', version : '>= 3.12', required: false)
+endif
 
 subdir('libgssdp')
 subdir('tests')
-if (gtk.found())
+if not get_option('without-gtk') and gtk.found()
   subdir('tools')
 endif
 subdir('vala')
-subdir('doc')
+
+if get_option('enable-gtk-doc')
+  subdir('doc')
+endif
