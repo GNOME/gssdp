@@ -75,5 +75,6 @@ if get_option('introspection')
             identifier_prefix : 'GSSDP',
             export_packages : 'gssdp-1.2',
             includes : ['GObject-2.0', 'Gio-2.0', 'Soup-2.4'],
+            header : 'libgssdp/gssdp.h',
             install: true)
 endif
