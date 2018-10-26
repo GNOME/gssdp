@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #define UI_RESOURCE "/org/gupnp/GSSDP/DeviceSniffer.ui"
+#define MENU_RESOURCE "/org/gupnp/GSSDP/WindowMenu.ui"
 #define MAX_IP_LEN 16
 
 static char *interface = NULL;
@@ -42,18 +43,9 @@ GOptionEntry entries[] =
 };
 
 void
-on_enable_packet_capture_activate (GtkCheckMenuItem *menuitem,
+on_enable_packet_capture_activate (GtkToggleButton  *menuitem,
                                    gpointer          user_data);
-void
-on_details_activate (GtkWidget *scrolled_window, GtkCheckMenuItem *menuitem);
 
-void
-on_clear_packet_capture_activate (GtkMenuItem *menuitem,
-                                  gpointer     user_data);
-
-void
-on_use_filter_radiobutton_toggled (GtkToggleButton *togglebutton,
-                                   gpointer         user_data);
 void
 on_address_filter_dialog_response (GtkDialog *dialog,
                                    gint       response,
@@ -63,10 +55,19 @@ gboolean
 on_delete_event (GtkWidget *widget, GdkEvent  *event, gpointer   user_data);
 
 G_MODULE_EXPORT void
-on_enable_packet_capture_activate (GtkCheckMenuItem      *menuitem,
-                                   G_GNUC_UNUSED gpointer user_data)
+on_enable_packet_capture_activate (GtkToggleButton *menuitem,
+                                   gpointer         user_data)
 {
-        capture_packets = gtk_check_menu_item_get_active (menuitem);
+        const gchar *icon_name = NULL;
+
+        capture_packets = gtk_toggle_button_get_active (menuitem);
+        icon_name = capture_packets
+                ? "media-playback-stop-symbolic"
+                : "media-playback-start-symbolic";
+
+        gtk_image_set_from_icon_name (GTK_IMAGE (user_data),
+                                      icon_name,
+                                      GTK_ICON_SIZE_BUTTON);
 }
 
 static void
@@ -92,14 +93,21 @@ clear_packet_treeview (void)
         }
 }
 
-G_MODULE_EXPORT
-void
-on_details_activate (GtkWidget *scrolled_window, GtkCheckMenuItem *menuitem)
+static void
+on_details_activate (GSimpleAction *action,
+                     GVariant *parameter,
+                     gpointer user_data)
 {
-        gboolean active;
+        GtkWidget *scrolled_window = NULL;
+        GtkBuilder *builder = NULL;
 
-        active = gtk_check_menu_item_get_active (menuitem);
-        g_object_set (G_OBJECT (scrolled_window), "visible", active, NULL);
+        builder = GTK_BUILDER (user_data);
+
+        scrolled_window = GTK_WIDGET (gtk_builder_get_object (builder,
+                                                              "packet-details-scrolledwindow"));
+
+        g_object_set (G_OBJECT (scrolled_window), "visible", g_variant_get_boolean (parameter), NULL);
+        g_simple_action_set_state (action, parameter);
 }
 
 static void
@@ -174,14 +182,6 @@ on_packet_selected (GtkTreeSelection      *selection,
 
         else
                 update_packet_details ("", 0);
-}
-
-G_MODULE_EXPORT
-void
-on_clear_packet_capture_activate (G_GNUC_UNUSED GtkMenuItem *menuitem,
-                                  G_GNUC_UNUSED gpointer     user_data)
-{
-        clear_packet_treeview ();
 }
 
 static const char *message_types[] = {"M-SEARCH", "RESPONSE", "NOTIFY"};
@@ -576,6 +576,43 @@ on_delete_event (G_GNUC_UNUSED GtkWidget *widget,
         return TRUE;
 }
 
+static void
+on_show_address_filter (GSimpleAction *action,
+                        GVariant *parameter,
+                        gpointer user_data)
+{
+        GtkWidget *dialog = NULL;
+
+        dialog = GTK_WIDGET (gtk_builder_get_object (GTK_BUILDER (user_data),
+                                                     "address-filter-dialog"));
+        gtk_widget_show (dialog);
+}
+
+static void
+on_about (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+        GtkWidget *dialog = NULL;
+
+        dialog = GTK_WIDGET (gtk_builder_get_object (GTK_BUILDER (user_data),
+                                                     "about-dialog"));
+        gtk_widget_show (dialog);
+}
+
+
+G_MODULE_EXPORT
+void
+on_clear_packet_capture_activate (G_GNUC_UNUSED GtkMenuItem *menuitem,
+                                  G_GNUC_UNUSED gpointer     user_data)
+{
+        clear_packet_treeview ();
+}
+
+static GActionEntry actions[] = {
+        { "show-packet-details", NULL, NULL, "true", on_details_activate },
+        { "show-address-filter", on_show_address_filter },
+        { "about", on_about }
+};
+
 static gboolean
 init_ui (gint *argc, gchar **argv[])
 {
@@ -584,6 +621,7 @@ init_ui (gint *argc, gchar **argv[])
         GError *error = NULL;
         GOptionContext *context;
         double w, h;
+        GSimpleActionGroup *group = NULL;
 
         context = g_option_context_new ("- graphical SSDP debug tool");
         g_option_context_add_main_entries (context, entries, NULL);
@@ -599,8 +637,18 @@ init_ui (gint *argc, gchar **argv[])
         if (gtk_builder_add_from_resource(builder, UI_RESOURCE, NULL) == 0)
                 return FALSE;
 
+        if (gtk_builder_add_from_resource (builder, MENU_RESOURCE, NULL) == 0)
+                return FALSE;
+
+        gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (gtk_builder_get_object (builder, "window-menu")),
+                        G_MENU_MODEL (gtk_builder_get_object (builder, "sniffer-window-menu")));
+
         main_window = GTK_WIDGET(gtk_builder_get_object (builder, "main-window"));
         g_assert (main_window != NULL);
+
+        group = g_simple_action_group_new ();
+        gtk_widget_insert_action_group (GTK_WIDGET (main_window), "win", G_ACTION_GROUP (group));
+        g_action_map_add_action_entries (G_ACTION_MAP (group), actions, G_N_ELEMENTS (actions), builder);
 
 
 #if GTK_CHECK_VERSION(3,22,0)

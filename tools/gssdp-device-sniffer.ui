@@ -1,151 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
-  <requires lib="gtk+" version="3.12"/>
+  <requires lib="gtk+" version="3.20"/>
   <object class="GtkWindow" id="main-window">
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">GSSDP Device Sniffer</property>
     <signal name="delete-event" handler="on_delete_event" swapped="no"/>
-    <child>
-      <object class="GtkBox" id="vbox2">
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
+        <property name="show_close_button">True</property>
         <child>
-          <object class="GtkMenuBar" id="menubar">
+          <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="spacing">6</property>
             <child>
-              <object class="GtkMenuItem" id="menu_file">
+              <object class="GtkButton">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_File</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu1">
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Clear packet capture</property>
+                <signal name="clicked" handler="on_clear_packet_capture_activate" swapped="no"/>
+                <child>
+                  <object class="GtkImage">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="item_clear_packet_capture">
-                        <property name="label">gtk-clear</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_clear_packet_capture_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separator1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="item_show_packet_details">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Show Packet Details</property>
-                        <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <signal name="toggled" handler="on_details_activate" object="packet-details-scrolledwindow" swapped="yes"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="item_show_device_tracking">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Show Device Tracking</property>
-                        <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <signal name="toggled" handler="on_details_activate" object="device-details-scrolledwindow" swapped="yes"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separator2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="item_quit">
-                        <property name="label">gtk-quit</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <signal name="activate" handler="gtk_main_quit" swapped="no"/>
-                        <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
-                      </object>
-                    </child>
+                    <property name="icon_name">edit-clear-all-symbolic</property>
                   </object>
                 </child>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
-              <object class="GtkMenuItem" id="menu_filter">
+              <object class="GtkToggleButton">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Filter</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu2">
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Toggle packet capture</property>
+                <property name="active">True</property>
+                <signal name="toggled" handler="on_enable_packet_capture_activate" object="capture-image" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="capture-image">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="item_toggle_capture">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Enable Packet Capture</property>
-                        <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <signal name="toggled" handler="on_enable_packet_capture_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="item_address_filter">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Address Filter</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="gtk_widget_show" object="address-filter-dialog" swapped="yes"/>
-                      </object>
-                    </child>
+                    <property name="icon_name">media-playback-stop-symbolic</property>
                   </object>
                 </child>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
             </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child type="title">
+          <object class="GtkStackSwitcher">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+            <property name="icon_size">0</property>
+            <property name="stack">stack1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="window-menu">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
             <child>
-              <object class="GtkMenuItem" id="menu_help">
+              <object class="GtkImage">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Help</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="item_about">
-                        <property name="label">gtk-about</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <signal name="activate" handler="gtk_widget_show" object="about-dialog" swapped="yes"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
+                <property name="icon_name">open-menu-symbolic</property>
               </object>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">0</property>
+            <property name="pack_type">end</property>
+            <property name="position">1</property>
           </packing>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkStack" id="stack1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
         <child>
           <object class="GtkBox" id="vbox">
             <property name="visible">True</property>
@@ -163,7 +113,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection1"/>
+                      <object class="GtkTreeSelection"/>
                     </child>
                   </object>
                 </child>
@@ -184,6 +134,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="editable">False</property>
+                    <property name="monospace">True</property>
                   </object>
                 </child>
               </object>
@@ -193,31 +144,33 @@
                 <property name="position">1</property>
               </packing>
             </child>
+          </object>
+          <packing>
+            <property name="name">page0</property>
+            <property name="title" translatable="yes">Packets</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="device-details-scrolledwindow">
+            <property name="name">Bar</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>
+            <property name="shadow_type">in</property>
             <child>
-              <object class="GtkScrolledWindow" id="device-details-scrolledwindow">
+              <object class="GtkTreeView" id="device-details-treeview">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
-                <child>
-                  <object class="GtkTreeView" id="device-details-treeview">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection2"/>
-                    </child>
-                  </object>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
                 </child>
               </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="name">page1</property>
+            <property name="title" translatable="yes">Device history</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -238,6 +191,9 @@ Inspired by Intel Tools for UPnP.</property>
     <property name="license_type">lgpl-2-1</property>
     <signal name="delete-event" handler="gtk_widget_hide" object="about-dialog" swapped="yes"/>
     <signal name="response" handler="gtk_widget_hide" object="about-dialog" swapped="yes"/>
+    <child>
+      <placeholder/>
+    </child>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
         <property name="can_focus">False</property>
@@ -259,11 +215,13 @@ Inspired by Intel Tools for UPnP.</property>
   <object class="GtkDialog" id="address-filter-dialog">
     <property name="can_focus">False</property>
     <property name="border_width">7</property>
-    <property name="title" translatable="yes">Address Filter</property>
     <property name="resizable">False</property>
     <property name="type_hint">dialog</property>
     <property name="transient_for">main-window</property>
     <signal name="response" handler="on_address_filter_dialog_response" swapped="no"/>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox1">
         <property name="visible">True</property>
