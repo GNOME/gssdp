@@ -1,4 +1,4 @@
-option('enable-gtk-doc', type: 'boolean', value: false, description: 'Enable generating the API reference (depends on GTK-Doc)')
-option('without-gtk', type: 'boolean', value: false, description: 'Compile without GTK+ support')
-option('disable-introspection', type: 'boolean', value : false, description: 'Disable GObject Introspection')
-option('disable-vala', type: 'boolean', value: false, description: 'Disable generation of vala vapi file')
+option('gtk_doc', type: 'boolean', value: false, description: 'Enable generating the API reference (depends on GTK-Doc)')
+option('sniffer', type: 'boolean', value: true, description: 'Compile graphical SSDP sniffer')
+option('introspection', type: 'boolean', value : true, description: 'Enable or disable GObject Introspection')
+option('vapi', type: 'boolean', value: true, description: 'Enable or disable generation of Vala vapi file')
