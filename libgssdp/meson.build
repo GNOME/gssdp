@@ -43,7 +43,6 @@ if generic_unix
 endif
 
 libgssdp = library('gssdp-1.2', sources + enums,
-    soversion : 0,
     version : '0.0.0',
     dependencies : dependencies + system_deps,
     include_directories : include_directories('..'),
