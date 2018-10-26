@@ -99,9 +99,6 @@ on_details_activate (GSimpleAction *action,
                      gpointer user_data)
 {
         GtkWidget *scrolled_window = NULL;
-        GtkBuilder *builder = NULL;
-
-        builder = GTK_BUILDER (user_data);
 
         scrolled_window = GTK_WIDGET (gtk_builder_get_object (builder,
                                                               "packet-details-scrolledwindow"));
@@ -525,6 +522,16 @@ setup_treeview (GtkWidget *treeview,
                         model);
 }
 
+static gboolean
+on_treeview_popup_menu (GtkWidget *tv, GdkEventButton *event, gpointer user_data)
+{
+        if (event->type == GDK_BUTTON_PRESS && event->button == 3) {
+                gtk_menu_popup_at_pointer (GTK_MENU (user_data), (GdkEvent *)event);
+        }
+
+        return FALSE;
+}
+
 static void
 setup_treeviews (void)
 {
@@ -540,6 +547,7 @@ setup_treeviews (void)
                 "Location",
                 NULL } }; 
         GtkTreeSelection *selection;
+        GtkWidget *menu = NULL;
         int i;
 
         treeviews[0] = GTK_WIDGET(gtk_builder_get_object (builder,
@@ -563,6 +571,12 @@ setup_treeviews (void)
                         "changed",
                         G_CALLBACK (on_packet_selected),
                         (gpointer *) treeviews[0]);
+        menu = gtk_menu_new_from_model (G_MENU_MODEL (gtk_builder_get_object (builder,
+                                                                              "sniffer-context-menu")));
+        gtk_menu_attach_to_widget (GTK_MENU (menu), treeviews[0], NULL);
+        g_signal_connect (G_OBJECT (treeviews[0]),
+                          "button-press-event",
+                          G_CALLBACK (on_treeview_popup_menu), menu);
 }
 
 G_MODULE_EXPORT
@@ -583,9 +597,32 @@ on_show_address_filter (GSimpleAction *action,
 {
         GtkWidget *dialog = NULL;
 
-        dialog = GTK_WIDGET (gtk_builder_get_object (GTK_BUILDER (user_data),
+        dialog = GTK_WIDGET (gtk_builder_get_object (builder,
                                                      "address-filter-dialog"));
         gtk_widget_show (dialog);
+}
+
+static void
+on_set_address_filter (GSimpleAction *action,
+                       GVariant      *parameter,
+                       gpointer       user_data)
+{
+        GtkWidget *treeview = NULL;
+        GtkTreeSelection *selection = NULL;
+        GtkTreeModel *model = NULL;
+        GtkTreeIter iter;
+        GtkWidget *use_filter_radio;
+
+        treeview = GTK_WIDGET (gtk_builder_get_object (builder, "packet-treeview"));
+        use_filter_radio = GTK_WIDGET(gtk_builder_get_object (builder, "use-filter-radiobutton"));
+
+        selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (treeview));
+        gtk_tree_selection_get_selected (selection, &model, &iter);
+        g_free (ip_filter);
+        gtk_tree_model_get (model, &iter,
+                        1, &ip_filter, -1);
+
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (use_filter_radio), TRUE);
 }
 
 static void
@@ -593,7 +630,7 @@ on_about (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
         GtkWidget *dialog = NULL;
 
-        dialog = GTK_WIDGET (gtk_builder_get_object (GTK_BUILDER (user_data),
+        dialog = GTK_WIDGET (gtk_builder_get_object (builder,
                                                      "about-dialog"));
         gtk_widget_show (dialog);
 }
@@ -608,6 +645,7 @@ on_clear_packet_capture_activate (G_GNUC_UNUSED GtkMenuItem *menuitem,
 }
 
 static GActionEntry actions[] = {
+        { "set-address-filter", on_set_address_filter },
         { "show-packet-details", NULL, NULL, "true", on_details_activate },
         { "show-address-filter", on_show_address_filter },
         { "about", on_about }
@@ -648,7 +686,7 @@ init_ui (gint *argc, gchar **argv[])
 
         group = g_simple_action_group_new ();
         gtk_widget_insert_action_group (GTK_WIDGET (main_window), "win", G_ACTION_GROUP (group));
-        g_action_map_add_action_entries (G_ACTION_MAP (group), actions, G_N_ELEMENTS (actions), builder);
+        g_action_map_add_action_entries (G_ACTION_MAP (group), actions, G_N_ELEMENTS (actions), NULL);
 
 
 #if GTK_CHECK_VERSION(3,22,0)

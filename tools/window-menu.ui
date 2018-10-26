@@ -20,5 +20,13 @@
       </item>
     </section>
   </menu>
+  <menu id="sniffer-context-menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Set as filter</attribute>
+        <attribute name="action">win.set-address-filter</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>
 
