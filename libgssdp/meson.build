@@ -50,7 +50,7 @@ libgssdp = shared_library('gssdp-1.2', sources,
     include_directories : include_directories('..'),
     install : true)
 
-gnome.generate_gir(libgssdp,
+gir = gnome.generate_gir(libgssdp,
                    sources : introspection_sources,
                    namespace : 'GSSDP',
                    nsversion : '1.2',
