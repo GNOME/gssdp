@@ -4,7 +4,6 @@
 GSSDPClient
 gssdp_client_new
 gssdp_client_new_with_port
-gssdp_client_get_main_context
 gssdp_client_set_server_id
 gssdp_client_get_server_id
 gssdp_client_get_interface
@@ -90,6 +89,9 @@ GSSDPResourceBrowserPrivate
 <TITLE>Error codes</TITLE>
 GSSDP_ERROR
 GSSDPError
+<SUBSECTION Standard>
+GSSDP_TYPE_ERROR
+gssdp_error_get_type
 <SUBSECTION Private>
 gssdp_error_quark
 </SECTION>
@@ -97,19 +99,4 @@ gssdp_error_quark
 <SECTION>
 <FILE>gssdp</FILE>
 </SECTION>
-
-<SECTION>
-<FILE>gssdp-pktinfo-message</FILE>
-<SUBSECTION Standard>
-GSSDPPktInfoMessage
-GSSDPPktinfoMessage
-GSSDPPktinfoMessageClass
-GSSDPPktinfoMessagePrivate
-GSSDP_IS_PKTINFO_MESSAGE
-GSSDP_IS_PKTINFO_MESSAGE_CLASS
-GSSDP_PKTINFO_MESAGE_CLASS
-GSSDP_PKTINFO_MESSAGE
-GSSDP_PKTINFO_MESSAGE_GET_CLASS
-GSSDP_TYPE_PKTINFO_MESSAGE
-</SUBSECTION>
 </SECTION>

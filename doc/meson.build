@@ -8,5 +8,12 @@ gnome.gtkdoc('gssdp',
              main_xml : 'gssdp-docs.xml',
              src_dir : [join_paths(meson.source_root(), 'libgssdp'),
                         join_paths(meson.build_root(), 'libgssdp')],
+             ignore_headers : [
+                 'gssdp-socket-source.h',
+                 'gssdp-client-private.h',
+                 'gssdp-protocol.h',
+                 'gssdp-pktinfo-message.h',
+                 'gssdp-net.h'
+             ],
              dependencies : libgssdp,
              install : true)

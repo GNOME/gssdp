@@ -53,7 +53,6 @@ deps = [glib_dep, gobject_dep, gio_dep, soup_dep] + system_deps
 libgssdp = library(
     'gssdp-1.2',
     sources,
-    soversion : 0,
     version : '0.0.0',
     dependencies : deps,
     include_directories : include_directories('..'),
