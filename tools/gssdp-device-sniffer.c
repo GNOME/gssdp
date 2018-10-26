@@ -24,7 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define UI_FILE "gssdp-device-sniffer.ui"
+#define UI_RESOURCE "/org/gupnp/GSSDP/DeviceSniffer.ui"
 #define MAX_IP_LEN 16
 
 static char *interface = NULL;
@@ -581,7 +581,6 @@ init_ui (gint *argc, gchar **argv[])
 {
         GtkWidget *main_window;
         gint window_width, window_height;
-        const gchar *ui_path = NULL;
         GError *error = NULL;
         GOptionContext *context;
         double w, h;
@@ -596,23 +595,8 @@ init_ui (gint *argc, gchar **argv[])
                 return FALSE;
         }
 
-        /* Try to fetch the ui file from the CWD first */
-        ui_path = UI_FILE;
-        if (!g_file_test (ui_path, G_FILE_TEST_EXISTS)) {
-                /* Then Try to fetch it from the system path */
-                ui_path = UI_DIR "/" UI_FILE;
-
-                if (!g_file_test (ui_path, G_FILE_TEST_EXISTS))
-                        ui_path = NULL;
-        }
-        
-        if (ui_path == NULL) {
-                g_critical ("Unable to load the GUI file %s", UI_FILE);
-                return FALSE;
-        }
-
         builder = gtk_builder_new();
-        if (gtk_builder_add_from_file(builder, ui_path, NULL) == 0)
+        if (gtk_builder_add_from_resource(builder, UI_RESOURCE, NULL) == 0)
                 return FALSE;
 
         main_window = GTK_WIDGET(gtk_builder_get_object (builder, "main-window"));

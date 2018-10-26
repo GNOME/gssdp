@@ -1,12 +1,19 @@
-sniffer_uidir = join_paths(get_option('datadir'), 'gssdp-1.2')
+resource = gnome.compile_resources(
+    'org.gupnp.GSSDP.DeviceSniffer',
+    'gssdp-device-sniffer.gresource.xml'
+)
 
 sniffer_deps = [glib_dep, gobject_dep, gio_dep, gtk, soup_dep]
-sniffer = executable('gssdp-device-sniffer',
-                     ['gssdp-device-sniffer.c'],
-                     dependencies : sniffer_deps,
-                     include_directories : include_directories('..'),
-                     link_with: libgssdp,
-                     install: true,
-                     c_args : '-DUI_DIR="@0@"'.format(sniffer_uidir)
-                     )
-install_data('gssdp-device-sniffer.ui', install_dir : sniffer_uidir)
+sniffer = executable(
+    'gssdp-device-sniffer',
+    [
+        'gssdp-device-sniffer.c',
+        resource
+    ],
+    dependencies : sniffer_deps,
+    include_directories : include_directories('..'),
+    link_with: libgssdp,
+    install: true,
+    export_dynamic : true
+)
+
