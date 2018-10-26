@@ -41,3 +41,4 @@ gio_dep = dependency('gio-2.0', version : '>= 2.32')
 soup_dep = dependency('libsoup-2.4', version : '>= 2.26.1')
 
 subdir('libgssdp')
+subdir('tests')
