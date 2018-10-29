@@ -644,7 +644,16 @@ on_clear_packet_capture_activate (G_GNUC_UNUSED GtkMenuItem *menuitem,
         clear_packet_treeview ();
 }
 
+static void
+on_trigger_rescan (GSimpleAction *action,
+                   GVariant *parameter,
+                   gpointer user_data)
+{
+        gssdp_resource_browser_rescan (resource_browser);
+}
+
 static GActionEntry actions[] = {
+        { "trigger-rescan", on_trigger_rescan },
         { "set-address-filter", on_set_address_filter },
         { "show-packet-details", NULL, NULL, "true", on_details_activate },
         { "show-address-filter", on_show_address_filter },
