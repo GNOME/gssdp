@@ -14,7 +14,7 @@ struct in_pktinfo pktinfo;
 
 pktinfo_available = cc.compiles(pktinfo_test,
                                 name : 'struct in_pktinfo is available')
-conf.set10('HAVE_PKTINFO', pktinfo_available)
+conf.set('HAVE_PKTINFO', pktinfo_available)
 
 # Check for if_nametoindex
 if_nametoindex_test = '''#include <net/if.h>
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
 ifnametoindex_available = cc.compiles(if_nametoindex_test,
                                       name : 'if_nametoindex is available')
-conf.set10('HAVE_IFNAMETOINDEX', ifnametoindex_available)
+conf.set('HAVE_IFNAMETOINDEX', ifnametoindex_available)
 
 # Check for SIOCGIFINDEX
 siocgifindex_test = '''#include <sys/ioctl.h>
@@ -36,7 +36,7 @@ static const int foo = SIOCGIFINDEX;
 '''
 siocgifindex_available = cc.compiles(siocgifindex_test,
                                      name : 'SIOCGIFINDEX is available')
-conf.set10('HAVE_SIOCGIFINDEX', siocgifindex_available)
+conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
 configure_file(output : 'config.h', configuration : conf)
 
