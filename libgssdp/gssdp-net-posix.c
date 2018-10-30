@@ -131,6 +131,7 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 {
         struct ifaddrs *ifa_list, *ifa;
         GList *up_ifaces, *ifaceptr;
+        sa_family_t family = AF_UNSPEC;
 
         up_ifaces = NULL;
 
@@ -144,6 +145,11 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
         for (ifa = ifa_list; ifa != NULL; ifa = ifa->ifa_next) {
                 if (ifa->ifa_addr == NULL)
                         continue;
+
+                family = ifa->ifa_addr->sa_family;
+                if (family != AF_INET && family != AF_INET6) {
+                    continue;
+                }
 
                 if (device->iface_name &&
                     !g_str_equal (device->iface_name, ifa->ifa_name))
