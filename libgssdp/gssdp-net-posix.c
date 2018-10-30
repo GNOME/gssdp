@@ -139,16 +139,16 @@ sockaddr_to_string(struct sockaddr *addr,
     g_return_val_if_fail (family == AF_INET || family == AF_INET6, NULL);
 
     if (family == AF_INET) {
-        struct sockaddr_in *sa = (struct sockaddr_in *) addr;
-        buf = (char *)&sa->sin_addr;
+           struct sockaddr_in *sa = (struct sockaddr_in *) addr;
+            buf = (char *)&sa->sin_addr;
     } else {
-        struct sockaddr_in6 *sa = (struct sockaddr_in6 *) addr;
-        buf = (char *)&sa->sin6_addr;
+            struct sockaddr_in6 *sa = (struct sockaddr_in6 *) addr;
+            buf = (char *)&sa->sin6_addr;
     }
 
     retval = inet_ntop (family, buf, result_buf, result_buf_len);
     if (retval == NULL) {
-        g_warning ("Failed to convert address: %s", g_strerror(errno));
+            g_warning ("Failed to convert address: %s", g_strerror (errno));
     }
 
     return retval;
