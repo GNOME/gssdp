@@ -32,6 +32,8 @@
  * and #GSSDPResourceGroup.
  */
 
+#define G_LOG_DOMAIN "gssdp-client"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -1351,7 +1353,10 @@ init_network_info (GSSDPClient *client, GError **error)
                 ret = FALSE;
         }
 
-
+        g_debug ("Created SSDP client %p", client);
+        g_debug ("  iface_name : %s", priv->device.iface_name);
+        g_debug ("  host_ip    : %s", priv->device.host_ip);
+        g_debug ("  server_id  : %s", priv->server_id);
 
         return ret;
 }
