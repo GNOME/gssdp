@@ -1229,7 +1229,8 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                 /* update client cache */
                 agent = soup_message_headers_get_one (headers, "Server");
                 if (!agent)
-                        agent = soup_message_headers_get_one (headers, "User-Agent");
+                        agent = soup_message_headers_get_one (headers,
+                                                              "User-Agent");
 
                 if (agent)
                         gssdp_client_add_cache_entry (client,
@@ -1341,14 +1342,16 @@ init_network_info (GSSDPClient *client, GError **error)
 
                 ret = FALSE;
         } else if (priv->device.host_ip == NULL) {
-                        g_set_error (error,
-                                     GSSDP_ERROR,
-                                     GSSDP_ERROR_NO_IP_ADDRESS,
-                                     "Failed to find IP of interface %s",
-                                     priv->device.iface_name);
+                g_set_error (error,
+                             GSSDP_ERROR,
+                             GSSDP_ERROR_NO_IP_ADDRESS,
+                             "Failed to find IP of interface %s",
+                             priv->device.iface_name);
 
                 ret = FALSE;
         }
+
+
 
         return ret;
 }
