@@ -1104,6 +1104,7 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         GSocketControlMessage **messages;
         gint num_messages;
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+        gboolean ret = TRUE;
 
         vector.buffer = buf;
         vector.size = BUF_SIZE;
@@ -1121,7 +1122,13 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                                           &error);
 
         if (bytes == -1) {
-                g_warning ("Failed to receive from socket: %s", error->message);
+                if (!g_error_matches (error,
+                                      G_IO_ERROR,
+                                      G_IO_ERROR_WOULD_BLOCK)) {
+                        g_warning ("Failed to receive from socket: %s",
+                                   error->message);
+                        ret = FALSE;
+                }
 
                 goto out;
         }
@@ -1264,7 +1271,7 @@ out:
                 g_free (messages);
         }
 
-        return TRUE;
+        return ret;
 }
 
 static gboolean
@@ -1273,9 +1280,34 @@ request_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                           gpointer                   user_data)
 {
         GSSDPClient *client = GSSDP_CLIENT (user_data);
+        GSSDPSocketSource *request_socket = NULL;
+        GError *error = NULL;
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
 
-        return socket_source_cb (priv->request_socket, client);
+        if (socket_source_cb (priv->request_socket, client))
+                return TRUE;
+
+        request_socket = gssdp_socket_source_new (
+                                        GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
+                                        gssdp_client_get_host_ip (client),
+                                        priv->socket_ttl,
+                                        gssdp_client_get_interface (client),
+                                        &error);
+        if (request_socket != NULL) {
+                g_clear_object (&priv->request_socket);
+                priv->request_socket = request_socket;
+                gssdp_socket_source_set_callback (
+                                        priv->request_socket,
+                                        (GSourceFunc) request_socket_source_cb,
+                                        client);
+                gssdp_socket_source_attach (priv->request_socket);
+        } else {
+                g_warning ("Could not recreate request socket on error: %s",
+                           error->message);
+                g_clear_error (&error);
+        }
+
+        return TRUE;
 }
 
 static gboolean
@@ -1284,9 +1316,34 @@ multicast_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                             gpointer                   user_data)
 {
         GSSDPClient *client = GSSDP_CLIENT (user_data);
+        GSSDPSocketSource *multicast_socket = NULL;
+        GError *error = NULL;
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
 
-        return socket_source_cb (priv->multicast_socket, client);
+        if (socket_source_cb (priv->multicast_socket, client))
+                return TRUE;
+
+        multicast_socket = gssdp_socket_source_new (
+                                        GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
+                                        gssdp_client_get_host_ip (client),
+                                        priv->socket_ttl,
+                                        gssdp_client_get_interface (client),
+                                        &error);
+        if (multicast_socket != NULL) {
+                g_clear_object (&priv->multicast_socket);
+                priv->multicast_socket = multicast_socket;
+                gssdp_socket_source_set_callback (
+                                        priv->multicast_socket,
+                                        (GSourceFunc)multicast_socket_source_cb,
+                                        client);
+                gssdp_socket_source_attach (priv->multicast_socket);
+        } else {
+                g_warning ("Could not recreate search socket on error: %s",
+                           error->message);
+                g_clear_error (&error);
+        }
+
+        return TRUE;
 }
 
 static gboolean
@@ -1295,9 +1352,34 @@ search_socket_source_cb (G_GNUC_UNUSED GIOChannel  *source,
                          gpointer                   user_data)
 {
         GSSDPClient *client = GSSDP_CLIENT (user_data);
+        GSSDPSocketSource *search_socket = NULL;
+        GError *error = NULL;
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
 
-        return socket_source_cb (priv->search_socket, client);
+        if (socket_source_cb (priv->search_socket, client))
+                return TRUE;
+
+        search_socket = gssdp_socket_source_new (
+                                        GSSDP_SOCKET_SOURCE_TYPE_REQUEST,
+                                        gssdp_client_get_host_ip (client),
+                                        priv->socket_ttl,
+                                        gssdp_client_get_interface (client),
+                                        &error);
+        if (search_socket != NULL) {
+                g_clear_object (&priv->search_socket);
+                priv->search_socket = search_socket;
+                gssdp_socket_source_set_callback (
+                                        priv->search_socket,
+                                        (GSourceFunc)search_socket_source_cb,
+                                        client);
+                gssdp_socket_source_attach (priv->search_socket);
+        } else {
+                g_warning ("Could not recreate search socket on error: %s",
+                           error->message);
+                g_clear_error (&error);
+        }
+
+        return TRUE;
 }
 
 static gboolean
