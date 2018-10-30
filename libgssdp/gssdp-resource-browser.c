@@ -249,8 +249,7 @@ gssdp_resource_browser_finalize (GObject *object)
         resource_browser = GSSDP_RESOURCE_BROWSER (object);
         priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
-        if (priv->target_regex)
-                g_regex_unref (priv->target_regex);
+        g_clear_pointer (&priv->target_regex, g_regex_unref);
 
         g_free (priv->target);
 
@@ -489,8 +488,7 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
         g_free (priv->target);
         priv->target = g_strdup (target);
 
-        if (priv->target_regex)
-                g_regex_unref (priv->target_regex);
+        g_clear_pointer (&priv->target_regex, g_regex_unref);
 
         version_pattern = "([0-9]+)";
         /* Make sure we have enough room for version pattern */
@@ -511,9 +509,9 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 
         error = NULL;
         priv->target_regex = g_regex_new (pattern,
-                                                            0,
-                                                            0,
-                                                            &error);
+                                          0,
+                                          0,
+                                          &error);
         if (error) {
                 g_warning ("Error compiling regular expression '%s': %s",
                            pattern,
@@ -821,8 +819,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                 canonical_usn = NULL;
         }
 
-        if (canonical_usn != NULL)
-                g_free (canonical_usn);
+        g_free (canonical_usn);
 
         /* Calculate new timeout */
         header = soup_message_headers_get_one (headers, "Cache-Control");
@@ -962,8 +959,7 @@ check_target_compat (GSSDPResourceBrowser *resource_browser,
 
         priv = gssdp_resource_browser_get_instance_private (resource_browser);
 
-        if (strcmp (priv->target,
-                    GSSDP_ALL_RESOURCES) == 0)
+        if (g_str_equal (priv->target, GSSDP_ALL_RESOURCES))
                 return TRUE;
 
         if (!g_regex_match (priv->target_regex,
@@ -1218,18 +1214,12 @@ stop_discovery (GSSDPResourceBrowser *resource_browser)
 
         priv = gssdp_resource_browser_get_instance_private (resource_browser);
         if (priv->timeout_src) {
-                g_source_destroy (priv->timeout_src);
-                priv->timeout_src = NULL;
                 priv->num_discovery = 0;
         }
-        if (priv->refresh_cache_src) {
-                g_source_destroy (priv->refresh_cache_src);
-                priv->refresh_cache_src = NULL;
-        }
-        if (priv->fresh_resources) {
-                g_hash_table_unref (priv->fresh_resources);
-                priv->fresh_resources = NULL;
-        }
+
+        g_clear_pointer (&priv->timeout_src, g_source_destroy);
+        g_clear_pointer (&priv->refresh_cache_src, g_source_destroy);
+        g_clear_pointer (&priv->fresh_resources, g_hash_table_destroy);
 }
 
 static gboolean

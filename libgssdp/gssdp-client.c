@@ -1249,16 +1249,12 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         }
 
 out:
-        if (error)
-                g_error_free (error);
+        g_clear_error (&error);
 
         g_free (ip_string);
 
-        if (headers)
-                soup_message_headers_free (headers);
-
-        if (address)
-                g_object_unref (address);
+        g_clear_pointer (&headers, soup_message_headers_free);
+        g_clear_object (&address);
 
         if (messages) {
                 int i;

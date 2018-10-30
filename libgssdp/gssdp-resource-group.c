@@ -623,10 +623,9 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
                                    const char         *usn,
                                    GList              *locations)
 {
-        GSSDPResourceGroupPrivate *priv;
-        Resource *resource;
-        GList *l;
-        GError *error;
+        GSSDPResourceGroupPrivate *priv = NULL;
+        Resource *resource = NULL;
+        GError *error = NULL;
 
         g_return_val_if_fail (GSSDP_IS_RESOURCE_GROUP (resource_group), 0);
         g_return_val_if_fail (target != NULL, 0);
@@ -642,7 +641,6 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
         resource->target = g_strdup (target);
         resource->usn    = g_strdup (usn);
 
-        error = NULL;
         resource->target_regex = create_target_regex (target,
                                                       &resource->version,
                                                       &error);
@@ -659,10 +657,7 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
 
         resource->initial_byebye_sent = FALSE;
 
-        for (l = locations; l; l = l->next) {
-                resource->locations = g_list_append (resource->locations,
-                                                     g_strdup (l->data));
-        }
+        resource->locations = g_list_copy_deep (locations, (GCopyFunc) g_strdup, NULL);
 
         priv->resources = g_list_prepend (priv->resources, resource);
 

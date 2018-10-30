@@ -64,9 +64,9 @@ endif
 generic_unix = not bionic_available and host_machine.system() != 'windows'
 
 dependencies = [
-    dependency('glib-2.0', version : '>= 2.32'),
-    dependency('gobject-2.0', version : '>= 2.32'),
-    dependency('gio-2.0', version : '>= 2.32'),
+    dependency('glib-2.0', version : '>= 2.34'),
+    dependency('gobject-2.0', version : '>= 2.34'),
+    dependency('gio-2.0', version : '>= 2.34'),
     dependency('libsoup-2.4', version : '>= 2.26.1')
 ]
 
