@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#define G_LOG_DOMAIN "gssdp-net"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -126,11 +128,38 @@ gssdp_net_arp_lookup (GSSDPNetworkDevice *device, const char *ip_address)
 #endif
 }
 
+static const char *
+sockaddr_to_string(struct sockaddr *addr,
+                   gchar           *result_buf,
+                   gsize            result_buf_len)
+{
+    char *buf = NULL;
+    const char *retval = NULL;
+    sa_family_t family = addr->sa_family;
+    g_return_val_if_fail (family == AF_INET || family == AF_INET6, NULL);
+
+    if (family == AF_INET) {
+        struct sockaddr_in *sa = (struct sockaddr_in *) addr;
+        buf = (char *)&sa->sin_addr;
+    } else {
+        struct sockaddr_in6 *sa = (struct sockaddr_in6 *) addr;
+        buf = (char *)&sa->sin6_addr;
+    }
+
+    retval = inet_ntop (family, buf, result_buf, result_buf_len);
+    if (retval == NULL) {
+        g_warning ("Failed to convert address: %s", g_strerror(errno));
+    }
+
+    return retval;
+}
+
 gboolean
 gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 {
         struct ifaddrs *ifa_list, *ifa;
         GList *up_ifaces, *ifaceptr;
+        char addr_string[INET6_ADDRSTRLEN] = {0};
         sa_family_t family = AF_UNSPEC;
 
         up_ifaces = NULL;
@@ -152,19 +181,39 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                 }
 
                 if (device->iface_name &&
-                    !g_str_equal (device->iface_name, ifa->ifa_name))
+                    !g_str_equal (device->iface_name, ifa->ifa_name)) {
+                        g_debug ("Skipping %s because it does not match %s",
+                                 ifa->ifa_name,
+                                 device->iface_name);
                         continue;
-                else if (!(ifa->ifa_flags & IFF_UP))
+                } else if (!(ifa->ifa_flags & IFF_UP)) {
+                        g_debug ("Skipping %s because it is not up",
+                                 ifa->ifa_name);
                         continue;
-                else if ((ifa->ifa_flags & IFF_POINTOPOINT))
+                } else if ((ifa->ifa_flags & IFF_POINTOPOINT)) {
+                        g_debug ("Skipping %s because it is point-to-point",
+                                 ifa->ifa_name);
                         continue;
+                }
 
                 /* Loopback and IPv6 interfaces go at the bottom on the list */
+
                 if ((ifa->ifa_flags & IFF_LOOPBACK) ||
-                    ifa->ifa_addr->sa_family == AF_INET6)
+                    family == AF_INET6) {
+                        g_debug ("Found %s(%s), appending",
+                                 ifa->ifa_name,
+                                 sockaddr_to_string (ifa->ifa_addr,
+                                                     addr_string,
+                                                     sizeof (addr_string)));
                         up_ifaces = g_list_append (up_ifaces, ifa);
-                else
+                } else {
+                        g_debug ("Found %s(%s), prepending",
+                                 ifa->ifa_name,
+                                 sockaddr_to_string (ifa->ifa_addr,
+                                                     addr_string,
+                                                     sizeof (addr_string)));
                         up_ifaces = g_list_prepend (up_ifaces, ifa);
+                }
         }
 
         for (ifaceptr = up_ifaces;
