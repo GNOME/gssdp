@@ -106,7 +106,7 @@ gssdp_net_query_ifindex (GSSDPNetworkDevice *device)
 }
 
 char *
-gssdp_net_arp_lookup (GSSDPNetworkDevice *device, const char *ip_address)
+gssdp_net_mac_lookup (GSSDPNetworkDevice *device, const char *ip_address)
 {
         /* TODO: Is there a way to make this work? */
         /* GetIpNetTable / GetIpNetTable2 for Vista (ipv6) */
