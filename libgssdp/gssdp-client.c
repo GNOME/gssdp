@@ -734,7 +734,7 @@ gssdp_client_add_cache_entry (GSSDPClient  *client,
 
         priv = gssdp_client_get_instance_private (client);
 
-        hwaddr = gssdp_net_arp_lookup (&priv->device, ip_address);
+        hwaddr = gssdp_net_mac_lookup (&priv->device, ip_address);
 
         if (hwaddr)
                 g_hash_table_insert (priv->user_agent_cache,
@@ -762,7 +762,7 @@ gssdp_client_guess_user_agent (GSSDPClient *client,
 
         priv = gssdp_client_get_instance_private (client);
 
-        hwaddr = gssdp_net_arp_lookup (&priv->device, ip_address);
+        hwaddr = gssdp_net_mac_lookup (&priv->device, ip_address);
 
         if (hwaddr) {
                 const char *agent;

@@ -59,7 +59,7 @@ G_GNUC_INTERNAL int
 gssdp_net_query_ifindex         (GSSDPNetworkDevice *device);
 
 G_GNUC_INTERNAL char*
-gssdp_net_arp_lookup            (GSSDPNetworkDevice *device,
+gssdp_net_mac_lookup            (GSSDPNetworkDevice *device,
                                  const char *ip_address);
 
 #endif /* GSSDP_NET_H */
