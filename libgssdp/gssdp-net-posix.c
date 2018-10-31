@@ -297,35 +297,36 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                 return FALSE;
         }
 
+        /*
+         * First, check all the devices. Filter out everything that is not UP or
+         * a PtP device or matches a supported family (FIXME: Questionable; it might
+         * be useful to do SSDP on a PtP device, though)
+         */
         for (ifa = ifa_list; ifa != NULL; ifa = ifa->ifa_next) {
-                if (ifa->ifa_addr == NULL)
+                /* Can happen for weird sa_family */
+                if (ifa->ifa_addr == NULL) {
                         continue;
+                }
 
+                /* We are really interested in AF_INET* only */
                 family = ifa->ifa_addr->sa_family;
                 if (family != AF_INET && family != AF_INET6) {
-                    continue;
+                        continue;
                 }
 
-                if (device->iface_name &&
+                else if (device->iface_name &&
                     !g_str_equal (device->iface_name, ifa->ifa_name)) {
-                        g_debug ("Skipping %s because it does not match %s",
-                                 ifa->ifa_name,
-                                 device->iface_name);
-                        continue;
-                } else if (!(ifa->ifa_flags & IFF_UP)) {
-                        g_debug ("Skipping %s because it is not up",
-                                 ifa->ifa_name);
-                        continue;
-                } else if ((ifa->ifa_flags & IFF_POINTOPOINT)) {
-                        g_debug ("Skipping %s because it is point-to-point",
-                                 ifa->ifa_name);
                         continue;
                 }
 
-                /* Loopback and IPv6 interfaces go at the bottom on the list */
+                else if (!(ifa->ifa_flags & IFF_UP))
+                        continue;
 
-                if ((ifa->ifa_flags & IFF_LOOPBACK) ||
-                    family == AF_INET6) {
+                else if ((ifa->ifa_flags & IFF_POINTOPOINT))
+                        continue;
+
+                /* Loopback and legacy IP interfaces go at the bottom on the list */
+                if ((ifa->ifa_flags & IFF_LOOPBACK) || family == AF_INET6) {
                         g_debug ("Found %s(%s), appending",
                                  ifa->ifa_name,
                                  sockaddr_to_string (ifa->ifa_addr,
@@ -342,35 +343,89 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                 }
         }
 
+        /*
+         * Now go through the devices we consider worthy
+         */
+        family = G_SOCKET_FAMILY_INVALID;
+
+        if (device->host_addr) {
+                family = g_inet_address_get_family (device->host_addr);
+        }
+
+        if (family == G_SOCKET_FAMILY_IPV6 &&
+            !g_inet_address_get_is_link_local (device->host_addr) &&
+            !g_inet_address_get_is_site_local (device->host_addr) &&
+            !g_inet_address_get_is_loopback (device->host_addr)) {
+                char *addr = g_inet_address_to_string (device->host_addr);
+                /* FIXME: Discard the address, but use the interface */
+                g_warning("Invalid IP address given: %s, discarding",
+                          addr);
+                g_free (addr);
+                g_clear_object (&device->host_addr);
+        }
+
         for (ifaceptr = up_ifaces;
              ifaceptr != NULL;
              ifaceptr = ifaceptr->next) {
-                char ip[INET6_ADDRSTRLEN];
-                char net[INET6_ADDRSTRLEN];
-                const char *p, *q;
-                struct sockaddr_in *s4, *s4_mask;
-                struct in_addr net_addr;
+                const char *q = NULL;
+                struct sockaddr_in *s4;
+                struct sockaddr_in6 *s6;
                 const guint8 *bytes;
 
                 ifa = ifaceptr->data;
 
-                if (ifa->ifa_addr->sa_family != AF_INET) {
+                /* There was an address given for the client, but
+                 * the address families don't match -> skip
+                 */
+                if (family != G_SOCKET_FAMILY_INVALID &&
+                    ifa->ifa_addr->sa_family != family) {
                         continue;
                 }
 
-                s4 = (struct sockaddr_in *) ifa->ifa_addr;
-                p = inet_ntop (AF_INET, &s4->sin_addr, ip, sizeof (ip));
-                device->host_ip = g_strdup (p);
+                if (device->host_addr == NULL) {
+                        switch (ifa->ifa_addr->sa_family) {
+                        case AF_INET:
+                                /* legacy IP: Easy, just take the first
+                                 * address we can find */
+                                s4 = (struct sockaddr_in *) ifa->ifa_addr;
+                                bytes = (const guint8 *) &s4->sin_addr;
+                                device->host_addr = g_inet_address_new_from_bytes
+                                                        (bytes, G_SOCKET_FAMILY_IPV4);
+#ifndef HAVE_PKTINFO
+                                {
+                                        struct sockaddr_in *s4_mask;
+                                        char net[INET6_ADDRSTRLEN];
+                                        struct in_addr net_addr;
+                                        s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
+                                        memcpy (&(device->mask), s4_mask, sizeof (struct sockaddr_in));
+                                        net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
+                                                (in_addr_t) s4_mask->sin_addr.s_addr;
+                                        q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
+                                }
+#endif
+                                break;
+                        case AF_INET6:
+                                /* IP: Bit more complicated. We have to select a link-local or
+                                 * ULA address */
+                                s6 = (struct sockaddr_in6 *) ifa->ifa_addr;
+                                bytes = (const guint8 *) &s6->sin6_addr;
+                                device->host_addr = g_inet_address_new_from_bytes
+                                                        (bytes, G_SOCKET_FAMILY_IPV6);
+                                if (!g_inet_address_get_is_link_local (device->host_addr) &&
+                                    !g_inet_address_get_is_site_local (device->host_addr)) {
+                                        g_clear_object (&device->host_addr);
 
-                bytes = (const guint8 *) &s4->sin_addr;
-                device->host_addr = g_inet_address_new_from_bytes
-                                        (bytes, G_SOCKET_FAMILY_IPV4);
+                                        continue;
+                                }
+#ifndef HAVE_PKTINFO
+                                /* FIXME: Todo */
+#endif
 
-                s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
-                memcpy (&(device->mask), s4_mask, sizeof (struct sockaddr_in));
-                net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
-                                  (in_addr_t) s4_mask->sin_addr.s_addr;
-                q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
+                        default:
+                                continue;
+                        }
+
+                }
 
 
                 if (device->iface_name == NULL)
@@ -379,6 +434,7 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                         device->network = g_strdup (q);
 
                 device->index = gssdp_net_query_ifindex (device);
+
                 break;
         }
 
