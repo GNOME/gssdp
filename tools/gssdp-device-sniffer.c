@@ -283,12 +283,11 @@ find_device (GtkTreeModel *model, const char *uuid, GtkTreeIter *iter)
                 gtk_tree_model_get (model,
                                 iter, 
                                 0, &device_uuid, -1);
-                if (device_uuid && strcmp (device_uuid, uuid) == 0) {
-                        found = TRUE;
-                        break;
-                }
-
+                found = g_strcmp0 (device_uuid, uuid) == 0;
                 g_free (device_uuid);
+
+                if (found)
+                        break;
                 more = gtk_tree_model_iter_next (model, iter);
         }
 
