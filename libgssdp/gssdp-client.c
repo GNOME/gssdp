@@ -369,6 +369,7 @@ gssdp_client_dispose (GObject *object)
         g_clear_object (&priv->multicast_socket);
         g_clear_object (&priv->search_socket);
         g_clear_object (&priv->device.host_addr);
+        g_clear_object (&priv->device.host_mask);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->dispose (object);
 }
@@ -1251,27 +1252,8 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
          * on this socket from a particular interface but AFAIK that is not
          * possible, at least not in a portable way.
          */
-        {
-                struct sockaddr_in addr;
-                in_addr_t mask;
-                in_addr_t our_addr;
-                if (!g_socket_address_to_native (address,
-                                                 &addr,
-                                                 sizeof (struct sockaddr_in),
-                                                 &error)) {
-                        g_warning ("Could not convert address to native: %s",
-                                   error->message);
-
-                        goto out;
-                }
-
-                mask = priv->device.mask.sin_addr.s_addr;
-                our_addr = inet_addr (gssdp_client_get_host_ip (client));
-
-                if ((addr.sin_addr.s_addr & mask) != (our_addr & mask))
-                        goto out;
-
-        }
+        if (!g_inet_address_mask_matches (device->host_mask, address))
+                goto out;
 #endif
 
         if (bytes >= BUF_SIZE) {
@@ -1518,6 +1500,7 @@ init_network_info (GSSDPClient *client, GError **error)
         g_debug ("  iface_name : %s", priv->device.iface_name);
         g_debug ("  host_ip    : %s", priv->device.host_ip);
         g_debug ("  server_id  : %s", priv->server_id);
+        g_debug ("  network    : %s", priv->device.network);
 
         return ret;
 }

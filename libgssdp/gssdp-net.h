@@ -40,6 +40,7 @@ struct _GSSDPNetworkDevice {
         char *iface_name;
         char *host_ip;
         GInetAddress *host_addr;
+        GInetAddressMask *host_mask;
         char *network;
         struct sockaddr_in mask;
         gint index;

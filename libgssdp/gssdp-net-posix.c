@@ -280,6 +280,114 @@ sockaddr_to_string(struct sockaddr *addr,
     return retval;
 }
 
+static GInetAddress *
+get_host_addr (struct sockaddr *addr)
+{
+        guint8 *buf = NULL;
+        sa_family_t family = addr->sa_family;
+        g_return_val_if_fail (family == AF_INET || family == AF_INET6, NULL);
+
+        if (family == AF_INET) {
+                struct sockaddr_in *sa = (struct sockaddr_in *) addr;
+                buf = (guint8 *)&sa->sin_addr;
+        } else {
+                struct sockaddr_in6 *sa = (struct sockaddr_in6 *) addr;
+                buf = (guint8 *)&sa->sin6_addr;
+        }
+
+        return g_inet_address_new_from_bytes (buf, family);
+}
+
+#define HI(x) (((x) & 0xf0) >> 4)
+#define LO(x) (((x) & 0x0f))
+static GInetAddressMask *
+get_netmask (struct sockaddr *address,
+             struct sockaddr *mask)
+{
+        static const guint8 bits_map[] = {
+                 0, -1, -1, -1,
+                -1, -1, -1, -1,
+                 1, -1, -1, -1,
+                 2, -1,  3,  4
+        };
+
+        const guint8 *addr_buf = NULL;
+        const guint8 *mask_buf = NULL;
+        int buflen = 0;
+        guint8 prefix[16] = { 0 };
+        int i = 0;
+        gboolean done = FALSE;
+        int bits = 0;
+        GInetAddress *result_address = NULL;
+        GInetAddressMask *result = NULL;
+        GError *error = NULL;
+
+        g_return_val_if_fail (address != NULL, NULL);
+        g_return_val_if_fail (address->sa_family == mask->sa_family, NULL);
+        g_return_val_if_fail (address->sa_family == G_SOCKET_FAMILY_IPV4 ||
+                              address->sa_family == G_SOCKET_FAMILY_IPV6, NULL);
+        g_return_val_if_fail (mask != NULL, NULL);
+
+        if (address->sa_family == G_SOCKET_FAMILY_IPV4) {
+                struct sockaddr_in *s4  = (struct sockaddr_in *) address;
+                addr_buf = (const guint8 *) &(s4->sin_addr);
+                s4 = (struct sockaddr_in *) mask;
+                mask_buf = (const guint8 *) &(s4->sin_addr);
+                buflen = 4;
+        } else if (address->sa_family == G_SOCKET_FAMILY_IPV6) {
+                struct sockaddr_in6 *s6  = (struct sockaddr_in6 *) address;
+                addr_buf = (const guint8 *) &(s6->sin6_addr);
+                s6 = (struct sockaddr_in6 *) mask;
+                mask_buf = (const guint8 *) &(s6->sin6_addr);
+                buflen = 16;
+        } else
+                g_assert_not_reached ();
+
+        for (i = 0; i < buflen; i++) {
+                /* Invalid netmask with holes in it */
+                if (done && mask_buf[i] != 0x00) {
+                        return NULL;
+                }
+
+                prefix[i] = addr_buf[i] & mask_buf[i];
+
+                if (mask_buf[i] == 0xff)
+                        bits += 8;
+                else {
+                        done = TRUE;
+                        /* if the upper nibble isn't all bits set, the lower nibble must be 0 */
+                        if (HI(mask_buf[i]) != 0x0f && LO(mask_buf[i]) != 0x00) {
+                                return NULL;
+                        }
+
+                        /* Only valid bit patterns have correct values set in bits_map
+                         * -1 means fail so the mask is invalid  */
+                        if (bits_map[HI(mask_buf[i])] == -1) {
+                                return NULL;
+                        }
+
+                        if (bits_map[LO(mask_buf[i])] == -1) {
+                                return NULL;
+                        }
+
+                        bits += bits_map[HI(mask_buf[i])] + bits_map[LO(mask_buf[i])];
+                }
+        }
+
+        result_address = g_inet_address_new_from_bytes (prefix, address->sa_family);
+        result = g_inet_address_mask_new (result_address, bits, &error);
+        g_clear_object (&result_address);
+
+        if (result == NULL) {
+                g_warning ("Failed to create netmask: %s", error->message);
+                g_clear_error (&error);
+        }
+
+        return result;
+}
+
+
+
 gboolean
 gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 {
@@ -367,10 +475,8 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
         for (ifaceptr = up_ifaces;
              ifaceptr != NULL;
              ifaceptr = ifaceptr->next) {
-                const char *q = NULL;
-                struct sockaddr_in *s4;
-                struct sockaddr_in6 *s6;
-                const guint8 *bytes;
+                GInetAddress *device_addr = NULL;
+                gboolean equal = FALSE;
 
                 ifa = ifaceptr->data;
 
@@ -382,56 +488,51 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                         continue;
                 }
 
+                device_addr = get_host_addr (ifa->ifa_addr);
+
                 if (device->host_addr == NULL) {
                         switch (ifa->ifa_addr->sa_family) {
                         case AF_INET:
                                 /* legacy IP: Easy, just take the first
                                  * address we can find */
-                                s4 = (struct sockaddr_in *) ifa->ifa_addr;
-                                bytes = (const guint8 *) &s4->sin_addr;
-                                device->host_addr = g_inet_address_new_from_bytes
-                                                        (bytes, G_SOCKET_FAMILY_IPV4);
-#ifndef HAVE_PKTINFO
-                                {
-                                        struct sockaddr_in *s4_mask;
-                                        char net[INET6_ADDRSTRLEN];
-                                        struct in_addr net_addr;
-                                        s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
-                                        memcpy (&(device->mask), s4_mask, sizeof (struct sockaddr_in));
-                                        net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
-                                                (in_addr_t) s4_mask->sin_addr.s_addr;
-                                        q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
-                                }
-#endif
+                                device->host_addr = g_object_ref (device_addr);
                                 break;
                         case AF_INET6:
                                 /* IP: Bit more complicated. We have to select a link-local or
                                  * ULA address */
-                                s6 = (struct sockaddr_in6 *) ifa->ifa_addr;
-                                bytes = (const guint8 *) &s6->sin6_addr;
-                                device->host_addr = g_inet_address_new_from_bytes
-                                                        (bytes, G_SOCKET_FAMILY_IPV6);
-                                if (!g_inet_address_get_is_link_local (device->host_addr) &&
-                                    !g_inet_address_get_is_site_local (device->host_addr)) {
-                                        g_clear_object (&device->host_addr);
+                                if (!g_inet_address_get_is_link_local (device_addr) &&
+                                    !g_inet_address_get_is_site_local (device_addr)) {
+                                        g_clear_object (&device_addr);
 
                                         continue;
                                 }
-#ifndef HAVE_PKTINFO
-                                /* FIXME: Todo */
-#endif
 
+                                device->host_addr = g_object_ref (device_addr);
+                                break;
                         default:
-                                continue;
+                                /* We filtered this out in the list before */
+                                g_assert_not_reached ();
                         }
-
                 }
 
+                equal = g_inet_address_equal (device_addr, device->host_addr);
+                g_clear_object (&device_addr);
+
+                /* There was an host address set but it does not match the current address */
+                if (!equal)
+                        continue;
+
+                device->host_mask = get_netmask (ifa->ifa_addr,
+                                                 ifa->ifa_netmask);
 
                 if (device->iface_name == NULL)
                         device->iface_name = g_strdup (ifa->ifa_name);
+
                 if (device->network == NULL)
-                        device->network = g_strdup (q);
+                        device->network = g_inet_address_mask_to_string (device->host_mask);
+
+                g_clear_pointer (&device->host_ip, g_free);
+                device->host_ip = g_inet_address_to_string (device->host_addr);
 
                 device->index = gssdp_net_query_ifindex (device);
 
