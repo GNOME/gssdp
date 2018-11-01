@@ -926,6 +926,45 @@ gssdp_client_clear_headers (GSSDPClient *client)
 }
 
 /**
+ * gssdp_client_get_address:
+ * @client: A #GSSDPClient
+ *
+ * Returns: (transfer full): The #GInetAddress this client works on
+ **/
+GInetAddress *
+gssdp_client_get_address (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        return g_object_ref (priv->device.host_addr);
+}
+
+/**
+ * gssdp_client_get_index:
+ * @client: A #GSSDPClient
+ *
+ * Returns: The interface index of this client
+ **/
+guint
+gssdp_client_get_index (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), 0);
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        return priv->device.index;
+}
+
+GSocketFamily
+gssdp_client_get_family (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), G_SOCKET_FAMILY_INVALID);
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        return g_inet_address_get_family (priv->device.host_addr);
+}
+
+/**
  * _gssdp_client_send_message:
  * @client: A #GSSDPClient
  * @dest_ip: (allow-none): The destination IP address, or %NULL to broadcast
