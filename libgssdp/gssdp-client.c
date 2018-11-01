@@ -1229,7 +1229,6 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                                 msg = GSSDP_PKTINFO6_MESSAGE (messages[i]);
                                 msg_ifindex = gssdp_pktinfo6_message_get_ifindex (msg);
                                 local_addr = gssdp_pktinfo6_message_get_local_addr (msg);
-                                g_debug ("Got PKTINFO6 message!");
                         } else
                                 continue;
 
