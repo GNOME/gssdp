@@ -35,10 +35,13 @@ GSSDPResourceBrowser *resource_browser;
 GSSDPClient *client;
 char *ip_filter = NULL;
 gboolean capture_packets = TRUE;
+gboolean prefer_v6 = FALSE;
 
 GOptionEntry entries[] =
 {
         {"interface", 'i', 0, G_OPTION_ARG_STRING, &interface, "Network interface to listen on", NULL },
+        { "prefer-v6", '6', 0, G_OPTION_ARG_NONE, &prefer_v6, "Prefer IPv6 for the client", NULL },
+        { "prefer-v4", '4', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &prefer_v6, "Prefer IPv4 for the client", NULL },
         { NULL }
 };
 
@@ -744,6 +747,7 @@ init_upnp (void)
         client = g_initable_new (GSSDP_TYPE_CLIENT,
                                  NULL,
                                  &error,
+                                 "host-ip", prefer_v6 ? "::" : NULL,
                                  "interface", interface,
                                  NULL);
         if (error) {
