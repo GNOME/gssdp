@@ -174,8 +174,8 @@ on_packet_selected (GtkTreeSelection      *selection,
 
                 gtk_tree_model_get (model,
                                 &iter, 
-                                4, &packet_headers,
-                                5, &arrival_time, -1);
+                                5, &packet_headers,
+                                6, &arrival_time, -1);
                 display_packet (*arrival_time, packet_headers);
                 g_boxed_free (SOUP_TYPE_MESSAGE_HEADERS, packet_headers);
         }
@@ -196,7 +196,7 @@ packet_to_treeview_data (const gchar        *from_ip,
         const char *target;
         struct tm *tm;
 
-        packet_data = g_malloc (sizeof (char *) * 5);
+        packet_data = g_new0 (char *, 6);
 
         /* Set the Time */
         tm = localtime (&arrival_time);
@@ -205,8 +205,11 @@ packet_to_treeview_data (const gchar        *from_ip,
         /* Now the Source Address */
         packet_data[1] = g_strdup (from_ip);
         
+        packet_data[2] = g_strdup (gssdp_client_get_interface (client));
+
+        packet_data[3] = g_strdup ("lo");
         /* Now the Packet Type */
-        packet_data[2] = g_strdup (message_types[type]);
+        packet_data[3] = g_strdup (message_types[type]);
         
         /* Now the Packet Information */
         if (type == _GSSDP_DISCOVERY_RESPONSE)
@@ -214,8 +217,8 @@ packet_to_treeview_data (const gchar        *from_ip,
         else
                 target = soup_message_headers_get_one (headers, "NT");
         
-        packet_data[3] = g_strdup (target);
-        packet_data[4] = NULL;
+        packet_data[4] = g_strdup (target);
+        packet_data[5] = NULL;
 
         return packet_data;
 }
@@ -246,8 +249,9 @@ append_packet (const gchar *from_ip,
                         1, packet_data[1],
                         2, packet_data[2],
                         3, packet_data[3],
-                        4, headers,
-                        5, g_memdup (&arrival_time, sizeof (time_t)),
+                        4, packet_data[4],
+                        5, headers,
+                        6, g_memdup (&arrival_time, sizeof (time_t)),
                         -1);
         g_strfreev (packet_data);
 }
@@ -474,7 +478,8 @@ create_packet_treemodel (void)
 {
         GtkListStore *store;
 
-        store = gtk_list_store_new (6,
+        store = gtk_list_store_new (7,
+                        G_TYPE_STRING,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
                         G_TYPE_STRING,
@@ -539,8 +544,9 @@ setup_treeviews (void)
 {
         GtkWidget *treeviews[2];
         GtkTreeModel *treemodels[2];
-        const char *headers[2][6] = { {"Time",
+        const char *headers[2][7] = { {"Time",
                 "Source Address",
+                "Interface",
                 "Packet Type",
                 "Packet Information",
                 NULL }, {"Unique Identifier",
