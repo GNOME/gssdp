@@ -26,7 +26,6 @@
 
 #define UI_RESOURCE "/org/gupnp/GSSDP/DeviceSniffer.ui"
 #define MENU_RESOURCE "/org/gupnp/GSSDP/WindowMenu.ui"
-#define MAX_IP_LEN 16
 
 static char *interface = NULL;
 
@@ -416,7 +415,7 @@ on_use_filter_radiobutton_toggled (GtkToggleButton       *togglebutton,
         GtkWidget *filter_hbox;
         gboolean use_filter;
 
-        filter_hbox = GTK_WIDGET(gtk_builder_get_object (builder, "address-filter-hbox"));
+        filter_hbox = GTK_WIDGET(gtk_builder_get_object (builder, "address-entry0"));
         g_assert (filter_hbox != NULL);
         
         use_filter = gtk_toggle_button_get_active (togglebutton);
@@ -426,26 +425,20 @@ on_use_filter_radiobutton_toggled (GtkToggleButton       *togglebutton,
 static char *
 get_ip_filter (void)
 {
-        int i;
-        char *ip;
-        guint8 quad[4];
+        GtkEntry *entry;
+        GInetAddress *addr;
 
-        ip = g_malloc (MAX_IP_LEN);
-        for (i=0; i<4; i++) {
-                GtkWidget *entry;
-                char entry_name[16];
-                gint val;
+        entry = GTK_ENTRY (gtk_builder_get_object (builder, "address-entry0"));
+        addr = g_inet_address_new_from_string (gtk_entry_get_text (entry));
 
-                sprintf (entry_name, "address-entry%d", i);
-                entry = GTK_WIDGET(gtk_builder_get_object (builder, entry_name));
-                g_assert (entry != NULL);
+        if (addr == NULL) {
+                g_warning ("Filter not a valid IP address");
 
-                val = atoi (gtk_entry_get_text (GTK_ENTRY (entry)));
-                quad[i] = CLAMP (val, 0, 255);
+                return NULL;
         }
-        sprintf (ip, "%u.%u.%u.%u", quad[0], quad[1], quad[2], quad[3]);
-        
-        return ip;
+        g_object_unref (addr);
+
+        return g_strdup (gtk_entry_get_text (entry));
 }
 
 G_MODULE_EXPORT
@@ -629,6 +622,8 @@ on_set_address_filter (GSimpleAction *action,
         g_free (ip_filter);
         gtk_tree_model_get (model, &iter,
                         1, &ip_filter, -1);
+        gtk_entry_set_text (GTK_ENTRY (gtk_builder_get_object (builder, "address-entry0")),
+                            ip_filter);
 
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (use_filter_radio), TRUE);
 }
