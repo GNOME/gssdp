@@ -1252,8 +1252,15 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
          * on this socket from a particular interface but AFAIK that is not
          * possible, at least not in a portable way.
          */
-        if (!g_inet_address_mask_matches (device->host_mask, address))
-                goto out;
+        {
+                GInetAddress *inet_address;
+                GInetSocketAddress *sockaddr;
+
+                sockaddr = G_INET_SOCKET_ADDRESS (address);
+                inet_address = g_inet_socket_address_get_address (sockaddr);
+                if (!g_inet_address_mask_matches (priv->device.host_mask, inet_address))
+                        goto out;
+        }
 #endif
 
         if (bytes >= BUF_SIZE) {
