@@ -269,7 +269,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 }
 
 #ifdef G_OS_WIN32
-                bind_address = g_inet_socket_address_new (iface_address,
+                bind_address = g_inet_socket_address_new (priv->address,
                                                           SSDP_PORT);
 #else
                 bind_address = g_object_new (G_TYPE_INET_SOCKET_ADDRESS,
