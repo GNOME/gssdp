@@ -42,7 +42,6 @@ struct _GSSDPNetworkDevice {
         GInetAddress *host_addr;
         GInetAddressMask *host_mask;
         char *network;
-        struct sockaddr_in mask;
         gint index;
 };
 typedef struct _GSSDPNetworkDevice GSSDPNetworkDevice;
