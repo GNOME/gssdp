@@ -201,19 +201,15 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                         }
 
                         if (p != NULL) {
-                                gint32 mask = 0;
+                                GInetAddress *mask_addr;
 
                                 device->host_ip = g_strdup (p);
-                                /* This relies on the compiler doing an arithmetic
-                                 * shift here!
-                                 */
-                                if (address_prefix->PrefixLength > 0) {
-                                        mask = (gint32) 0x80000000;
-                                        mask >>= address_prefix->PrefixLength - 1;
-                                }
-                                device->mask.sin_family = AF_INET;
-                                device->mask.sin_port = 0;
-                                device->mask.sin_addr.s_addr = htonl ((guint32) mask);
+                                device->host_addr = g_inet_address_new_from_string (device->host_ip);
+                                mask_addr = g_inet_address_new_from_string (q);
+                                device->host_mask = g_inet_address_mask_new (mask_addr, 
+                                                                            address_prefix->PrefixLength,
+                                                                            NULL);
+                                g_object_unref (mask_addr);
 
                                 if (device->iface_name == NULL)
                                         device->iface_name = g_strdup (adapter->AdapterName);
