@@ -1501,6 +1501,12 @@ init_network_info (GSSDPClient *client, GError **error)
                              priv->device.iface_name);
 
                 ret = FALSE;
+        } else if (priv->device.host_mask == NULL) {
+                g_set_error (error,
+                             GSSDP_ERROR,
+                             GSSDP_ERROR_FAILED,
+                             "No network mask?");
+                ret = FALSE;
         }
 
         g_debug ("Created SSDP client %p", client);
