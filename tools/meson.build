@@ -11,5 +11,6 @@ sniffer = executable(
     ],
     dependencies : [gssdp, gtk],
     install: true,
-    export_dynamic : true
+    export_dynamic : true,
+    gui_app : true
 )
