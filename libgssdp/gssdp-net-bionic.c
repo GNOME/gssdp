@@ -258,6 +258,7 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                         device->host_ip = NULL;
                         continue;
                 }
+                device->host_addr = g_inet_address_new_from_string (device->host_ip);
 
                 ip = address->sin_addr.s_addr;
 
@@ -283,10 +284,9 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                                         "Failed to get nw for: %s, %s",
                                         iface->ifr_name, strerror (errno));
 
-                                g_free (device->host_ip);
-                                device->host_ip = NULL;
-                                g_free (device->network);
-                                device->network = NULL;
+                                g_clear_pointer (&device->host_ip, g_free);
+                                g_clear_pointer (&device->network, g_free);
+                                g_clear_object (&device->host_addr);
                                 continue;
                         }
                 }
