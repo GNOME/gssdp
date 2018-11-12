@@ -1,3 +1,54 @@
+1.1.0
+=====
+
+- Bump API and ABI versions
+- Port to new GLib type macros
+- Remove the custom marshaller
+- Make error enum a type
+- Drop deprecated properties and functions
+- Clean up Sniffer UI
+- Refactor get_host_ip into separate files
+- Use several GLib helper functions like g_clear_object etc.
+- Fix deprecations with GTK 3.22 in sniffer
+- Port build system to Meson
+- Drop meta-data file and custom vala for vapi
+- Port sniffer to use UI from GResource
+- Make sniffer UI more GNOME 3 hig-ish
+- Some usability improvements for sniffer
+- Add rescan for sniffer
+- Introduce more debug logging while creating the GSSDP client
+- Recreate the socket sources on errors
+- Fix a memory leak in sniffer
+- Add IPv6 support
+- Have sniffer show the network interface
+
+Known issues:
+- IPv6 Support not implemented for Android and Win32
+
+1.0.2
+=====
+- Small documentation fixes
+- Fix deprecation warning with GTK+-3.22
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
+1.0.1
+=====
+
+- Fix some compiler/c89 issues with recent mingw
+- Use proper ssize_t modifier in printf
+- Make documentation point to itself by declaring it stable
+- Use correct FSF address in documentation text
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
+1.0.0
+=====
+
+- No difference to 0.99.0
+
 0.99.0
 ======
 
