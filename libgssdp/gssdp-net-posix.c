@@ -305,7 +305,7 @@ static GInetAddressMask *
 get_netmask (struct sockaddr *address,
              struct sockaddr *mask)
 {
-        static const guint8 bits_map[] = {
+        static const gint8 bits_map[] = {
                  0, -1, -1, -1,
                 -1, -1, -1, -1,
                  1, -1, -1, -1,
