@@ -250,6 +250,7 @@ out:
 #else
 char *
 gssdp_net_mac_lookup (GSSDPNetworkDevice *device, const char *ip_address)
+{
         return g_strdup (ip_address);
 }
 #endif
