@@ -23,6 +23,10 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#ifdef __APPLE__
+#define __APPLE_USE_RFC_3542
+#endif
+
 #include "gssdp-error.h"
 #include "gssdp-socket-functions.h"
 #include "gssdp-pktinfo-message.h"

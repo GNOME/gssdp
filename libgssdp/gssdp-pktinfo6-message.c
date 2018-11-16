@@ -21,6 +21,10 @@
 
 #define _GNU_SOURCE
 
+#ifdef __APPLE__
+#define __APPLE_USE_RFC_3542
+#endif
+
 #include <sys/socket.h>
 #include <netinet/ip.h>
 
