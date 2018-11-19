@@ -74,6 +74,10 @@
 /* interface index for loopback device */
 #define LOOPBACK_IFINDEX 1
 
+static GInetAddress *SSDP_V6_LL_ADDR = NULL;
+static GInetAddress *SSDP_V6_SL_ADDR = NULL;
+static GInetAddress *SSDP_V4_ADDR = NULL;
+
 static void
 gssdp_client_initable_iface_init (gpointer g_iface,
                                   gpointer iface_data);
@@ -1058,6 +1062,39 @@ _gssdp_client_get_mcast_group (GSSDPClient *client)
         }
 }
 
+static GInetAddress *
+_gssdp_client_get_mcast_group_addr (GSSDPClient *client)
+{
+        GSocketFamily family;
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        family = g_inet_address_get_family (priv->device.host_addr);
+        if (family == G_SOCKET_FAMILY_IPV4) {
+                if (SSDP_V4_ADDR == NULL) {
+                        SSDP_V4_ADDR = g_inet_address_new_from_string (SSDP_ADDR);
+                }
+
+                return SSDP_V4_ADDR;
+        } else {
+                /* IPv6 */
+                /* According to Annex.A, we need to check the scope of the
+                 * address to use the proper multicast group */
+                if (g_inet_address_get_is_link_local (priv->device.host_addr)) {
+                            if (SSDP_V6_LL_ADDR == NULL) {
+                                    SSDP_V6_LL_ADDR = g_inet_address_new_from_string (SSDP_V6_LL);
+                            }
+
+                            return SSDP_V6_LL_ADDR;
+                } else {
+                            if (SSDP_V6_SL_ADDR == NULL) {
+                                    SSDP_V6_SL_ADDR = g_inet_address_new_from_string (SSDP_V6_SL);
+                            }
+
+                            return SSDP_V6_SL_ADDR;
+                }
+        }
+}
+
 /*
  * Generates the default server ID
  */
@@ -1217,13 +1254,16 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                 for (i = 0; i < num_messages; i++) {
                         gint msg_ifindex;
                         GInetAddress *local_addr;
+                        GInetAddress *group_addr;
+
+                        group_addr = _gssdp_client_get_mcast_group_addr (client);
 
                         if (GSSDP_IS_PKTINFO_MESSAGE (messages[i])) {
                                 GSSDPPktinfoMessage *msg;
 
                                 msg = GSSDP_PKTINFO_MESSAGE (messages[i]);
                                 msg_ifindex = gssdp_pktinfo_message_get_ifindex (msg);
-                                local_addr = gssdp_pktinfo_message_get_local_addr (msg);
+                                local_addr = gssdp_pktinfo_message_get_pkt_addr (msg);
                         } else if (GSSDP_IS_PKTINFO6_MESSAGE (messages[i])) {
                                 GSSDPPktinfo6Message *msg;
 
@@ -1239,10 +1279,12 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                         if (!((msg_ifindex == priv->device.index ||
                                msg_ifindex == LOOPBACK_IFINDEX) &&
                               (g_inet_address_equal (local_addr,
-                                                     priv->device.host_addr))))
+                                                     priv->device.host_addr) ||
+                               g_inet_address_equal (local_addr, group_addr)))) {
                                 goto out;
-                        else
+                        } else {
                                 break;
+                        }
                 }
         }
 #else
