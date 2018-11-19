@@ -171,7 +171,7 @@ gssdp_pktinfo6_message_class_init (GSSDPPktinfo6MessageClass *klass)
                  PROP_IFACE_ADDR,
                  g_param_spec_object ("iface-address",
                                       "iface-address",
-                                      "IP v4 Address of the interface this packet was received on",
+                                      "IP v6 Address of the interface this packet was received on",
                                       G_TYPE_INET_ADDRESS,
                                       G_PARAM_READWRITE |
                                       G_PARAM_CONSTRUCT |
