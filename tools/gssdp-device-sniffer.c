@@ -89,7 +89,7 @@ clear_packet_treeview (void)
         while (more) {
                 gtk_tree_model_get (model,
                                 &iter, 
-                                5, &arrival_time, -1);
+                                6, &arrival_time, -1);
                 g_free (arrival_time);
                 more = gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
         }
