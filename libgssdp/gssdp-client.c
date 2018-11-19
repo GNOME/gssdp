@@ -1248,7 +1248,7 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                 goto out;
         }
 
-#if defined(HAVE_PKTINFO) && !defined(__APPLE__)
+#if defined(HAVE_PKTINFO)
         {
                 int i;
                 for (i = 0; i < num_messages; i++) {
