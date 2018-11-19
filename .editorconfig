@@ -8,3 +8,6 @@ insert_final_newline = true
 indent_style = space
 indent_size = 8
 
+[*.xml]
+indent_style = space
+indent_size = 2
