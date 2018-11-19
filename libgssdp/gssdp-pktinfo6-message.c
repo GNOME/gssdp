@@ -123,9 +123,9 @@ gssdp_pktinfo6_dispose (GObject *object)
 
 static GSocketControlMessage *
 gssdp_pktinfo6_message_deserialize (int      level,
-                                   int      type,
-                                   gsize    size,
-                                   gpointer data)
+                                    int      type,
+                                    gsize    size,
+                                    gpointer data)
 {
         GSocketControlMessage *message;
         GInetAddress *addr;
