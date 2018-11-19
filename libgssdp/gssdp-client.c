@@ -121,6 +121,7 @@ enum {
         PROP_IFACE,
         PROP_NETWORK,
         PROP_HOST_IP,
+        PROP_HOST_MASK,
         PROP_ACTIVE,
         PROP_SOCKET_TTL,
         PROP_MSEARCH_PORT,
@@ -347,6 +348,9 @@ gssdp_client_set_property (GObject      *object,
                         }
                         break;
                 }
+        case PROP_HOST_MASK:
+                priv->device.host_mask = g_value_dup_object (value);
+                break;
         case PROP_ACTIVE:
                 priv->active = g_value_get_boolean (value);
                 break;
@@ -487,6 +491,23 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       G_PARAM_STATIC_NAME |
                                       G_PARAM_STATIC_NICK |
                                       G_PARAM_STATIC_BLURB));
+
+        /**
+         * GSSDPClient:host-mask:
+         *
+         * The network mask of the assoicated network interface.
+         **/
+        g_object_class_install_property
+                (object_class,
+                 PROP_HOST_MASK,
+                 g_param_spec_object ("host-mask",
+                                      "Host network mask",
+                                      "The IP netmask of the associated"
+                                      "network interface",
+                                      G_TYPE_INET_ADDRESS_MASK,
+                                      G_PARAM_WRITABLE |
+                                      G_PARAM_CONSTRUCT |
+                                      G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:active:
@@ -1514,7 +1535,8 @@ init_network_info (GSSDPClient *client, GError **error)
          * interface.
          */
         if (priv->device.iface_name == NULL ||
-            priv->device.host_addr == NULL)
+            priv->device.host_addr == NULL  ||
+            priv->device.host_mask == NULL)
                 gssdp_net_get_host_ip (&(priv->device));
         else {
                 /* Ugly. Ideally, get_host_ip needs to be run everytime, but
