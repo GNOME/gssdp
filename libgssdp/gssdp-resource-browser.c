@@ -705,35 +705,6 @@ resource_expire (gpointer user_data)
         return FALSE;
 }
 
-static char *
-rewrite_uri (const char *header, int index)
-{
-        const char *host = NULL;
-        SoupURI *uri = NULL;
-        GInetAddress *addr = NULL;
-        char *retval = NULL;
-
-        uri = soup_uri_new (header);
-        host = soup_uri_get_host (uri);
-        addr = g_inet_address_new_from_string (host);
-
-        if (g_inet_address_get_is_link_local (addr)) {
-                char *new_host;
-
-                new_host = g_strdup_printf ("%s%%%d",
-                                host,
-                                index);
-                soup_uri_set_host (uri, new_host);
-                g_free (new_host);
-        }
-
-        g_object_unref (addr);
-        retval = soup_uri_to_string (uri, FALSE);
-        soup_uri_free (uri);
-
-        return retval;
-}
-
 static void
 resource_available (GSSDPResourceBrowser *resource_browser,
                     SoupMessageHeaders   *headers)
@@ -748,16 +719,11 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         gboolean destroyLocations;
         GList *it1, *it2;
         char *canonical_usn;
-        GSocketFamily family = G_SOCKET_FAMILY_INVALID;
-        int index;
 
         priv = gssdp_resource_browser_get_instance_private (resource_browser);
         usn = soup_message_headers_get_one (headers, "USN");
         if (!usn)
                 return; /* No USN specified */
-
-        family = gssdp_client_get_family (priv->client);
-        index = gssdp_client_get_index (priv->client);
 
         /* Build list of locations */
         locations = NULL;
@@ -765,8 +731,35 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
         header = soup_message_headers_get_one (headers, "Location");
         if (header) {
+                GSocketFamily family;
+                GSSDPClient *client;
+
+                client = priv->client;
+                family = gssdp_client_get_family (client);
+
                 if (family == G_SOCKET_FAMILY_IPV6) {
-                        locations = g_list_append (locations, rewrite_uri (header, index));
+                        SoupURI *uri = soup_uri_new (header);
+                        const char *host = NULL;
+                        GInetAddress *addr = NULL;
+
+                        host = soup_uri_get_host (uri);
+                        addr = g_inet_address_new_from_string (host);
+                        if (g_inet_address_get_is_link_local (addr)) {
+                                char *new_host;
+                                int index = 0;
+
+                                index = gssdp_client_get_index (client);
+
+                                new_host = g_strdup_printf ("%s%%%d",
+                                                            host,
+                                                            index);
+                                soup_uri_set_host (uri, new_host);
+                        }
+                        g_object_unref (addr);
+                        locations = g_list_append (locations,
+                                                   soup_uri_to_string (uri,
+                                                                       FALSE));
+                        soup_uri_free (uri);
                 } else {
                         locations = g_list_append (locations, g_strdup (header));
                 }
@@ -776,8 +769,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         if (header) {
                 /* Parse AL header. The format is:
                  * <uri1><uri2>... */
-                const char *start;
-                char *end;
+                const char *start, *end;
+                char *uri;
 
                 start = header;
                 while ((start = strchr (start, '<'))) {
@@ -789,15 +782,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                         if (!end || !*end)
                                 break;
 
-                        if (family == G_SOCKET_FAMILY_IPV6) {
-                                *end = '\0';
-                                locations = g_list_append (locations, rewrite_uri (start, index));
-                                *end = '>';
-                        } else {
-                                char *uri;
-                                uri = g_strndup (start, end - start);
-                                locations = g_list_append (locations, uri);
-                        }
+                        uri = g_strndup (start, end - start);
+                        locations = g_list_append (locations, uri);
 
                         start = end;
                 }
