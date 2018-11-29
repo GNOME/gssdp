@@ -9,6 +9,9 @@ conf.set_quoted('VERSION', meson.project_version())
 
 # Check for struct in_pktinfo
 pktinfo_test = '''#define _GNU_SOURCE
+#ifdef __APPLE__
+#define __APPLE_USE_RFC_3542
+#endif
 #include <netinet/ip.h>
 struct in_pktinfo pktinfo;
 struct in6_pktinfo pktinfo6;
