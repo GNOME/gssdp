@@ -6,6 +6,8 @@ configure_file(input: 'version.xml.in',
 
 gnome.gtkdoc('gssdp',
              main_xml : 'gssdp-docs.xml',
+             gobject_typesfile : 'gssdp.types',
+             dependencies : [gssdp, dependencies],
              src_dir : [join_paths(meson.source_root(), 'libgssdp'),
                         join_paths(meson.build_root(), 'libgssdp')],
              ignore_headers : [
@@ -15,5 +17,4 @@ gnome.gtkdoc('gssdp',
                  'gssdp-pktinfo-message.h',
                  'gssdp-net.h'
              ],
-             dependencies : libgssdp,
              install : true)
