@@ -22,17 +22,10 @@ pktinfo_available = cc.compiles(pktinfo_test,
 conf.set('HAVE_PKTINFO', pktinfo_available)
 
 # Check for if_nametoindex
-if_nametoindex_test = '''#include <net/if.h>
-int main(int argc, char *argv[]) {
-  (void) argc;
-  (void) argv;
-  if_nametoindex("lo");
-  return 0;
-}
-'''
-
-ifnametoindex_available = cc.compiles(if_nametoindex_test,
-                                      name : 'if_nametoindex is available')
+ifnametoindex_available = cc.has_function(
+    'if_nametoindex',
+    prefix : '#include <net/if.h>'
+)
 conf.set('HAVE_IFNAMETOINDEX', ifnametoindex_available)
 
 # Check for SIOCGIFINDEX
