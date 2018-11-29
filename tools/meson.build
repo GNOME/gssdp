@@ -5,7 +5,7 @@ sniffer = executable('gssdp-device-sniffer',
                      dependencies : [gssdp, gtk],
                      install: true,
                      c_args : '-DUI_DIR="@0@"'.format(sniffer_uidir),
-                     export_dynamic: true
+                     export_dynamic: true,
                      gui_app : true
                      )
 install_data('gssdp-device-sniffer.ui', install_dir : sniffer_uidir)
