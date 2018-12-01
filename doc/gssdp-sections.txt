@@ -2,6 +2,7 @@
 <FILE>gssdp-client</FILE>
 <TITLE>GSSDPClient</TITLE>
 GSSDPClient
+GSSDPUDAVersion
 gssdp_client_new
 gssdp_client_new_with_port
 gssdp_client_set_server_id
@@ -11,12 +12,18 @@ gssdp_client_get_host_ip
 gssdp_client_set_network
 gssdp_client_get_network
 gssdp_client_get_active
+gssdp_client_get_address
+gssdp_client_get_family
+gssdp_client_get_index
+gssdp_client_new_full
 gssdp_client_append_header
 gssdp_client_clear_headers
 gssdp_client_remove_header
 gssdp_client_add_cache_entry
 gssdp_client_guess_user_agent
 <SUBSECTION Standard>
+GSSDP_TYPE_UDA_VERSION
+gssdp_uda_version_get_type
 GSSDP_CLIENT
 GSSDP_IS_CLIENT
 GSSDP_TYPE_CLIENT
