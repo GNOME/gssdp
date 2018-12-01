@@ -42,6 +42,7 @@
 
 #include "gssdp-client.h"
 #include "gssdp-client-private.h"
+#include "gssdp-enums.h"
 #include "gssdp-error.h"
 #include "gssdp-socket-source.h"
 #include "gssdp-protocol.h"
@@ -84,6 +85,7 @@ gssdp_client_initable_iface_init (gpointer g_iface,
 
 struct _GSSDPClientPrivate {
         char              *server_id;
+        GSSDPUDAVersion    uda_version;
 
         GHashTable        *user_agent_cache;
         guint              socket_ttl;
@@ -126,6 +128,7 @@ enum {
         PROP_SOCKET_TTL,
         PROP_MSEARCH_PORT,
         PROP_ADDRESS_FAMILY,
+        PROP_UDA_VERSION,
 };
 
 enum {
@@ -317,6 +320,9 @@ gssdp_client_get_property (GObject    *object,
         case PROP_ADDRESS_FAMILY:
                 g_value_set_enum (value, priv->device.address_family);
                 break;
+        case PROP_UDA_VERSION:
+                g_value_set_enum (value, priv->uda_version);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -366,6 +372,9 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_ADDRESS_FAMILY:
                 priv->device.address_family = g_value_get_enum (value);
+                break;
+        case PROP_UDA_VERSION:
+                priv->uda_version = g_value_get_enum (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -599,6 +608,26 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          "IP address family to prefer when creating the client",
                          G_TYPE_SOCKET_FAMILY,
                          G_SOCKET_FAMILY_INVALID,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS));
+
+        /**
+         * GSSDPClient:uda-version:
+         *
+         * The UPnP version the client adheres to.
+         *
+         * Since: 1.1.1
+         */
+        g_object_class_install_property
+                (object_class,
+                 PROP_UDA_VERSION,
+                 g_param_spec_enum
+                        ("uda-version",
+                         "UDA version",
+                         "UPnP Device Architecture version on this client",
+                         GSSDP_TYPE_UDA_VERSION,
+                         GSSDP_UDA_VERSION_1_0,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS));

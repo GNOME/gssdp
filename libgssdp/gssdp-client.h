@@ -34,6 +34,19 @@ G_DECLARE_DERIVABLE_TYPE (GSSDPClient, gssdp_client, GSSDP, CLIENT, GObject)
 typedef struct _GSSDPClient GSSDPClient;
 typedef struct _GSSDPClientClass GSSDPClientClass;
 
+/**
+ * GSSDPUDAVersion:
+ * @GSSDP_UDA_VERSION_UNSPECIFIED: When creating a client, use the default version
+ * @GSSDP_UDA_VERSION_1_0: Use Version 1.0 of the UDA specification (UPnP/1.0)
+ * @GSSDP_UDA_VERSION_1_1: Use Version 1.1 of the UDA specification (UPnP/1.1)
+ */
+typedef enum /*< prefix=GSSDP_UDA_ >*/
+{
+        GSSDP_UDA_VERSION_UNSPECIFIED,
+        GSSDP_UDA_VERSION_1_0,
+        GSSDP_UDA_VERSION_1_1,
+} GSSDPUDAVersion;
+
 struct _GSSDPClientClass {
         GObjectClass parent_class;
 

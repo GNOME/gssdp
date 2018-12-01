@@ -1,11 +1,16 @@
-enums = gnome.mkenums('gssdp-enums', sources : 'gssdp-error.h',
-                      identifier_prefix : 'GSSDP',
-                      symbol_prefix : 'gssdp',
-                      c_template : 'gssdp-enums.c.template',
-                      h_template : 'gssdp-enums.h.template',
-                      install_header : true,
-                      install_dir : join_paths(get_option('includedir'), 'gssdp-1.2/libgssdp')
-                      )
+enums = gnome.mkenums(
+    'gssdp-enums',
+    sources : [
+        'gssdp-error.h',
+        'gssdp-client.h'
+    ],
+    identifier_prefix : 'GSSDP',
+    symbol_prefix : 'gssdp',
+    c_template : 'gssdp-enums.c.template',
+    h_template : 'gssdp-enums.h.template',
+    install_header : true,
+    install_dir : join_paths(get_option('includedir'), 'gssdp-1.2/libgssdp')
+)
 
 headers = files(
     'gssdp-client.h',
