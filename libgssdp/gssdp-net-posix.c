@@ -457,20 +457,24 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
          */
         family = G_SOCKET_FAMILY_INVALID;
 
+        /* If we have an address, its family will take precendence.
+         * Otherwise take the family from the client's config
+         */
         if (device->host_addr) {
                 family = g_inet_address_get_family (device->host_addr);
-        }
-
-        if (family == G_SOCKET_FAMILY_IPV6 &&
-            !g_inet_address_get_is_link_local (device->host_addr) &&
-            !g_inet_address_get_is_site_local (device->host_addr) &&
-            !g_inet_address_get_is_loopback (device->host_addr)) {
-                char *addr = g_inet_address_to_string (device->host_addr);
-                /* FIXME: Discard the address, but use the interface */
-                g_warning("Invalid IP address given: %s, discarding",
-                          addr);
-                g_free (addr);
-                g_clear_object (&device->host_addr);
+                if (family == G_SOCKET_FAMILY_IPV6 &&
+                    !g_inet_address_get_is_link_local (device->host_addr) &&
+                    !g_inet_address_get_is_site_local (device->host_addr) &&
+                    !g_inet_address_get_is_loopback (device->host_addr)) {
+                        char *addr = g_inet_address_to_string (device->host_addr);
+                        /* FIXME: Discard the address, but use the interface */
+                        g_warning("Invalid IP address given: %s, discarding",
+                                        addr);
+                        g_free (addr);
+                        g_clear_object (&device->host_addr);
+                }
+        } else {
+                family = device->address_family;
         }
 
         for (ifaceptr = up_ifaces;
@@ -539,6 +543,8 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 
                 break;
         }
+
+        device->address_family = g_inet_address_get_family (device->host_addr);
 
         g_list_free (up_ifaces);
         freeifaddrs (ifa_list);

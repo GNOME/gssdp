@@ -41,6 +41,7 @@ struct _GSSDPNetworkDevice {
         char *host_ip;
         GInetAddress *host_addr;
         GInetAddressMask *host_mask;
+        GSocketFamily address_family;
         char *network;
         gint index;
 };

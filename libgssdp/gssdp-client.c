@@ -125,6 +125,7 @@ enum {
         PROP_ACTIVE,
         PROP_SOCKET_TTL,
         PROP_MSEARCH_PORT,
+        PROP_ADDRESS_FAMILY,
 };
 
 enum {
@@ -313,6 +314,9 @@ gssdp_client_get_property (GObject    *object,
         case PROP_MSEARCH_PORT:
                 g_value_set_uint (value, priv->msearch_port);
                 break;
+        case PROP_ADDRESS_FAMILY:
+                g_value_set_enum (value, priv->device.address_family);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -359,6 +363,9 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_MSEARCH_PORT:
                 priv->msearch_port = g_value_get_uint (value);
+                break;
+        case PROP_ADDRESS_FAMILY:
+                priv->device.address_family = g_value_get_enum (value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -566,6 +573,32 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          "UDP port to use for M-SEARCH requests",
                          0, G_MAXUINT16,
                          0,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS));
+
+        /**
+         * GSSDPClient:address-family:
+         *
+         * The IP protocol address family this client works on. When specified
+         * during construction without giving a concrete address, it will be
+         * used to determine the proper address.
+         *
+         * If not specified, will contain the currrent address family after
+         * the call to g_initable_init()<!-- -->. Use #G_SOCKET_FAMILY_INVALID
+         * to specifiy using the default socket family (legacy IP)
+         *
+         * Since: 1.1.1
+         */
+        g_object_class_install_property
+                (object_class,
+                 PROP_ADDRESS_FAMILY,
+                 g_param_spec_enum
+                        ("address-family",
+                         "IP Address family",
+                         "IP address family to prefer when creating the client",
+                         G_TYPE_SOCKET_FAMILY,
+                         G_SOCKET_FAMILY_INVALID,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS));
@@ -1548,6 +1581,9 @@ init_network_info (GSSDPClient *client, GError **error)
                  */
                 priv->device.index =
                         gssdp_net_query_ifindex (&priv->device);
+
+                priv->device.address_family =  g_inet_address_get_family
+                                        (priv->device.host_addr);
         }
 
         if (priv->device.iface_name == NULL) {
