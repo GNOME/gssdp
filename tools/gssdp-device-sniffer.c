@@ -748,7 +748,7 @@ init_upnp (void)
         client = g_initable_new (GSSDP_TYPE_CLIENT,
                                  NULL,
                                  &error,
-                                 "host-ip", prefer_v6 ? "::" : NULL,
+                                 "address-family", prefer_v6 ? G_SOCKET_FAMILY_IPV6 : G_SOCKET_FAMILY_IPV4,
                                  "interface", interface,
                                  NULL);
         if (error) {
