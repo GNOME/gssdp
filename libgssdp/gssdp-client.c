@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2006, 2007, 2008 OpenedHand Ltd.
  * Copyright (C) 2009 Nokia Corporation.
  * Copyright (C) 2013 Intel Corporation.
@@ -1200,7 +1200,7 @@ make_server_id (void)
         struct utsname sysinfo;
 
         uname (&sysinfo);
-        
+
         return g_strdup_printf ("%s/%s GSSDP/%s",
                                 sysinfo.sysname,
                                 sysinfo.version,
