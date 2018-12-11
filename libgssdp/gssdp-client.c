@@ -655,7 +655,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                               G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE,
                               G_TYPE_UINT,
                               G_TYPE_INT,
-                              G_TYPE_POINTER);
+                              soup_message_headers_get_type());
 }
 
 /**
