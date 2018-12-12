@@ -206,7 +206,6 @@ packet_to_treeview_data (const gchar        *from_ip,
         
         packet_data[2] = g_strdup (gssdp_client_get_interface (client));
 
-        packet_data[3] = g_strdup ("lo");
         /* Now the Packet Type */
         packet_data[3] = g_strdup (message_types[type]);
         
