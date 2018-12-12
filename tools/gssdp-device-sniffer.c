@@ -29,6 +29,24 @@
 
 static char *interface = NULL;
 
+typedef enum {
+        PACKET_STORE_COLUMN_TIME,
+        PACKET_STORE_COLUMN_IP,
+        PACKET_STORE_COLUMN_INTERFACE,
+        PACKET_STORE_COLUMN_PACKET_TYPE,
+        PACKET_STORE_COLUMN_TARGET,
+        PACKET_STORE_COLUMN_HEADERS,
+        PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME
+} PACKET_STORE_COLUMNS;
+
+typedef enum {
+        DEVICE_STORE_COLUMN_UUID,
+        DEVICE_STORE_COLUMN_FIRST_SEEN,
+        DEVICE_STORE_COLUMN_TYPE,
+        DEVICE_STORE_COLUMN_LOCATION
+} DEVICE_STORE_COLUMNS;
+
+
 GtkBuilder *builder;
 GSSDPResourceBrowser *resource_browser;
 GSSDPClient *client;
@@ -89,7 +107,7 @@ clear_packet_treeview (void)
         while (more) {
                 gtk_tree_model_get (model,
                                 &iter, 
-                                6, &arrival_time, -1);
+                                PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME, &arrival_time, -1);
                 g_free (arrival_time);
                 more = gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
         }
@@ -172,9 +190,12 @@ on_packet_selected (GtkTreeSelection      *selection,
                 SoupMessageHeaders *packet_headers;
 
                 gtk_tree_model_get (model,
-                                &iter, 
-                                5, &packet_headers,
-                                6, &arrival_time, -1);
+                                    &iter,
+                                    PACKET_STORE_COLUMN_HEADERS,
+                                        &packet_headers,
+                                    PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME,
+                                        &arrival_time,
+                                    -1);
                 display_packet (*arrival_time, packet_headers);
                 g_boxed_free (SOUP_TYPE_MESSAGE_HEADERS, packet_headers);
         }
@@ -239,17 +260,19 @@ append_packet (const gchar *from_ip,
         g_assert (liststore != NULL);
        
         packet_data = packet_to_treeview_data (from_ip,
-                        arrival_time,
-                        type,
-                        headers);
+                                               arrival_time,
+                                               type,
+                                               headers);
+
         gtk_list_store_insert_with_values (liststore, &iter, 0,
-                        0, packet_data[0],
-                        1, packet_data[1],
-                        2, packet_data[2],
-                        3, packet_data[3],
-                        4, packet_data[4],
-                        5, headers,
-                        6, g_memdup (&arrival_time, sizeof (time_t)),
+                        PACKET_STORE_COLUMN_TIME, packet_data[0],
+                        PACKET_STORE_COLUMN_IP, packet_data[1],
+                        PACKET_STORE_COLUMN_INTERFACE, packet_data[2],
+                        PACKET_STORE_COLUMN_PACKET_TYPE, packet_data[3],
+                        PACKET_STORE_COLUMN_TARGET, packet_data[4],
+                        PACKET_STORE_COLUMN_HEADERS, headers,
+                        PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME,
+                                g_memdup (&arrival_time, sizeof (time_t)),
                         -1);
         g_strfreev (packet_data);
 }
@@ -286,8 +309,8 @@ find_device (GtkTreeModel *model, const char *uuid, GtkTreeIter *iter)
         while (more) {
                 char *device_uuid;
                 gtk_tree_model_get (model,
-                                iter, 
-                                0, &device_uuid, -1);
+                                    iter, 
+                                    0, &device_uuid, -1);
                 found = g_strcmp0 (device_uuid, uuid) == 0;
                 g_free (device_uuid);
 
@@ -317,14 +340,14 @@ append_device (const char *uuid,
         if (!find_device (model, uuid, &iter)) {
                 gtk_list_store_insert_with_values (GTK_LIST_STORE (model),
                                 &iter, 0,
-                                0, uuid,
-                                1, first_notify,
-                                3, location, -1);
+                                DEVICE_STORE_COLUMN_UUID, uuid,
+                                DEVICE_STORE_COLUMN_FIRST_SEEN, first_notify,
+                                DEVICE_STORE_COLUMN_LOCATION, location, -1);
         }
                 
         if (device_type) {
                 gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                                2, device_type, -1);
+                                DEVICE_STORE_COLUMN_TYPE, device_type, -1);
         }
 }
 
@@ -620,7 +643,7 @@ on_set_address_filter (GSimpleAction *action,
         gtk_tree_selection_get_selected (selection, &model, &iter);
         g_free (ip_filter);
         gtk_tree_model_get (model, &iter,
-                        1, &ip_filter, -1);
+                        PACKET_STORE_COLUMN_IP, &ip_filter, -1);
         gtk_entry_set_text (GTK_ENTRY (gtk_builder_get_object (builder, "address-entry0")),
                             ip_filter);
 
