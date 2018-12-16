@@ -1,0 +1,18 @@
+gssdp:
+  image: registry.gitlab.gnome.org/gnome/gnome-runtime-images/gnome:3.30
+  stage: build
+  script:
+    - flatpak-builder build-dir build-aux/org.gnome.GSSDP.json --stop-at=gexiv2
+    - flatpak build build-dir meson _build
+    - flatpak build build-dir ninja -C _build
+    - flatpak build build-dir ninja -C _build test
+  artifacts:
+    when: on_failure
+    name: "gssdp-_${CI_COMMIT_REF_NAME}"
+    paths:
+      - "${CI_PROJECT_DIR}/_build/meson-logs"
+  cache:
+    paths:
+      - .flatpak-builder/downloads
+      - .flatpak-builder/git
+

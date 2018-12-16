@@ -1,0 +1,50 @@
+{
+    "app-id" : "org.gnome.GExiv2",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "3.30",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "gexiv2",
+    "tags" : [
+        "nightly"
+    ],
+    "desktop-file-name-prefix" : "(Nightly) ",
+    "cleanup" : [
+        "/include",
+        "/lib/pkconfig",
+        "/share/pkgconfig",
+        "/share/gtk-doc",
+        "/share/man",
+        "/share/vala",
+        "/lib/girepository",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+        {
+            "name" : "gexiv2",
+            "buildsystem" : "meson",
+            "cleanup" : [
+                "/lib/girepository-1.0",
+                "/share/gir-1.0"
+            ],
+            "config-opts" : [
+                "-Dexamples=true",
+                "-Dsniffer=true",
+                "-Dvapi=true",
+                "-Dintrospection=true"
+            ],
+            "build-options" : {
+                "env" : {
+                    "PKG_CONFIG_GOBJECT_INTROSPECTION_1_0_GIRDIR" : "/app/share/gir-1.0",
+                    "PKG_CONFIG_GOBJECT_INTROSPECTION_1_0_TYPELIBDIR" : "/app/lib/girepository-1.0"
+                }
+            },
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gssdp.git/"
+                }
+            ]
+        }
+    ]
+}
