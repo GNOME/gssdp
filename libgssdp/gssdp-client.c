@@ -1203,7 +1203,7 @@ make_server_id (void)
 
         return g_strdup_printf ("%s/%s GSSDP/%s",
                                 sysinfo.sysname,
-                                sysinfo.version,
+                                sysinfo.release,
                                 VERSION);
 #endif
 }
