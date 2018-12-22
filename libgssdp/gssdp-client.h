@@ -119,6 +119,9 @@ const char *
 gssdp_client_guess_user_agent (GSSDPClient *client,
                                const char  *ip_address);
 
+GSSDPUDAVersion
+gssdp_client_get_uda_version  (GSSDPClient *client);
+
 G_END_DECLS
 
 #endif /* GSSDP_CLIENT_H */

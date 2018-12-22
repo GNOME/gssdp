@@ -138,8 +138,13 @@ enum {
 
 static guint signals[LAST_SIGNAL];
 
+static const char *GSSDP_UDA_VERSION_STRINGS[] = {
+        [GSSDP_UDA_VERSION_1_0] = "1.0",
+        [GSSDP_UDA_VERSION_1_1] = "1.1"
+};
+
 static char *
-make_server_id                (void);
+make_server_id                (GSSDPUDAVersion uda_version);
 static gboolean
 request_socket_source_cb      (GIOChannel   *source,
                                GIOCondition  condition,
@@ -170,7 +175,7 @@ gssdp_client_init (GSSDPClient *client)
         priv->active = TRUE;
 
         /* Generate default server ID */
-        priv->server_id = make_server_id ();
+        priv->server_id = make_server_id (gssdp_client_get_uda_version (client));
 }
 
 static void
@@ -1052,6 +1057,15 @@ gssdp_client_get_family (GSSDPClient *client)
         return g_inet_address_get_family (priv->device.host_addr);
 }
 
+GSSDPUDAVersion
+gssdp_client_get_uda_version  (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), GSSDP_UDA_VERSION_UNSPECIFIED);
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        return priv->uda_version;
+}
+
 /**
  * _gssdp_client_send_message:
  * @client: A #GSSDPClient
@@ -1182,18 +1196,20 @@ _gssdp_client_get_mcast_group_addr (GSSDPClient *client)
  * Generates the default server ID
  */
 static char *
-make_server_id (void)
+make_server_id (GSSDPUDAVersion uda_version)
 {
 #ifdef G_OS_WIN32
         OSVERSIONINFO versioninfo;
         versioninfo.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
         if (GetVersionEx (&versioninfo)) {
-                return g_strdup_printf ("Microsoft Windows/%ld.%ld GSSDP/%s",
+                return g_strdup_printf ("Microsoft Windows/%ld.%ld UPnP/%s GSSDP/%s",
                                         versioninfo.dwMajorVersion,
                                         versioninfo.dwMinorVersion,
+                                        GSSDP_UDA_VERSION_STRINGS[uda_version],
                                         VERSION);
         } else {
-                return g_strdup_printf ("Microsoft Windows GSSDP/%s",
+                return g_strdup_printf ("Microsoft Windows/Unknown UPnP/%s GSSDP/%s",
+                                        GSSDP_UDA_VERSION_STRINGS[uda_version],
                                         VERSION);
         }
 #else
@@ -1201,9 +1217,10 @@ make_server_id (void)
 
         uname (&sysinfo);
 
-        return g_strdup_printf ("%s/%s GSSDP/%s",
+        return g_strdup_printf ("%s/%s UPnP/%s GSSDP/%s",
                                 sysinfo.sysname,
                                 sysinfo.release,
+                                GSSDP_UDA_VERSION_STRINGS[uda_version],
                                 VERSION);
 #endif
 }

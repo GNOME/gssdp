@@ -1142,7 +1142,7 @@ send_discovery_request (GSSDPResourceBrowser *resource_browser)
                                    dest,
                                    priv->target,
                                    priv->mx,
-                                   g_get_prgname () ? g_get_prgname () : "");
+                                   gssdp_client_get_server_id (priv->client));
 
         _gssdp_client_send_message (priv->client,
                                     NULL,
