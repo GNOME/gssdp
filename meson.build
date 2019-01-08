@@ -1,4 +1,4 @@
-project('gssdp', 'c', version: '1.1.2')
+project('gssdp', 'c', version: '1.1.3')
 gnome = import('gnome')
 pkg = import('pkgconfig')
 
