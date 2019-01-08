@@ -1,3 +1,15 @@
+1.1.2
+=====
+
+- Use a proper type for the message-received signal's parameter
+- Fix OS name in version string
+- Fix version string to include UPnP version
+- Fall-back to UDA 1.0 if UDA version is unspecified
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Andre Klapper <a9016009@gmx.de>
+
 1.1.1
 =====
 - Fix a crash with sniffer
