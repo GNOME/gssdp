@@ -198,6 +198,11 @@ gssdp_client_initable_init (GInitable                   *initable,
         if (priv->initialized)
                 return TRUE;
 
+        /* Fall-back to UDA 1.0 if no version is specified */
+        if (priv->uda_version == GSSDP_UDA_VERSION_UNSPECIFIED) {
+                priv->uda_version = GSSDP_UDA_VERSION_1_0;
+        }
+
         if (!gssdp_net_init (error))
                 return FALSE;
 
