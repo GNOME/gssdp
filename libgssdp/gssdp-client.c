@@ -174,8 +174,6 @@ gssdp_client_init (GSSDPClient *client)
 
         priv->active = TRUE;
 
-        /* Generate default server ID */
-        priv->server_id = make_server_id (gssdp_client_get_uda_version (client));
 }
 
 static void
@@ -198,9 +196,22 @@ gssdp_client_initable_init (GInitable                   *initable,
         if (priv->initialized)
                 return TRUE;
 
+        /* The following two fall-backs are there to make things
+         * compatible with GSSDP 1.0.x and earlier */
+
         /* Fall-back to UDA 1.0 if no version is specified */
         if (priv->uda_version == GSSDP_UDA_VERSION_UNSPECIFIED) {
                 priv->uda_version = GSSDP_UDA_VERSION_1_0;
+        }
+
+        /* Fall-back to IPv4 if no socket family was specified */
+        if (priv->device.address_family == G_SOCKET_FAMILY_INVALID) {
+                priv->device.address_family = G_SOCKET_FAMILY_IPV4;
+        }
+
+        /* Generate default server ID */
+        if (priv->server_id != NULL) {
+                priv->server_id = make_server_id (gssdp_client_get_uda_version (client));
         }
 
         if (!gssdp_net_init (error))
