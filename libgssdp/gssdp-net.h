@@ -63,4 +63,7 @@ G_GNUC_INTERNAL char*
 gssdp_net_mac_lookup            (GSSDPNetworkDevice *device,
                                  const char *ip_address);
 
+G_GNUC_INTERNAL GList*
+gssdp_net_list_devices          (void);
+
 #endif /* GSSDP_NET_H */

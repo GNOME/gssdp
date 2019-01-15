@@ -230,3 +230,9 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 
         return TRUE;
 }
+
+GList *
+gssdp_net_list_devices (void)
+{
+        return NULL;
+}

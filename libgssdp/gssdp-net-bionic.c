@@ -318,3 +318,9 @@ success:
         close (sock);
         return TRUE;
 }
+
+GList *
+gssdp_net_list_devices (void)
+{
+        return NULL;
+}

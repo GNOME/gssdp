@@ -551,3 +551,31 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 
         return TRUE;
 }
+
+GList *
+gssdp_net_list_devices (void)
+{
+        struct ifaddrs *ifa_list, *ifa;
+        GList *result = NULL;
+
+        if (getifaddrs (&ifa_list) != 0) {
+                g_warning ("Failed to retrieve list of network interfaces: %s",
+                           strerror (errno));
+
+                return result;
+        }
+
+        for (ifa = ifa_list; ifa != NULL; ifa = ifa->ifa_next) {
+                /* Filter for network devices - don't care for addresses */
+                if (ifa->ifa_addr->sa_family != AF_PACKET) {
+                        continue;
+                }
+
+                result = g_list_prepend (result, g_strdup (ifa->ifa_name));
+        }
+
+
+        freeifaddrs (ifa_list);
+
+        return g_list_reverse (result);
+}
