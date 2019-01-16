@@ -99,7 +99,10 @@ struct _GSSDPClientPrivate {
 
         gboolean           active;
         gboolean           initialized;
+        gint32             boot_id; /* "Non-negative 31 bit integer */
+        gint32             config_id; /* "Non-negative 31 bit integer, User-assignable from 0 - 2^24 -1 */
 };
+
 typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
 
 G_DEFINE_TYPE_EXTENDED (GSSDPClient,
@@ -129,6 +132,8 @@ enum {
         PROP_MSEARCH_PORT,
         PROP_ADDRESS_FAMILY,
         PROP_UDA_VERSION,
+        PROP_BOOT_ID,
+        PROP_CONFIG_ID,
 };
 
 enum {
@@ -344,6 +349,12 @@ gssdp_client_get_property (GObject    *object,
         case PROP_UDA_VERSION:
                 g_value_set_enum (value, priv->uda_version);
                 break;
+        case PROP_BOOT_ID:
+                g_value_set_int (value, priv->boot_id);
+                break;
+        case PROP_CONFIG_ID:
+                g_value_set_int (value, priv->config_id);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -396,6 +407,12 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_UDA_VERSION:
                 priv->uda_version = g_value_get_enum (value);
+                break;
+        case PROP_BOOT_ID:
+                gssdp_client_set_boot_id (client, g_value_get_int (value));
+                break;
+        case PROP_CONFIG_ID:
+                gssdp_client_set_config_id (client, g_value_get_int (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -651,6 +668,48 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          GSSDP_UDA_VERSION_1_0,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS));
+
+        /**
+         * GSSDPClient:boot-id:
+         *
+         * The value of the BOOTID.UPNP.ORG header
+         *
+         * Since 1.1.2
+         */
+        g_object_class_install_property
+                (object_class,
+                 PROP_BOOT_ID,
+                 g_param_spec_int
+                        ("boot-id",
+                         "current boot-id value",
+                         "Value of the BOOTID.UPNP.ORG header",
+                         -1,
+                         G_MAXINT32,
+                         -1,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT |
+                         G_PARAM_STATIC_STRINGS));
+
+        /**
+         * GSSDPClient:config-id:
+         *
+         * The value of the BOOTID.UPNP.ORG header
+         *
+         * Since 1.1.2
+         */
+        g_object_class_install_property
+                (object_class,
+                 PROP_CONFIG_ID,
+                 g_param_spec_int
+                        ("config-id",
+                         "current config-id value",
+                         "Value of the CONFIGID.UPNP.ORG header",
+                         -1,
+                         G_MAXINT32,
+                         -1,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT |
                          G_PARAM_STATIC_STRINGS));
 
         /**
@@ -1082,6 +1141,47 @@ gssdp_client_get_uda_version  (GSSDPClient *client)
 
         return priv->uda_version;
 }
+
+void
+gssdp_client_set_boot_id (GSSDPClient *client, gint32 boot_id)
+{
+
+        g_return_if_fail (GSSDP_IS_CLIENT (client));
+
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        priv->boot_id = boot_id;
+
+        if (priv->uda_version > GSSDP_UDA_VERSION_1_0) {
+                char *id_string;
+                gssdp_client_remove_header (client, "BOOTID.UPNP.ORG");
+
+                id_string = g_strdup_printf ("%d", boot_id);
+                gssdp_client_append_header (client, "BOOTID.UPNP.ORG", id_string);
+                g_free (id_string);
+        }
+
+}
+
+void
+gssdp_client_set_config_id (GSSDPClient *client, gint32 config_id)
+{
+        g_return_if_fail (GSSDP_IS_CLIENT (client));
+
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        if (priv->uda_version > GSSDP_UDA_VERSION_1_0) {
+                char *id_string;
+                priv->config_id = config_id;
+                gssdp_client_remove_header (client, "CONFIGID.UPNP.ORG");
+
+                id_string = g_strdup_printf ("%d", config_id);
+                gssdp_client_append_header (client, "CONFIGID.UPNP.ORG", id_string);
+                g_free (id_string);
+        }
+
+}
+
 
 /**
  * _gssdp_client_send_message:

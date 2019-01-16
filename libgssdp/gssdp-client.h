@@ -122,6 +122,15 @@ gssdp_client_guess_user_agent (GSSDPClient *client,
 GSSDPUDAVersion
 gssdp_client_get_uda_version  (GSSDPClient *client);
 
+void
+gssdp_client_set_boot_id      (GSSDPClient *client,
+                               gint32       boot_id);
+
+void
+gssdp_client_set_config_id    (GSSDPClient *client,
+                               gint32       config_id);
+
+
 G_END_DECLS
 
 #endif /* GSSDP_CLIENT_H */
