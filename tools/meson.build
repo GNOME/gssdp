@@ -1,14 +1,16 @@
-resource = gnome.compile_resources(
-    'org.gupnp.GSSDP.DeviceSniffer',
-    'gssdp-device-sniffer.gresource.xml'
+gssdp_device_sniffer_sources = [
+  'main.c',
+  'gssdp-device-sniffer-window.c',
+]
+
+gnome = import('gnome')
+
+gssdp_device_sniffer_sources += gnome.compile_resources('gssdp-device-sniffer-resources',
+  'gssdp-device-sniffer.gresource.xml',
+  c_name: 'gssdp_device_sniffer'
 )
 
-sniffer = executable(
-    'gssdp-device-sniffer',
-    [
-        'gssdp-device-sniffer.c',
-        resource
-    ],
+executable('gssdp-device-sniffer', gssdp_device_sniffer_sources,
     dependencies : [gssdp, gtk],
     install: true,
     export_dynamic : true,

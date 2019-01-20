@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/org/gupnp/GSSDP">
-    <file preprocess="xml-stripblanks" alias="DeviceSniffer.ui">gssdp-device-sniffer.ui</file>
-    <file alias="WindowMenu.ui">window-menu.ui</file>
+  <gresource prefix="/org/gnome/GssdpDeviceSniffer">
+    <file>gssdp-device-sniffer-window.ui</file>
+    <file>window-menu.ui</file>
   </gresource>
 </gresources>
