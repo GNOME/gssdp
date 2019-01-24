@@ -36,6 +36,7 @@ gssdp_socket_reuse_address       (GSocket *socket,
 
 G_GNUC_INTERNAL gboolean
 gssdp_socket_enable_info         (GSocket *socket,
+                                  GSocketFamily family,
                                   gboolean enable,
                                   GError **error);
 

@@ -155,6 +155,7 @@ gssdp_socket_reuse_address (GSocket *socket,
 
 gboolean
 gssdp_socket_enable_info         (GSocket *socket,
+                                  GSocketFamily family,
                                   gboolean enable,
                                   GError **error)
 {
@@ -164,19 +165,25 @@ gssdp_socket_enable_info         (GSocket *socket,
         g_object_unref (g_object_new (GSSDP_TYPE_PKTINFO_MESSAGE, NULL));
         g_object_unref (g_object_new (GSSDP_TYPE_PKTINFO6_MESSAGE, NULL));
 
-        gssdp_socket_option_set (socket,
-                                 IPPROTO_IPV6,
-                                 IPV6_RECVPKTINFO,
-                                 (char *)&enable,
-                                 sizeof (enable),
-                                 error);
+        if (family == G_SOCKET_FAMILY_IPV6) {
+                return gssdp_socket_option_set (socket,
+                                                IPPROTO_IPV6,
+                                                IPV6_RECVPKTINFO,
+                                                (char *)&enable,
+                                                sizeof (enable),
+                                                error);
+        } else if (family == G_SOCKET_FAMILY_IPV4) {
+                return gssdp_socket_option_set (socket,
+                                                IPPROTO_IP,
+                                                IP_PKTINFO,
+                                                (char *) &enable,
+                                                sizeof (enable),
+                                                error);
+        } else {
+                g_warning ("Invalid socket family: %d", family);
 
-        return gssdp_socket_option_set (socket,
-                                        IPPROTO_IP,
-                                        IP_PKTINFO,
-                                        (char *) &enable,
-                                        sizeof (enable),
-                                        error);
+                return FALSE;
+        }
 #else
     __GSSDP_UNUSED (socket);
     __GSSDP_UNUSED (enable);

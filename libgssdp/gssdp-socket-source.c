@@ -229,6 +229,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         g_socket_set_broadcast (priv->socket, TRUE);
 
         if (!gssdp_socket_enable_info (priv->socket,
+                                       family,
                                        TRUE,
                                        &inner_error)) {
                 g_propagate_prefixed_error (error,
