@@ -162,8 +162,8 @@ gssdp_socket_enable_info         (GSocket *socket,
 #ifdef HAVE_PKTINFO
         /* Register the type so g_socket_control_message_deserialize() will
          * find it */
-        g_object_unref (g_object_new (GSSDP_TYPE_PKTINFO_MESSAGE, NULL));
-        g_object_unref (g_object_new (GSSDP_TYPE_PKTINFO6_MESSAGE, NULL));
+        g_type_ensure (GSSDP_TYPE_PKTINFO_MESSAGE);
+        g_type_ensure (GSSDP_TYPE_PKTINFO6_MESSAGE);
 
         if (family == G_SOCKET_FAMILY_IPV6) {
                 return gssdp_socket_option_set (socket,
