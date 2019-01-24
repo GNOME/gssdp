@@ -370,6 +370,49 @@ static void test_bgo724030 (void)
  * ============================================================================
  */
 
+/* BEGIN Regression test
+ * https://gitlab.gnome.org/GNOME/gssdp/issues/1
+ * ============================================================================
+ *  - Check that sending a message after clearing the custom headers does not
+ *    crash
+ */
+
+static void test_ggo_1(void)
+{
+        GSSDPClient *dest;
+        GSSDPResourceGroup *group;
+        GMainLoop *loop;
+        GError *error = NULL;
+
+        loop = g_main_loop_new (NULL, FALSE);
+        dest = get_client (&error);
+        g_assert_nonnull (dest);
+        g_assert_null (error);
+        gssdp_client_append_header (dest, "Foo", "bar");
+
+        group = gssdp_resource_group_new (dest);
+        g_assert_nonnull (group);
+
+        gssdp_resource_group_add_resource_simple (group,
+                                                  USN,
+                                                  UUID_1"::"USN,
+                                                  "http://127.0.0.1:3456");
+        gssdp_resource_group_set_max_age (group, 1);
+        gssdp_resource_group_set_available (group, TRUE);
+        g_timeout_add_seconds (2, quit_loop, loop);
+        g_main_loop_run (loop);
+
+        gssdp_client_clear_headers (dest);
+        g_object_unref (dest);
+        g_timeout_add_seconds (10, quit_loop, loop);
+        g_main_loop_run (loop);
+}
+
+/* END Regression test
+ * https://gitlab.gnome.org/GNOME/gssdp/issues/1
+ * ============================================================================
+ */
+
 
 int main (int argc, char *argv[])
 {
@@ -382,6 +425,7 @@ int main (int argc, char *argv[])
                g_test_add_func ("/bugs/gnome/673150", test_bgo673150);
                g_test_add_func ("/bugs/gnome/682099", test_bgo682099);
                g_test_add_func ("/bugs/gnome/724030", test_bgo724030);
+               g_test_add_func ("/bugs/ggo/1", test_ggo_1);
         }
 
         g_test_run ();

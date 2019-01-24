@@ -1032,6 +1032,7 @@ gssdp_client_clear_headers (GSSDPClient *client)
 
         g_list_free_full (priv->headers,
                           (GDestroyNotify) header_field_free);
+        priv->headers = NULL;
 }
 
 /**
