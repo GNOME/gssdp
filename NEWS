@@ -1,3 +1,20 @@
+1.0.3
+=====
+ - meson build fixes
+ - Fix running sniffer from meson build
+ - Fix issue on OS X when socket is destroyed after suspend
+ - Fix a memory leak in the device sniffer
+ - Fix a crash when sending a SSDP message after clearing the custom headers
+ - Use utsname.release for Server: header
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/1
+ - https://bugzilla.gnome.org/show_bug.cgi?id=794340
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Olivier Crete <olivier.crete@collabora.com>
+
 1.0.2
 =====
 - Small documentation fixes
