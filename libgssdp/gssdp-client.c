@@ -1085,13 +1085,25 @@ void
 gssdp_client_clear_headers (GSSDPClient *client)
 {
         GSSDPClientPrivate *priv = NULL;
+        GList *l;
 
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         priv = gssdp_client_get_instance_private (client);
 
-        g_list_free_full (priv->headers,
-                          (GDestroyNotify) header_field_free);
-        priv->headers = NULL;
+        l = priv->headers;
+        while (l != NULL)
+        {
+                GList *next = l->next;
+                GSSDPHeaderField *header = l->data;
+
+                if (g_strcmp0 (header->name, "BOOTID.UPNP.ORG") != 0 &&
+                    g_strcmp0 (header->name, "CONFIGID.UPNP.ORG") != 0) {
+                        header_field_free (header);
+                        priv->headers = g_list_delete_link (priv->headers, l);
+                }
+                l = next;
+        }
+
 }
 
 /**
