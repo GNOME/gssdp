@@ -89,6 +89,10 @@ void
 gssdp_resource_group_remove_resource     (GSSDPResourceGroup *resource_group,
                                           guint               resource_id);
 
+void
+gssdp_resource_group_update              (GSSDPResourceGroup *resource_group,
+                                          guint               new_boot_id);
+
 G_END_DECLS
 
 #endif /* GSSDP_RESOURCE_GROUP_H */

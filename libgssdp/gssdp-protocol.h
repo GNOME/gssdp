@@ -68,11 +68,21 @@ G_BEGIN_DECLS
         "NT: %s\r\n"                                \
         "USN: %s\r\n"
 
+#define SSDP_UPDATE_MESSAGE                         \
+        "NOTIFY * HTTP/1.1\r\n"                     \
+        "Host: %s:" SSDP_PORT_STR "\r\n" \
+        "Location: %s\r\n"                          \
+        "NT: %s\r\n"                                \
+        "NTS: ssdp:update\r\n"                      \
+        "USN: %s\r\n"                               \
+        "NEXTBOOTID.UPNP.ORG: %u\r\n"
+
 #define SSDP_SEARCH_METHOD "M-SEARCH"
 #define GENA_NOTIFY_METHOD "NOTIFY"
 
 #define SSDP_ALIVE_NTS  "ssdp:alive"
 #define SSDP_BYEBYE_NTS "ssdp:byebye"
+#define SSDP_UPDATE_NTS "ssdp:update"
 
 #define SSDP_DEFAULT_MAX_AGE 1800
 #define SSDP_DEFAULT_MX      3

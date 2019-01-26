@@ -109,6 +109,10 @@ typedef struct {
 #define VERSION_PATTERN "[0-9]+$"
 
 /* Function prototypes */
+
+static void
+queue_message                   (GSSDPResourceGroup *resource_group,
+                                 char               *message);
 static void
 gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
                                  GSSDPClient        *client);
@@ -512,13 +516,43 @@ send_initial_resource_byebye (Resource *resource)
 }
 
 static void
-send_announcement_set (GList *resources, GFunc message_function)
+send_announcement_set (GList *resources, GFunc message_function, gpointer user_data)
 {
         guint8 i;
 
         for (i = 0; i < DEFAULT_ANNOUNCEMENT_SET_SIZE; i++) {
-                g_list_foreach (resources, message_function, NULL);
+                g_list_foreach (resources, message_function, user_data);
         }
+}
+
+static void
+setup_reannouncement_timeout (GSSDPResourceGroup *resource_group)
+{
+        int timeout;
+        GSSDPResourceGroupPrivate *priv;
+
+        priv = gssdp_resource_group_get_instance_private (resource_group);
+
+        /* We want to re-announce at least 3 times before the resource
+         * group expires to cope with the unrelialble nature of UDP.
+         *
+         * Read the paragraphs about 'CACHE-CONTROL' on pages 21-22 of
+         * UPnP Device Architecture Document v1.1 for further details.
+         * */
+        timeout = priv->max_age;
+        if (G_LIKELY (timeout > 6))
+                timeout = (timeout / 3) - 1;
+
+        /* Add re-announcement timer */
+        priv->timeout_src = g_timeout_source_new_seconds (timeout);
+        g_source_set_callback (priv->timeout_src,
+                        resource_group_timeout,
+                        resource_group, NULL);
+
+        g_source_attach (priv->timeout_src,
+                        g_main_context_get_thread_default ());
+
+        g_source_unref (priv->timeout_src);
 }
 
 /**
@@ -545,40 +579,21 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
         priv->available = available;
 
         if (available) {
-                int timeout;
-
-                /* We want to re-announce at least 3 times before the resource
-                 * group expires to cope with the unrelialble nature of UDP.
-                 *
-                 * Read the paragraphs about 'CACHE-CONTROL' on pages 21-22 of
-                 * UPnP Device Architecture Document v1.1 for further details.
-                 * */
-                timeout = priv->max_age;
-                if (G_LIKELY (timeout > 6))
-                        timeout = (timeout / 3) - 1;
-
-                /* Add re-announcement timer */
-                priv->timeout_src = g_timeout_source_new_seconds (timeout);
-                g_source_set_callback (priv->timeout_src,
-                                       resource_group_timeout,
-                                       resource_group, NULL);
-
-                g_source_attach (priv->timeout_src,
-                                 g_main_context_get_thread_default ());
-
-                g_source_unref (priv->timeout_src);
-
+                setup_reannouncement_timeout (resource_group);
                 /* Make sure initial byebyes are sent grouped before initial
                  * alives */
                 send_announcement_set (priv->resources,
-                                       (GFunc) send_initial_resource_byebye);
+                                       (GFunc) send_initial_resource_byebye,
+                                       NULL);
 
                 send_announcement_set (priv->resources,
-                                       (GFunc) resource_alive);
+                                       (GFunc) resource_alive,
+                                       NULL);
         } else {
                 /* Unannounce all resources */
                 send_announcement_set (priv->resources,
-                                       (GFunc) resource_byebye);
+                                       (GFunc) resource_byebye,
+                                       NULL);
 
                 /* Remove re-announcement timer */
                 g_source_destroy (priv->timeout_src);
@@ -735,6 +750,86 @@ gssdp_resource_group_remove_resource (GSSDPResourceGroup *resource_group,
         }
 }
 
+static void
+resource_update (Resource *resource, gpointer user_data)
+{
+        GSSDPResourceGroupPrivate *priv;
+        GSSDPClient *client;
+        char *message;
+        const char *group;
+        char *dest;
+        guint next_boot_id = GPOINTER_TO_UINT (user_data);
+
+        priv = gssdp_resource_group_get_instance_private
+                                        (resource->resource_group);
+
+        /* Send message */
+        client = priv->client;
+
+        /* FIXME: UGLY V6 stuff */
+        group = _gssdp_client_get_mcast_group (client);
+        if (strchr (group, ':') != NULL)
+                dest = g_strdup_printf ("[%s]", group);
+        else
+                dest = g_strdup (group);
+
+        message = g_strdup_printf (SSDP_UPDATE_MESSAGE,
+                                   dest,
+                                   (char *) resource->locations->data,
+                                   resource->target,
+                                   resource->usn,
+                                   next_boot_id);
+
+        queue_message (resource->resource_group, message);
+
+        g_free (dest);
+}
+
+/**
+ * gssdp_resource_group_update:
+ * @resource_group: A #GSSDPResourceGroup
+ * @new_boot_id: The new boot id of the device
+ *
+ * Send an ssdp::update message if the underlying #GSSDPClient is running
+ * the UDA 1.1 protocol. Does nothing otherwise.
+ */
+void
+gssdp_resource_group_update (GSSDPResourceGroup *self,
+                             guint               next_boot_id)
+{
+        GSSDPUDAVersion version;
+        GSSDPResourceGroupPrivate *priv;
+
+        g_return_if_fail (GSSDP_IS_RESOURCE_GROUP (self));
+        g_return_if_fail (next_boot_id <= G_MAXINT32);
+
+        priv = gssdp_resource_group_get_instance_private (self);
+
+        version = gssdp_client_get_uda_version (priv->client);
+
+        if (version == GSSDP_UDA_VERSION_1_0)
+                return;
+
+        if (!priv->available) {
+                gssdp_client_set_boot_id (priv->client, next_boot_id);
+
+                return;
+        }
+
+        /* Disable timeout */
+        g_clear_pointer (&priv->timeout_src, g_source_destroy);
+
+        send_announcement_set (priv->resources, (GFunc) resource_update, GUINT_TO_POINTER (next_boot_id));
+
+        /* FIXME: This causes only the first of the three update messages to be correct. The other two will
+         * have the new boot id as and boot id as the same value
+         */
+        gssdp_client_set_boot_id (priv->client, next_boot_id);
+
+        setup_reannouncement_timeout (self);
+        send_announcement_set (priv->resources, (GFunc) resource_alive, NULL);
+}
+
 /*
  * Called to re-announce all resources periodically
  */
@@ -747,7 +842,7 @@ resource_group_timeout (gpointer user_data)
         resource_group = GSSDP_RESOURCE_GROUP (user_data);
         priv = gssdp_resource_group_get_instance_private (resource_group);
 
-        send_announcement_set (priv->resources, (GFunc) resource_alive);
+        send_announcement_set (priv->resources, (GFunc) resource_alive, NULL);
 
         return TRUE;
 }
