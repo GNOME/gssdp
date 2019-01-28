@@ -215,7 +215,7 @@ gssdp_client_initable_init (GInitable                   *initable,
         }
 
         /* Generate default server ID */
-        if (priv->server_id != NULL) {
+        if (priv->server_id == NULL) {
                 priv->server_id = make_server_id (gssdp_client_get_uda_version (client));
         }
 
