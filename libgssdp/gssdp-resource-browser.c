@@ -85,6 +85,7 @@ enum {
 enum {
         RESOURCE_AVAILABLE,
         RESOURCE_UNAVAILABLE,
+        RESOURCE_UPDATE,
         LAST_SIGNAL
 };
 
@@ -384,6 +385,30 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                               G_TYPE_NONE,
                               1,
                               G_TYPE_STRING);
+
+        /**
+         * GSSDPResourceBrowser::resource-update:
+         * @resource_browser: The #GSSDPResourceBrowser that received the
+         * signal
+         * @usn: The USN of the resource
+         * @boot_id: The current boot-id
+         * @next_boot_id : The next boot-id
+         *
+         * The ::resource-update signal is emitted whenever an UPnP 1.1
+         * device is about to change it's BOOTID.
+         **/
+        signals[RESOURCE_UPDATE] =
+                g_signal_new ("resource-update",
+                              GSSDP_TYPE_RESOURCE_BROWSER,
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (GSSDPResourceBrowserClass,
+                                               resource_update),
+                              NULL, NULL, NULL,
+                              G_TYPE_NONE,
+                              3,
+                              G_TYPE_STRING,
+                              G_TYPE_UINT,
+                              G_TYPE_UINT);
 }
 
 /**
@@ -910,6 +935,66 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 }
 
 static void
+resource_update (GSSDPResourceBrowser *resource_browser,
+                 SoupMessageHeaders   *headers)
+{
+        GSSDPResourceBrowserPrivate *priv;
+        const char *usn;
+        const char *boot_id_header;
+        const char *next_boot_id_header;
+        char *canonical_usn;
+        guint boot_id;
+        guint next_boot_id;
+        gint64 out;
+
+        priv = gssdp_resource_browser_get_instance_private (resource_browser);
+        usn = soup_message_headers_get_one (headers, "USN");
+        boot_id_header = soup_message_headers_get_one (headers, "BOOTID.UPNP.ORG");
+        next_boot_id_header = soup_message_headers_get_one (headers, "NEXTBOOTID.UPNP.ORG");
+
+        if (!usn)
+                return; /* No USN specified */
+
+        if (!boot_id_header)
+                return;
+
+        if (!next_boot_id_header)
+                return;
+
+        if (!g_ascii_string_to_signed (boot_id_header, 10, 0, G_MAXINT32, &out, NULL))
+                return;
+        boot_id = out;
+
+        if (!g_ascii_string_to_signed (next_boot_id_header, 10, 0, G_MAXINT32, &out, NULL))
+                return;
+        next_boot_id = out;
+
+        if (priv->version > 0) {
+                char *version;
+                version = g_strrstr (usn, ":");
+                canonical_usn = g_strndup (usn, version - usn);
+        } else {
+                canonical_usn = g_strdup (usn);
+        }
+
+        /* Only continue if we know about this. if not, there will be an
+         * announcement afterwards anyway */
+        if (!g_hash_table_lookup (priv->resources,
+                                  canonical_usn))
+                goto out;
+
+        g_signal_emit (resource_browser,
+                       signals[RESOURCE_UPDATE],
+                       0,
+                       usn,
+                       boot_id,
+                       next_boot_id);
+out:
+        g_free (canonical_usn);
+
+}
+
+static void
 resource_unavailable (GSSDPResourceBrowser *resource_browser,
                       SoupMessageHeaders   *headers)
 {
@@ -1037,6 +1122,10 @@ received_announcement (GSSDPResourceBrowser *resource_browser,
                           SSDP_BYEBYE_NTS,
                           strlen (SSDP_BYEBYE_NTS)) == 0)
                 resource_unavailable (resource_browser, headers);
+        else if (strncmp (header,
+                          SSDP_UPDATE_NTS,
+                          strlen (SSDP_UPDATE_NTS)) == 0)
+                resource_update (resource_browser, headers);
 }
 
 /*

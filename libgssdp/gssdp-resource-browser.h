@@ -43,7 +43,12 @@ struct _GSSDPResourceBrowserClass {
         void (* resource_available)   (GSSDPResourceBrowser *resource_browser,
                                        const char           *usn,
                                        const GList          *locations);
-        
+
+        void (* resource_update)      (GSSDPResourceBrowser *resource_browser,
+                                       const char           *usn,
+                                       guint                 boot_id,
+                                       guint                 next_boot_id);
+
         void (* resource_unavailable) (GSSDPResourceBrowser *resource_browser,
                                        const char           *usn);
 
