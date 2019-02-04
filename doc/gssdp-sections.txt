@@ -15,7 +15,9 @@ gssdp_client_get_active
 gssdp_client_get_address
 gssdp_client_get_family
 gssdp_client_get_index
-gssdp_client_new_full
+gssdp_client_get_uda_version
+gssdp_client_set_boot_id
+gssdp_client_set_config_id
 gssdp_client_append_header
 gssdp_client_clear_headers
 gssdp_client_remove_header
@@ -78,6 +80,7 @@ gssdp_resource_browser_get_mx
 gssdp_resource_browser_set_active
 gssdp_resource_browser_get_active
 gssdp_resource_browser_rescan
+gssdp_resource_group_update
 <SUBSECTION Standard>
 GSSDP_RESOURCE_BROWSER
 GSSDP_IS_RESOURCE_BROWSER

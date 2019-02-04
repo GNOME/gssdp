@@ -1136,6 +1136,13 @@ gssdp_client_get_index (GSSDPClient *client)
         return priv->device.index;
 }
 
+/**
+ * gssdp_client_get_family:
+ * @client: A #GSSDPClient
+ *
+ * Returns: IP protocol version (%G_SOCKET_FAMILY_IPV4 or G_SOCKET_FAMILY_IPV6)
+ * this client uses
+ */
 GSocketFamily
 gssdp_client_get_family (GSSDPClient *client)
 {
@@ -1145,6 +1152,12 @@ gssdp_client_get_family (GSSDPClient *client)
         return g_inet_address_get_family (priv->device.host_addr);
 }
 
+/**
+ * gssdp_client_get_uda_version:
+ * @client: A #GSSDPClient
+ *
+ * Returns: the UDA protocol version this client adheres to
+ */
 GSSDPUDAVersion
 gssdp_client_get_uda_version  (GSSDPClient *client)
 {
@@ -1154,6 +1167,17 @@ gssdp_client_get_uda_version  (GSSDPClient *client)
         return priv->uda_version;
 }
 
+/**
+ * gssdp_client_set_boot_id:
+ * @client: A #GSSDPClient
+ * @boot_id: The new boot-id for the client
+ *
+ * Will set the new boot-id for this SSDP client. Does nothing if the UDA
+ * version used by the client is UDA 1.0
+ *
+ * The boot-id is used to signalize changes in the network configuration
+ * for multi-homed hosts
+ */
 void
 gssdp_client_set_boot_id (GSSDPClient *client, gint32 boot_id)
 {
@@ -1175,6 +1199,14 @@ gssdp_client_set_boot_id (GSSDPClient *client, gint32 boot_id)
 
 }
 
+/**
+ * gssdp_client_set_config_id:
+ * @client: A #GSSDPClient
+ * @config_id: The new config-id for the client
+ *
+ * The config-id is used to allow caching of the device or service description.
+ * It should be changed if that changes.
+ */
 void
 gssdp_client_set_config_id (GSSDPClient *client, gint32 config_id)
 {
@@ -1193,7 +1225,6 @@ gssdp_client_set_config_id (GSSDPClient *client, gint32 config_id)
         }
 
 }
-
 
 /**
  * _gssdp_client_send_message:
