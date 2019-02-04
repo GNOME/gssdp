@@ -216,7 +216,10 @@ gssdp_client_initable_init (GInitable                   *initable,
 
         /* Generate default server ID */
         if (priv->server_id == NULL) {
-                priv->server_id = make_server_id (gssdp_client_get_uda_version (client));
+                GSSDPUDAVersion version;
+
+                version = gssdp_client_get_uda_version (client);
+                priv->server_id = make_server_id (version);
         }
 
         if (!gssdp_net_init (error))
@@ -1319,6 +1322,15 @@ _gssdp_client_get_mcast_group (GSSDPClient *client)
         }
 }
 
+#define ENSURE_V6_GROUP(group) \
+        G_STMT_START { \
+                if (SSDP_V6_ ## group ## _ADDR == NULL) { \
+                        SSDP_V6_ ## group ## _ADDR = \
+                                g_inet_address_new_from_string (SSDP_V6_ ## group); \
+                } \
+        } \
+        G_STMT_END
+
 static GInetAddress *
 _gssdp_client_get_mcast_group_addr (GSSDPClient *client)
 {
@@ -1337,15 +1349,11 @@ _gssdp_client_get_mcast_group_addr (GSSDPClient *client)
                 /* According to Annex.A, we need to check the scope of the
                  * address to use the proper multicast group */
                 if (g_inet_address_get_is_link_local (priv->device.host_addr)) {
-                            if (SSDP_V6_LL_ADDR == NULL) {
-                                    SSDP_V6_LL_ADDR = g_inet_address_new_from_string (SSDP_V6_LL);
-                            }
+                            ENSURE_V6_GROUP(LL);
 
                             return SSDP_V6_LL_ADDR;
                 } else {
-                            if (SSDP_V6_SL_ADDR == NULL) {
-                                    SSDP_V6_SL_ADDR = g_inet_address_new_from_string (SSDP_V6_SL);
-                            }
+                            ENSURE_V6_GROUP(SL);
 
                             return SSDP_V6_SL_ADDR;
                 }
