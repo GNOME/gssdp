@@ -556,26 +556,29 @@ GList *
 gssdp_net_list_devices (void)
 {
         struct ifaddrs *ifa_list, *ifa;
+        GHashTable *interfaces;
         GList *result = NULL;
+
+        interfaces = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
         if (getifaddrs (&ifa_list) != 0) {
                 g_warning ("Failed to retrieve list of network interfaces: %s",
                            strerror (errno));
 
-                return result;
+                goto out;
         }
 
         for (ifa = ifa_list; ifa != NULL; ifa = ifa->ifa_next) {
-                /* Filter for network devices - don't care for addresses */
-                if (ifa->ifa_addr->sa_family != AF_PACKET) {
-                        continue;
-                }
-
-                result = g_list_prepend (result, g_strdup (ifa->ifa_name));
+                g_hash_table_add (interfaces, g_strdup (ifa->ifa_name));
         }
 
 
         freeifaddrs (ifa_list);
 
-        return g_list_reverse (result);
+out:
+        result = g_hash_table_get_keys (interfaces);
+        g_hash_table_steal_all (interfaces);
+        g_hash_table_destroy (interfaces);
+
+        return result;
 }
