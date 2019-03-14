@@ -48,8 +48,18 @@ if generic_unix
   sources += 'gssdp-net-posix.c'
 endif
 
+version = '0.0.0'
+version_arr = version.split('.')
+major_version = version_arr[0].to_int()
+minor_version = version_arr[1].to_int()
+micro_version = version_arr[2].to_int()
+current = major_version + minor_version + 1
+interface_age = micro_version
+darwin_versions = [current, '@0@.@1@'.format(current, interface_age)]
+
 libgssdp = library('gssdp-1.2', sources + enums,
-    version : '0.0.0',
+    version : version,
+    darwin_versions : darwin_versions,
     dependencies : dependencies + system_deps,
     include_directories : include_directories('..'),
     install : true)
