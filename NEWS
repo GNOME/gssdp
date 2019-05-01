@@ -1,3 +1,14 @@
+1.2.1
+=====
+ - Fix portability issues with gssdp_net_get_device_list
+ - Fix a local vs. global include in public header
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/3
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.2.0
 =====
 - Bump version for new stable release
