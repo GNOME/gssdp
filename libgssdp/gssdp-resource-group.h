@@ -22,7 +22,7 @@
 #ifndef GSSDP_RESOURCE_GROUP_H
 #define GSSDP_RESOURCE_GROUP_H
 
-#include "gssdp-client.h"
+#include <libgssdp/gssdp-client.h>
 
 #include <glib-object.h>
 
