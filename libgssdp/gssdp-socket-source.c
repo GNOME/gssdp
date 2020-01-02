@@ -235,16 +235,6 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 /* Enable multicast loopback */
                 g_socket_set_multicast_loopback (self->priv->socket, TRUE);
 
-                if (!gssdp_socket_mcast_interface_set (self->priv->socket,
-                                                       iface_address,
-                                                       &inner_error)) {
-                        g_propagate_prefixed_error (
-                                        error,
-                                        inner_error,
-                                        "Failed to set multicast interface");
-
-                        goto error;
-                }
 
 #ifdef G_OS_WIN32
                 bind_address = g_inet_socket_address_new (iface_address,
@@ -255,6 +245,17 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 #endif
         } else {
                 guint port = SSDP_PORT;
+
+                if (!gssdp_socket_mcast_interface_set (self->priv->socket,
+                                                       iface_address,
+                                                       &inner_error)) {
+                        g_propagate_prefixed_error (
+                                        error,
+                                        inner_error,
+                                        "Failed to set multicast interface");
+
+                        goto error;
+                }
 
                 /* Use user-supplied or random port for the socket source used
                  * by M-SEARCH */
