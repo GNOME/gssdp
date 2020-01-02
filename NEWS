@@ -1,3 +1,17 @@
+1.2.2
+=====
+ - Fix macOS dylib versioning
+ - Update the required glib version to 2.54
+ - Fix setting the multicast sending interface
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/4
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Niveditha Rau <niveditha.rau@oracle.com>
+ - Tom Schoonjans <Tom.Schoonjans@diamond.ac.uk>
+
 1.2.1
 =====
  - Fix portability issues with gssdp_net_get_device_list
