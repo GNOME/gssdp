@@ -1258,6 +1258,8 @@ _gssdp_client_send_message (GSSDPClient      *client,
 
         priv = gssdp_client_get_instance_private (client);
 
+        g_return_if_fail (priv->initialized);
+
         if (!priv->active)
                 /* We don't send messages in passive mode */
                 return;
