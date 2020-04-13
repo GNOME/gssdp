@@ -544,7 +544,9 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                 break;
         }
 
-        device->address_family = g_inet_address_get_family (device->host_addr);
+        if (device->host_addr != NULL) {
+                device->address_family = g_inet_address_get_family (device->host_addr);
+        }
 
         g_list_free (up_ifaces);
         freeifaddrs (ifa_list);
