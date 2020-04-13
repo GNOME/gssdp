@@ -271,16 +271,20 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         } else {
                 guint port = SSDP_PORT;
 
-                if (!gssdp_socket_mcast_interface_set (priv->socket,
-                                                       priv->address,
-                                                       (guint32) priv->index,
-                                                       &inner_error)) {
-                        g_propagate_prefixed_error (
-                                        error,
-                                        inner_error,
-                                        "Failed to set multicast interface");
+                if (family != G_SOCKET_FAMILY_IPV6 ||
+                    (!g_inet_address_get_is_loopback (priv->address))) {
 
-                        goto error;
+                        if (!gssdp_socket_mcast_interface_set (priv->socket,
+                                                priv->address,
+                                                (guint32) priv->index,
+                                                &inner_error)) {
+                                g_propagate_prefixed_error (
+                                                error,
+                                                inner_error,
+                                                "Failed to set multicast interface");
+
+                                goto error;
+                        }
                 }
 
                 /* Use user-supplied or random port for the socket source used
