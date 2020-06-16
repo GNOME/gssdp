@@ -98,6 +98,9 @@ gssdp_client_get_index        (GSSDPClient *client);
 GSocketFamily
 gssdp_client_get_family       (GSSDPClient *client);
 
+GInetAddressMask *
+gssdp_client_get_address_mask (GSSDPClient *client);
+
 void
 gssdp_client_append_header    (GSSDPClient *client,
                                const char  *name,
