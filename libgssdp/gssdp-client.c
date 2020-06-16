@@ -35,6 +35,7 @@
 #include <config.h>
 #include <sys/types.h>
 #include <glib.h>
+
 #ifndef G_OS_WIN32
 #include <sys/socket.h>
 #include <sys/utsname.h>
@@ -118,6 +119,7 @@ struct _GSSDPNetworkDevice {
         GInetAddress *host_addr;
         char *network;
         struct sockaddr_in mask;
+        GInetAddressMask *address_mask;
         gint index;
 };
 typedef struct _GSSDPNetworkDevice GSSDPNetworkDevice;
@@ -929,6 +931,22 @@ gssdp_client_get_active (GSSDPClient *client)
         return client->priv->active;
 }
 
+/**
+ * gssdp_client_get_address_mask:
+ * @client: A #GSSDPClient
+ *
+ * Return value: (transfer none): A #GInetAddressMask associated with this client
+ * Since: 1.0.4
+ */
+GInetAddressMask *
+gssdp_client_get_address_mask (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+
+        return client->priv->device.address_mask;
+}
+
+
 static void
 header_field_free (GSSDPHeaderField *header)
 {
@@ -1674,6 +1692,16 @@ get_host_ip (GSSDPNetworkDevice *device)
                                                         q = prefix;
                         }
 
+                        {
+                                char *mask = NULL;
+
+                                mask = g_strdup_printf ("%s/%u",
+                                                        prefix,
+                                                        address_prefix->PrefixLength);
+                                device->address_mask = g_inet_address_mask_new_from_string (mask);
+                                g_free (mask);
+                        }
+
                         if (p != NULL) {
                                 gint32 mask = 0;
 
@@ -1850,6 +1878,9 @@ get_host_ip (GSSDPNetworkDevice *device)
                 memcpy (&device->mask, netmask, sizeof (struct sockaddr_in));
 
                 if (device->network == NULL) {
+                        int prefix;
+                        GInetAddress *address;
+
                         device->network = g_malloc0 (INET_ADDRSTRLEN);
 
                         net_address.s_addr = ip & netmask->sin_addr.s_addr;
@@ -1867,10 +1898,22 @@ get_host_ip (GSSDPNetworkDevice *device)
                                 device->network = NULL;
                                 continue;
                         }
+
+                        // Just assume that the netmask we got is correct
+                        prefix = __builtin_popcount
+                                        ((in_addr_t) netmask->sin_addr.s_addr);
+                        address = g_inet_address_new_from_bytes
+                                        ((guint8 *) &(net_address.s_addr),
+                                         G_SOCKET_FAMILY_IPV4);
+                        device->address_mask = g_inet_address_mask_new (address,
+                                                                        prefix,
+                                                                        NULL);
+                        g_object_unref (address);
+
                 }
 
                 if (!device->iface_name)
-                    device->iface_name = g_strdup (iface->ifr_name);
+                        device->iface_name = g_strdup (iface->ifr_name);
 
                 device->index = query_ifindex (device->iface_name);
 
@@ -1962,7 +2005,17 @@ success:
                 net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
                                   (in_addr_t) s4_mask->sin_addr.s_addr;
                 q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
+                {
+                        // Just assume that the netmask we got is correct
+                        int prefix;
+                        GInetAddress *address;
 
+                        prefix = __builtin_popcount ((in_addr_t) s4_mask->sin_addr.s_addr);
+                        address = g_inet_address_new_from_bytes ((guint8 *) &(net_addr.s_addr),
+                                                                 G_SOCKET_FAMILY_IPV4);
+                        device->address_mask = g_inet_address_mask_new (address, prefix, NULL);
+                        g_object_unref (address);
+                }
                 device->index = query_ifindex (ifa->ifa_name);
 
                 if (device->iface_name == NULL)
