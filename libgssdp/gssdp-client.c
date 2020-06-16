@@ -562,7 +562,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       "The IP netmask of the associated"
                                       "network interface",
                                       G_TYPE_INET_ADDRESS_MASK,
-                                      G_PARAM_WRITABLE |
+                                      G_PARAM_READWRITE |
                                       G_PARAM_CONSTRUCT |
                                       G_PARAM_STATIC_STRINGS));
 
@@ -1153,6 +1153,24 @@ gssdp_client_get_family (GSSDPClient *client)
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
 
         return g_inet_address_get_family (priv->device.host_addr);
+}
+
+/**
+ * gssdp_client_get_address_mask:
+ * @client: A #GSSDPClient
+ *
+ * Since: 1.2.3
+ *
+ * Returns: (transfer full): Address mask of this client
+ */
+GInetAddressMask *
+gssdp_client_get_address_mask (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        return g_object_ref (priv->device.host_mask);
 }
 
 /**
