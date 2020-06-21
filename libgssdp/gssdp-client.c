@@ -1692,16 +1692,6 @@ get_host_ip (GSSDPNetworkDevice *device)
                                                         q = prefix;
                         }
 
-                        {
-                                char *mask = NULL;
-
-                                mask = g_strdup_printf ("%s/%u",
-                                                        prefix,
-                                                        address_prefix->PrefixLength);
-                                device->address_mask = g_inet_address_mask_new_from_string (mask);
-                                g_free (mask);
-                        }
-
                         if (p != NULL) {
                                 gint32 mask = 0;
 
@@ -1716,6 +1706,13 @@ get_host_ip (GSSDPNetworkDevice *device)
                                 device->mask.sin_family = AF_INET;
                                 device->mask.sin_port = 0;
                                 device->mask.sin_addr.s_addr = htonl ((guint32) mask);
+                                char *mask_str = NULL;
+
+                                mask_str = g_strdup_printf ("%s/%u",
+                                                            prefix,
+                                                            (guint) address_prefix->PrefixLength);
+                                device->address_mask = g_inet_address_mask_new_from_string (mask_str, NULL);
+                                g_free (mask_str);
 
                                 if (device->iface_name == NULL)
                                         device->iface_name = g_strdup (adapter->AdapterName);
