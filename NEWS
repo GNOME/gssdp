@@ -1,3 +1,14 @@
+1.0.4
+=====
+ - Set the correct multicast source interface on the correct socket
+ - Add gssdp_client_get_address_mask
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/4
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.0.3
 =====
  - meson build fixes
