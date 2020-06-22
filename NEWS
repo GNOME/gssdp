@@ -1,3 +1,17 @@
+1.2.3
+=====
+ - Prevent crash if client is not initialized
+ - Fix critical if network device does not exists
+ - Fix ::1 multicast
+ - client. Add getter for network mask
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/5
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/6
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.2.2
 =====
  - Fix macOS dylib versioning
