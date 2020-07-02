@@ -2034,31 +2034,7 @@ init_network_info (GSSDPClient *client, GError **error)
 {
         gboolean ret = TRUE;
 
-        /* Either interface name or host_ip wasn't given during construction.
-         * If one is given, try to find the other, otherwise just pick an
-         * interface.
-         */
-        if (client->priv->device.iface_name == NULL ||
-            client->priv->device.host_ip == NULL)
-                get_host_ip (&(client->priv->device));
-        else {
-                /* Ugly. Ideally, get_host_ip needs to be run everytime, but
-                 * it is currently to stupid so just query index here if we
-                 * have a name and an interface already.
-                 *
-                 * query_ifindex will return -1 on platforms that don't
-                 * support this.
-                 */
-                client->priv->device.index =
-                                query_ifindex (client->priv->device.iface_name);
-        }
-
-        if (client->priv->device.host_addr == NULL &&
-            client->priv->device.host_ip != NULL) {
-                client->priv->device.host_addr =
-                                g_inet_address_new_from_string
-                                    (client->priv->device.host_ip);
-        }
+        get_host_ip (&(client->priv->device));
 
         if (client->priv->device.iface_name == NULL) {
                 g_set_error_literal (error,

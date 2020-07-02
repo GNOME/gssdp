@@ -411,6 +411,30 @@ static void test_ggo_1(void)
  * ============================================================================
  */
 
+/* BEGIN Regression test
+ * https://gitlab.gnome.org/GNOME/gssdp/issues/7
+ * ============================================================================
+ *  - Check that creating a GSSDPClient with interface and ip will have a set
+ *    network mask
+ */
+void test_ggo_7 () {
+        GError *error = NULL;
+
+        GSSDPClient *client = g_initable_new (GSSDP_TYPE_CLIENT,
+                                              NULL,
+                                              &error,
+                                              "host-ip", "127.0.0.1",
+                                              "interface", "lo",
+                                              NULL);
+        g_assert_no_error (error);
+        g_assert_nonnull (gssdp_client_get_address_mask (client));
+}
+
+/* END Regression test
+ * https://gitlab.gnome.org/GNOME/gssdp/issues/7
+ * ============================================================================
+ */
+
 
 int main (int argc, char *argv[])
 {
@@ -425,6 +449,7 @@ int main (int argc, char *argv[])
                g_test_add_func ("/bugs/gnome/724030", test_bgo724030);
                g_test_add_func ("/bugs/ggo/1", test_ggo_1);
         }
+        g_test_add_func ("/bugs/ggo/7", test_ggo_7);
 
         g_test_run ();
 
