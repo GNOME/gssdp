@@ -1618,19 +1618,17 @@ get_host_ip (GSSDPNetworkDevice *device)
                       GAA_FLAG_SKIP_MULTICAST;
         DWORD size = 15360; /* Use 15k buffer initially as documented in MSDN */
         DWORD ret;
-        PIP_ADAPTER_ADDRESSES adapters_addresses;
+        PIP_ADAPTER_ADDRESSES adapters_addresses = NULL;
         PIP_ADAPTER_ADDRESSES adapter;
         gboolean retval = FALSE;
 
         do {
-                adapters_addresses = (PIP_ADAPTER_ADDRESSES) g_malloc0 (size);
+                adapters_addresses = (PIP_ADAPTER_ADDRESSES) g_realloc (adapters_addresses, size);
                 ret = GetAdaptersAddresses (AF_UNSPEC,
                                             flags,
                                             NULL,
                                             adapters_addresses,
                                             &size);
-                if (ret == ERROR_BUFFER_OVERFLOW)
-                        g_free (adapters_addresses);
         } while (ret == ERROR_BUFFER_OVERFLOW);
 
         if (ret == ERROR_SUCCESS)
