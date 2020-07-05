@@ -1960,6 +1960,7 @@ success:
 #else
         struct ifaddrs *ifa_list, *ifa;
         GList *up_ifaces, *ifaceptr;
+        gboolean retval = FALSE;
 
         up_ifaces = NULL;
 
@@ -2011,6 +2012,13 @@ success:
                                &s4->sin_addr,
                                ip,
                                sizeof (ip));
+                if (device->host_ip != NULL &&
+                    !g_str_equal (device->host_ip, p)) {
+                        p = NULL;
+
+                        continue;
+                }
+
                 device->host_ip = g_strdup (p);
 
                 bytes = (const guint8 *) &s4->sin_addr;
@@ -2039,13 +2047,14 @@ success:
                         device->iface_name = g_strdup (ifa->ifa_name);
                 if (device->network == NULL)
                         device->network = g_strdup (q);
-                break;
+
+                retval = TRUE;
         }
 
         g_list_free (up_ifaces);
         freeifaddrs (ifa_list);
 
-        return TRUE;
+        return retval;
 #endif
 }
 
