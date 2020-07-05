@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([gssdp],
-        [1.0.4],
+        [1.0.5],
         [https://gitlab.gnome.org/GNOME/gssdp/issues],
         [gssdp],
         [http://www.gupnp.org/])

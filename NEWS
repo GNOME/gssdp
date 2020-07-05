@@ -1,3 +1,18 @@
+1.0.5
+=====
+ - Always set the network mask for client
+ - Various fixes on Windows
+ - Make tests a bit more robust for varying names of localhost devices
+ - Fix creation of clients with host-ip only
+
+
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/7
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.0.4
 =====
  - Set the correct multicast source interface on the correct socket
