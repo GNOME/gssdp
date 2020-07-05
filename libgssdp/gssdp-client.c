@@ -2056,7 +2056,13 @@ init_network_info (GSSDPClient *client, GError **error)
 {
         gboolean ret = TRUE;
 
-        get_host_ip (&(client->priv->device));
+        if (!get_host_ip (&(client->priv->device))) {
+                g_set_error_literal (error,
+                                     GSSDP_ERROR,
+                                     GSSDP_ERROR_FAILED,
+                                     "Could not determine network device");
+                ret = FALSE;
+        }
 
         if (client->priv->device.iface_name == NULL) {
                 g_set_error_literal (error,
