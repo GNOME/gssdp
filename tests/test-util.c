@@ -66,21 +66,17 @@ get_client (GError **outer_error)
 
                 g_debug ("Detecting network interface to use for tests...");
 
-                client = gssdp_client_new (NULL, "lo", &error);
+                client = g_initable_new (GSSDP_TYPE_CLIENT,
+                                         NULL,
+                                         &error,
+                                         "host-ip", "127.0.0.1",
+                                         NULL);
                 if (error == NULL) {
-                        g_debug ("Using lo");
-                        device = g_strdup ("lo");
+                        device = g_strdup (gssdp_client_get_interface (client));
+                        g_debug ("Using %s", device);
                         g_object_unref (client);
                 } else {
-                        g_clear_error(&error);
-                        client = gssdp_client_new (NULL, "lo0", &error);
-                        if (error == NULL) {
-                                g_debug ("Using lo0");
-                                device = g_strdup ("lo0");
-                                g_object_unref (client);
-                        } else {
-                                g_debug ("Using default interface, expect fails");
-                        }
+                        g_debug ("Using default interface, expect fails");
                 }
                 g_once_init_leave (&init_guard, 1);
         }
