@@ -1620,6 +1620,7 @@ get_host_ip (GSSDPNetworkDevice *device)
         DWORD ret;
         PIP_ADAPTER_ADDRESSES adapters_addresses;
         PIP_ADAPTER_ADDRESSES adapter;
+        gboolean retval = FALSE;
 
         do {
                 adapters_addresses = (PIP_ADAPTER_ADDRESSES) g_malloc0 (size);
@@ -1636,18 +1637,25 @@ get_host_ip (GSSDPNetworkDevice *device)
                 for (adapter = adapters_addresses;
                      adapter != NULL;
                      adapter = adapter->Next) {
-                        if (adapter->FirstUnicastAddress == NULL)
+                        g_debug ("Found adapter %s (%S)", adapter->AdapterName, adapter->FriendlyName);
+                        if (adapter->FirstUnicastAddress == NULL) {
+                                g_debug("  Skipping: No Unicast addresses");
                                 continue;
-                        if (adapter->OperStatus != IfOperStatusUp)
+                        }
+                        if (adapter->OperStatus != IfOperStatusUp) {
+                                g_debug("  Skipping: Not up!");
                                 continue;
+                        }
                         /* skip Point-to-Point devices */
-                        if (adapter->IfType == IF_TYPE_PPP)
+                        if (adapter->IfType == IF_TYPE_PPP) {
+                                g_debug("  Skipping: Interface is PPP");
                                 continue;
-
+                        }
                         if (device->iface_name != NULL &&
-                            strcmp (device->iface_name, adapter->AdapterName) != 0)
+                            !g_str_equal (device->iface_name, adapter->AdapterName)) {
+                                g_debug("  Skipping: Not matching %s", device->iface_name);
                                 continue;
-
+                        }
                         /* I think that IPv6 is done via pseudo-adapters, so
                          * that there are either IPv4 or IPv6 addresses defined
                          * on the adapter.
@@ -1672,6 +1680,7 @@ get_host_ip (GSSDPNetworkDevice *device)
                 p = NULL;
 
                 adapter = (PIP_ADAPTER_ADDRESSES) ifaceptr->data;
+                g_debug("Checking Adapter %S (%s)\n", adapter->FriendlyName, adapter->AdapterName);
 
                 for (address_prefix = adapter->FirstPrefix; address_prefix != NULL; address_prefix = address_prefix->Next)
                         if (address_prefix->Address.lpSockaddr->sa_family == AF_INET)
@@ -1691,6 +1700,15 @@ get_host_ip (GSSDPNetworkDevice *device)
                                                         p = ip;
                                                         q = prefix;
                         }
+
+                        if (p != NULL && device->host_ip != NULL && ! g_str_equal (p, device->host_ip)) {
+                                g_debug ("Skipping %s on %s because it does not match the requested IP %s",
+                                         p,
+                                         adapter->AdapterName,
+                                         ip);
+                                p = NULL;
+                                continue;
+                        }       
 
                         if (p != NULL) {
                                 gint32 mask = 0;
@@ -1713,12 +1731,13 @@ get_host_ip (GSSDPNetworkDevice *device)
                                                             (guint) address_prefix->PrefixLength);
                                 device->address_mask = g_inet_address_mask_new_from_string (mask_str, NULL);
                                 g_free (mask_str);
+								
 
                                 if (device->iface_name == NULL)
                                         device->iface_name = g_strdup (adapter->AdapterName);
                                 if (device->network == NULL)
                                         device->network = g_strdup (q);
-                                break;
+                                retval = TRUE;
                         }
                 }
 
@@ -1726,10 +1745,13 @@ get_host_ip (GSSDPNetworkDevice *device)
                         break;
 
         }
+
+        // Not freeing up the members of the list as they are just
+        // pointing into adapters_addresses which is freed below
         g_list_free (up_ifaces);
         g_free (adapters_addresses);
 
-        return TRUE;
+        return retval;
 #elif defined(__BIONIC__)
         struct      ifreq *ifaces = NULL;
         struct      ifreq *iface = NULL;
