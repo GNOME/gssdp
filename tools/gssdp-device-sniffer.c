@@ -475,62 +475,6 @@ on_address_filter_dialog_response (GtkDialog             *dialog,
                 ip_filter = NULL;
 }
 
-static GtkTreeModel *
-create_packet_treemodel (void)
-{
-        GtkListStore *store;
-
-        store = gtk_list_store_new (7,
-                        G_TYPE_STRING,
-                        G_TYPE_STRING,
-                        G_TYPE_STRING,
-                        G_TYPE_STRING,
-                        G_TYPE_STRING,
-                        SOUP_TYPE_MESSAGE_HEADERS,
-                        G_TYPE_DATE_TIME);
-
-        return GTK_TREE_MODEL (store);
-}
-
-static GtkTreeModel *
-create_device_treemodel (void)
-{
-        GtkListStore *store;
-
-        store = gtk_list_store_new (4,
-                        G_TYPE_STRING,
-                        G_TYPE_STRING,
-                        G_TYPE_STRING,
-                        G_TYPE_STRING);
-
-        return GTK_TREE_MODEL (store);
-}
-
-static void
-setup_treeview (GtkWidget *treeview,
-                GtkTreeModel *model,
-                const char *headers[])
-{
-        int i;
-
-        /* Set-up columns */
-        for (i=0; headers[i] != NULL; i++) {
-                GtkCellRenderer *renderer;
-               
-                renderer = gtk_cell_renderer_text_new ();
-                gtk_tree_view_insert_column_with_attributes (
-                                GTK_TREE_VIEW (treeview),
-                                -1,
-                                headers[i],
-                                renderer,
-                                "text", i,
-                                NULL);
-        }
-
-        gtk_tree_view_set_model (GTK_TREE_VIEW (treeview),
-                        model);
-}
-
 static gboolean
 on_treeview_popup_menu (GtkWidget *tv, GdkEventButton *event, gpointer user_data)
 {
@@ -544,49 +488,25 @@ on_treeview_popup_menu (GtkWidget *tv, GdkEventButton *event, gpointer user_data
 static void
 setup_treeviews (void)
 {
-        GtkWidget *treeviews[2];
-        GtkTreeModel *treemodels[2];
-        const char *headers[2][7] = { {"Time",
-                "Source Address",
-                "Interface",
-                "Packet Type",
-                "Packet Information",
-                NULL }, {"Unique Identifier",
-                "First Notify",
-                "Device Type",
-                "Location",
-                NULL } }; 
+        GtkWidget *treeview;
         GtkTreeSelection *selection;
         GtkWidget *menu = NULL;
-        int i;
 
-        treeviews[0] = GTK_WIDGET(gtk_builder_get_object (builder,
-                        "packet-treeview"));
-        g_assert (treeviews[0] != NULL);
-        treeviews[1] = GTK_WIDGET(gtk_builder_get_object (builder,
-                        "device-details-treeview"));
-        g_assert (treeviews[1] != NULL);
+        treeview = GTK_WIDGET(gtk_builder_get_object (builder,
+                                                      "packet-treeview"));
         
-        treemodels[0] = create_packet_treemodel ();
-        g_assert (treemodels[0] != NULL);
-        treemodels[1] = create_device_treemodel ();
-        g_assert (treemodels[1] != NULL);
-
-        for (i=0; i<2; i++)
-                setup_treeview (treeviews[i], treemodels[i], headers[i]);
-        
-        selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (treeviews[0]));
-        g_assert (selection != NULL);
+        selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (treeview));
         g_signal_connect (selection,
-                        "changed",
-                        G_CALLBACK (on_packet_selected),
-                        (gpointer *) treeviews[0]);
+                          "changed",
+                          G_CALLBACK (on_packet_selected),
+                          (gpointer *) treeview);
         menu = gtk_menu_new_from_model (G_MENU_MODEL (gtk_builder_get_object (builder,
                                                                               "sniffer-context-menu")));
-        gtk_menu_attach_to_widget (GTK_MENU (menu), treeviews[0], NULL);
-        g_signal_connect (G_OBJECT (treeviews[0]),
+        gtk_menu_attach_to_widget (GTK_MENU (menu), treeview, NULL);
+        g_signal_connect (G_OBJECT (treeview),
                           "button-press-event",
-                          G_CALLBACK (on_treeview_popup_menu), menu);
+                          G_CALLBACK (on_treeview_popup_menu),
+                          menu);
 }
 
 G_MODULE_EXPORT
@@ -800,6 +720,8 @@ deinit_upnp (void)
 gint
 main (gint argc, gchar *argv[])
 {
+        g_type_ensure (G_TYPE_DATE_TIME);
+
         if (!init_ui (&argc, &argv)) {
            return -2;
         }
