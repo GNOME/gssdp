@@ -95,22 +95,11 @@ clear_packet_treeview (void)
 {
         GtkWidget *treeview;
         GtkTreeModel *model;
-        GtkTreeIter iter;
-        gboolean more;
-        time_t *arrival_time;
 
         treeview = GTK_WIDGET(gtk_builder_get_object (builder, "packet-treeview"));
         g_assert (treeview != NULL);
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
-        more = gtk_tree_model_get_iter_first (model, &iter);
-
-        while (more) {
-                gtk_tree_model_get (model,
-                                &iter, 
-                                PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME, &arrival_time, -1);
-                g_free (arrival_time);
-                more = gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
-        }
+        gtk_list_store_clear (GTK_LIST_STORE (model));
 }
 
 static void
@@ -161,13 +150,16 @@ update_packet_details (const char *text, unsigned int len)
 }
 
 static void
-display_packet (time_t arrival_time, SoupMessageHeaders *packet_headers)
+display_packet (GDateTime *arrival_time, SoupMessageHeaders *packet_headers)
 {
         GString *text;
+        char *time = NULL;
 
-        text = g_string_new ("");
-        g_string_printf (text, "Received on: %s\nHeaders:\n\n",
-                        ctime (&arrival_time));
+        time = g_date_time_format_iso8601 (arrival_time);
+        text = g_string_new ("Received on: ");
+        g_string_append (text, time);
+        g_string_append (text, "\nHeaders:\n\n");
+        g_free (time);
 
         soup_message_headers_foreach (packet_headers,
                         (SoupMessageHeadersForeachFunc)
@@ -184,7 +176,7 @@ on_packet_selected (GtkTreeSelection      *selection,
 {
         GtkTreeModel *model;
         GtkTreeIter iter;
-        time_t *arrival_time;
+        GDateTime *arrival_time;
 
         if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
                 SoupMessageHeaders *packet_headers;
@@ -196,8 +188,9 @@ on_packet_selected (GtkTreeSelection      *selection,
                                     PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME,
                                         &arrival_time,
                                     -1);
-                display_packet (*arrival_time, packet_headers);
+                display_packet (arrival_time, packet_headers);
                 g_boxed_free (SOUP_TYPE_MESSAGE_HEADERS, packet_headers);
+                g_date_time_unref (arrival_time);
         }
 
         else
@@ -208,19 +201,17 @@ static const char *message_types[] = {"M-SEARCH", "RESPONSE", "NOTIFY"};
 
 static char **
 packet_to_treeview_data (const gchar        *from_ip,
-                         time_t              arrival_time,
+                         GDateTime          *arrival_time,
                          _GSSDPMessageType   type,
                          SoupMessageHeaders *headers)
 {
         char **packet_data;
         const char *target;
-        struct tm *tm;
 
         packet_data = g_new0 (char *, 6);
 
         /* Set the Time */
-        tm = localtime (&arrival_time);
-        packet_data[0] = g_strdup_printf ("%02d:%02d", tm->tm_hour, tm->tm_min);
+        packet_data[0] = g_date_time_format (arrival_time, "%R");
 
         /* Now the Source Address */
         packet_data[1] = g_strdup (from_ip);
@@ -244,7 +235,7 @@ packet_to_treeview_data (const gchar        *from_ip,
 
 static void
 append_packet (const gchar *from_ip,
-               time_t arrival_time,
+               GDateTime *arrival_time,
                _GSSDPMessageType type,
                SoupMessageHeaders *headers)
 {
@@ -271,8 +262,7 @@ append_packet (const gchar *from_ip,
                         PACKET_STORE_COLUMN_PACKET_TYPE, packet_data[3],
                         PACKET_STORE_COLUMN_TARGET, packet_data[4],
                         PACKET_STORE_COLUMN_HEADERS, headers,
-                        PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME,
-                                g_memdup (&arrival_time, sizeof (time_t)),
+                        PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME, arrival_time,
                         -1);
         g_strfreev (packet_data);
 }
@@ -285,9 +275,7 @@ on_ssdp_message (G_GNUC_UNUSED GSSDPClient *ssdp_client,
                  SoupMessageHeaders        *headers,
                  G_GNUC_UNUSED gpointer     user_data)
 {
-        time_t arrival_time;
-        
-        arrival_time = time (NULL);
+        GDateTime *arrival_time;
      
         if (type == _GSSDP_DISCOVERY_REQUEST)
                 return;
@@ -296,7 +284,9 @@ on_ssdp_message (G_GNUC_UNUSED GSSDPClient *ssdp_client,
         if (!capture_packets) 
                 return;
 
+        arrival_time = g_date_time_new_now_local ();
         append_packet (from_ip, arrival_time, type, headers);
+        g_date_time_unref (arrival_time);
 }
 
 static gboolean 
@@ -360,14 +350,12 @@ resource_available_cb (G_GNUC_UNUSED GSSDPResourceBrowser *ssdp_resource_browser
         char **usn_tokens;
         char *uuid;
         char *device_type = NULL;
-        time_t current_time;
-        struct tm *tm;
+        GDateTime *current_time = NULL;
         char *first_notify;
                 
-        current_time = time (NULL);
-        tm = localtime (&current_time);
-        first_notify = g_strdup_printf ("%02d:%02d",
-        tm->tm_hour, tm->tm_min);
+        current_time = g_date_time_new_now_local ();
+        first_notify = g_date_time_format (current_time, "%R");
+        g_date_time_unref (current_time);
 
         usn_tokens = g_strsplit (usn, "::", -1);
         g_assert (usn_tokens != NULL && usn_tokens[0] != NULL);
@@ -390,8 +378,7 @@ resource_available_cb (G_GNUC_UNUSED GSSDPResourceBrowser *ssdp_resource_browser
                        device_type,
                        (char *) locations->data);
         
-        if (device_type)
-                g_free (device_type);
+        g_free (device_type);
         g_free (first_notify);
         g_strfreev (usn_tokens);
 }
@@ -500,7 +487,7 @@ create_packet_treemodel (void)
                         G_TYPE_STRING,
                         G_TYPE_STRING,
                         SOUP_TYPE_MESSAGE_HEADERS,
-                        G_TYPE_POINTER);
+                        G_TYPE_DATE_TIME);
 
         return GTK_TREE_MODEL (store);
 }
