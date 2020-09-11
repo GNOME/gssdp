@@ -463,6 +463,8 @@ gssdp_client_dispose (GObject *object)
                 client->priv->device.host_addr = NULL;
         }
 
+        g_clear_object (&client->priv->device.address_mask);
+
         G_OBJECT_CLASS (gssdp_client_parent_class)->dispose (object);
 }
 
@@ -2019,17 +2021,24 @@ success:
                         continue;
                 }
 
-                device->host_ip = g_strdup (p);
+                /* If we ended up here with host_ip not being NULL, p is equal to host_ip */
+                if (device->host_ip == NULL)
+                        device->host_ip = g_strdup (p);
 
-                bytes = (const guint8 *) &s4->sin_addr;
-                device->host_addr = g_inet_address_new_from_bytes
-                                        (bytes, G_SOCKET_FAMILY_IPV4);
+                if (device->host_addr == NULL) {
+                        bytes = (const guint8 *) &s4->sin_addr;
+                        g_clear_object (&device->host_addr);
+                        device->host_addr = g_inet_address_new_from_bytes
+                                                (bytes, G_SOCKET_FAMILY_IPV4);
+                }
 
                 s4_mask = (struct sockaddr_in *) ifa->ifa_netmask;
                 memcpy (&(device->mask), s4_mask, sizeof (struct sockaddr_in));
                 net_addr.s_addr = (in_addr_t) s4->sin_addr.s_addr &
                                   (in_addr_t) s4_mask->sin_addr.s_addr;
                 q = inet_ntop (AF_INET, &net_addr, net, sizeof (net));
+
+                if (device->address_mask == NULL)
                 {
                         // Just assume that the netmask we got is correct
                         int prefix;
