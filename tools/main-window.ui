@@ -179,7 +179,7 @@
                 <property name="can_focus">True</property>
                 <property name="shadow_type">in</property>
                 <child>
-                  <object class="GtkTreeView" id="packet-treeview">
+                  <object class="GtkTreeView" id="packet_treeview">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="model">packet_store</property>
@@ -256,7 +256,7 @@
                 <property name="can_focus">True</property>
                 <property name="shadow_type">in</property>
                 <child>
-                  <object class="GtkTextView" id="packet-details-textview">
+                  <object class="GtkTextView" id="packet_textview">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="editable">False</property>
