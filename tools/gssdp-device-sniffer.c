@@ -17,6 +17,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "main-window.h"
+
 #include <libgssdp/gssdp.h>
 #include <libgssdp/gssdp-client-private.h>
 #include <libsoup/soup.h>
@@ -717,11 +719,38 @@ deinit_upnp (void)
         g_object_unref (client);
 }
 
+static void
+on_activate (GtkApplication *app)
+{
+        GtkWindow *window;
+
+        window = gtk_application_get_active_window (app);
+        if (window == NULL) {
+                window = g_object_new (GSSDP_DEVICE_SNIFFER_TYPE_MAIN_WINDOW,
+                                       "application",
+                                       app,
+                                       NULL);
+        }
+
+        gtk_window_present (window);
+}
+
 gint
 main (gint argc, gchar *argv[])
 {
         g_type_ensure (G_TYPE_DATE_TIME);
 
+        GtkApplication *app =
+                gtk_application_new ("org.gupnp.GSSDP.DeviceSniffer",
+                                     G_APPLICATION_FLAGS_NONE);
+
+        g_signal_connect (G_OBJECT (app),
+                          "activate",
+                          G_CALLBACK (on_activate),
+                          NULL);
+
+        return g_application_run (G_APPLICATION (app), argc, argv);
+#if 0
         if (!init_ui (&argc, &argv)) {
            return -2;
         }
@@ -734,6 +763,6 @@ main (gint argc, gchar *argv[])
        
         deinit_upnp ();
         deinit_ui ();
-        
+#endif
         return 0;
 }

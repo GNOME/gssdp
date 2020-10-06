@@ -7,6 +7,8 @@ sniffer = executable(
     'gssdp-device-sniffer',
     [
         'gssdp-device-sniffer.c',
+        'main-window.c',
+        'main-window.h',
         resource
     ],
     dependencies : [gssdp, gtk],
