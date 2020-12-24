@@ -32,7 +32,7 @@ discovery and announcement over SSDP for GUPnP.</description>
   <maintainer>
     <foaf:Person>
       <foaf:name>Ross Burton</foaf:name>
-      <foaf:mbox rdf:resource="mailto:ross.burton@intel.com" />
+      <foaf:mbox rdf:resource="mailto:ross@burtonini.com" />
       <gnome:userid>rburton</gnome:userid>
     </foaf:Person>
   </maintainer>
