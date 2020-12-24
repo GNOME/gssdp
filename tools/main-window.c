@@ -2,6 +2,7 @@
 
 #include "main-window.h"
 
+#include <gio/gio.h>
 #include <glib.h>
 
 #include <libsoup/soup.h>
@@ -17,9 +18,21 @@ typedef enum
         PACKET_STORE_COLUMN_RAW_ARRIVAL_TIME
 } PACKET_STORE_COLUMNS;
 
+enum
+{
+        PROP_0,
+        PROP_INTERFACE,
+        PROP_ADDRESS_FAMILY,
+};
+
 struct _GSSDPDeviceSnifferMainWindow {
         GtkApplicationWindow parent_instance;
 
+        // SSDP related parameters
+        char *interface;
+        GSocketFamily family;
+
+        // Bound child widgets
         GtkWidget *packet_treeview;
         GtkWidget *packet_textview;
 };
@@ -27,6 +40,39 @@ struct _GSSDPDeviceSnifferMainWindow {
 G_DEFINE_TYPE (GSSDPDeviceSnifferMainWindow,
                gssdp_device_sniffer_main_window,
                GTK_TYPE_APPLICATION_WINDOW)
+
+static void
+main_window_get_property (GObject *object,
+                          guint property_id,
+                          GValue *value,
+                          GParamSpec *pspec)
+{
+        switch (property_id) {
+        default:
+                G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+        }
+}
+
+static void
+main_window_set_property (GObject *object,
+                          guint property_id,
+                          const GValue *value,
+                          GParamSpec *pspec)
+{
+        GSSDPDeviceSnifferMainWindow *self =
+                GSSDP_DEVICE_SNIFFER_MAIN_WINDOW (object);
+
+        switch (property_id) {
+        case PROP_INTERFACE:
+                self->interface = g_value_dup_string (value);
+                break;
+        case PROP_ADDRESS_FAMILY:
+                self->family = g_value_get_enum (value);
+                break;
+        default:
+                G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+        }
+}
 
 static void
 gssdp_device_sniffer_main_window_class_init (
@@ -43,6 +89,32 @@ gssdp_device_sniffer_main_window_class_init (
         gtk_widget_class_bind_template_child (widget_class,
                                               GSSDPDeviceSnifferMainWindow,
                                               packet_textview);
+
+        GObjectClass *object_class = G_OBJECT_CLASS (klass);
+        object_class->set_property = main_window_set_property;
+        object_class->get_property = main_window_get_property;
+
+        g_object_class_install_property (
+                object_class,
+                PROP_ADDRESS_FAMILY,
+                g_param_spec_enum (
+                        "address-family",
+                        "Socket address familiy",
+                        "The socket address familiy of the SSDP client",
+                        G_TYPE_SOCKET_FAMILY,
+                        G_SOCKET_FAMILY_INVALID,
+                        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
+                                G_PARAM_STATIC_STRINGS));
+
+        g_object_class_install_property (
+                object_class,
+                PROP_INTERFACE,
+                g_param_spec_string ("interface",
+                                     "Network interface",
+                                     "The network interface of the SSDP client",
+                                     NULL,
+                                     G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
+                                             G_PARAM_STATIC_STRINGS));
 }
 
 static void

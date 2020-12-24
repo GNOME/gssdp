@@ -722,6 +722,7 @@ deinit_upnp (void)
 static void
 on_activate (GtkApplication *app)
 {
+        printf ("on_activate\n");
         GtkWindow *window;
 
         window = gtk_application_get_active_window (app);
@@ -735,6 +736,25 @@ on_activate (GtkApplication *app)
         gtk_window_present (window);
 }
 
+static int
+on_command_line (GtkApplication *app,
+                 GApplicationCommandLine *cmdline,
+                 gpointer user_data)
+{
+        const char *interface = NULL;
+        GSocketFamily family = G_SOCKET_FAMILY_INVALID;
+        GVariantDict *options =
+                g_application_command_line_get_options_dict (cmdline);
+        gboolean four = FALSE;
+        gboolean six = FALSE;
+
+        printf ("on_commandline\n");
+
+        on_activate (app);
+
+        return EXIT_SUCCESS;
+}
+
 gint
 main (gint argc, gchar *argv[])
 {
@@ -742,8 +762,17 @@ main (gint argc, gchar *argv[])
 
         GtkApplication *app =
                 gtk_application_new ("org.gupnp.GSSDP.DeviceSniffer",
-                                     G_APPLICATION_FLAGS_NONE);
+                                     G_APPLICATION_HANDLES_COMMAND_LINE);
 
+        g_application_add_main_option_entries (G_APPLICATION (app), entries);
+        g_application_set_option_context_parameter_string (
+                G_APPLICATION (app),
+                "- graphical SSDP debug tool");
+
+        g_signal_connect (G_OBJECT (app),
+                          "command-line",
+                          G_CALLBACK (on_command_line),
+                          NULL);
         g_signal_connect (G_OBJECT (app),
                           "activate",
                           G_CALLBACK (on_activate),
