@@ -29,11 +29,4 @@ discovery and announcement over SSDP for GUPnP.</description>
       <gnome:userid>jensgeorg</gnome:userid>
     </foaf:Person>
   </maintainer>
-  <maintainer>
-    <foaf:Person>
-      <foaf:name>Ross Burton</foaf:name>
-      <foaf:mbox rdf:resource="mailto:ross@burtonini.com" />
-      <gnome:userid>rburton</gnome:userid>
-    </foaf:Person>
-  </maintainer>
 </Project>
