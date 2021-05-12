@@ -786,8 +786,13 @@ gssdp_client_new_with_port (const char *iface,
  * @client: A #GSSDPClient
  * @server_id: The server ID
  *
- * Sets the server ID of @client to @server_id.
- **/
+ * Sets the server ID of @client to @server_id. This string is used as the
+ * "Server:" identification header for SSDP discovery and response packets
+ * and "User-Agent" header for searches.
+ *
+ * By default, GSSDP will generate a header conforming to the requirements
+ * defined in the UDA documents: OS/Version UPnP/Version GSSDP/Version.
+ */
 void
 gssdp_client_set_server_id (GSSDPClient *client,
                             const char  *server_id)

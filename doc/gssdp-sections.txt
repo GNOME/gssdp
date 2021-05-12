@@ -11,6 +11,7 @@ gssdp_client_get_interface
 gssdp_client_get_host_ip
 gssdp_client_set_network
 gssdp_client_get_network
+gssdp_client_get_address_mask
 gssdp_client_get_active
 gssdp_client_get_address
 gssdp_client_get_family
@@ -36,6 +37,8 @@ GSSDP_IS_CLIENT_CLASS
 GSSDP_CLIENT_GET_CLASS
 <SUBSECTION Private>
 GSSDPClientPrivate
+GSSDPPktinfo6Message
+GSSDP_TYPE_PKTINFO6_MESSAGE
 </SECTION>
 
 <SECTION>
