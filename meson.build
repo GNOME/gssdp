@@ -80,6 +80,12 @@ if get_option('vapi') and get_option('introspection')
   subdir('vala')
 endif
 
+
+gidocgen_dep = dependency('gi-docgen', version: '>= 2021.1',
+                          fallback: ['gi-docgen', 'dummy_dep'],
+                          required: get_option('gtk_doc') and get_option('introspection')
+                      )
+
 if get_option('gtk_doc')
   subdir('doc')
 endif

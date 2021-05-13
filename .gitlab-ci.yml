@@ -61,14 +61,14 @@ check-merge-request:
 
 .gssdp.fedora@common:
   variables:
-    BASE_TAG: '2021-05-15.9'
+    BASE_TAG: '2021-05-22.0'
     FDO_UPSTREAM_REPO: GNOME/gssdp
     FDO_DISTRIBUTION_PACKAGES: 'clang clang-analyzer gcovr git libasan libubsan python3-gobject python3-pip xmlto'
     FDO_DISTRIBUTION_EXEC: |
       dnf install -y 'dnf-command(builddep)' &&
       dnf builddep -y gssdp --setopt=install_weak_deps=False &&
       dnf clean all &&
-      pip3 install meson
+      pip3 install meson markdown toml typogrify
 
 .gssdp.fedora:34@x86_64:
   extends: .gssdp.fedora@common
@@ -188,9 +188,10 @@ pages:
   stage: website
   script:
       - meson doc-build -Dgtk_doc=true
-      - ninja -C doc-build gssdp-doc
+      - ninja -C doc-build doc/GSSDP
       - mkdir -p public
-      - mv doc-build/doc/html public/docs
+      - mv doc-build/doc/GSSDP public/GSSDP
+
   artifacts:
     paths:
       - public
@@ -199,4 +200,6 @@ pages:
   only:
     - master
     - /^wip\/.*\/ci.*$/
+    - /^wip\/.*\/.*doc.*$/
+
 
