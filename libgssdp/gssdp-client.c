@@ -105,6 +105,16 @@ struct _GSSDPClientPrivate {
 
 typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
 
+/**
+ * GSSDPClient:
+ *
+ * A simple SSDP bus handler.
+ *
+ * The GSSDPClient will usually be used by the #GSSDPResourceGroup for announcing
+ * or the #GSSDPResourceBrowser for finding resources on the network.
+ *
+ * A GSSDPClient is required per IP address that you want to use with.
+ */
 G_DEFINE_TYPE_EXTENDED (GSSDPClient,
                         gssdp_client,
                         G_TYPE_OBJECT,
@@ -744,9 +754,14 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 /**
  * gssdp_client_new:
  * @iface: (allow-none): The name of the network interface, or %NULL for auto-detection.
- * @error: Location to store error, or NULL
+ * @error: (allow-none): Location to store error, or %NULL
  *
- * Return value: A new #GSSDPClient object.
+ * Creates a GSSDP client on @iface. GSSDPClient will pick the address it finds
+ * suitable for using.
+ *
+ * Using this utility function, the created client will be using UDA 1.0 and IPv4 only.
+ *
+ * Return value: (nullable): A new #GSSDPClient object.
  **/
 GSSDPClient *
 gssdp_client_new (const char *iface, GError **error)
@@ -766,8 +781,13 @@ gssdp_client_new (const char *iface, GError **error)
  * random.
  * @error: (allow-none): Location to store error, or %NULL.
  *
- * Return value: A new #GSSDPClient object.
- **/
+ * Creates a GSSDP client on @iface. GSSDPClient will pick the address it finds
+ * suitable for using.
+ *
+ * Using this utility function, the created client will be using UDA 1.0 and IPv4 only.
+ *
+ * Return value: (nullable):  A new #GSSDPClient object or %NULL on error.
+ */
 GSSDPClient *
 gssdp_client_new_with_port (const char *iface,
                             guint16     msearch_port,
