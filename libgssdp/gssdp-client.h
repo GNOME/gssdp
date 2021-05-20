@@ -133,6 +133,9 @@ void
 gssdp_client_set_config_id    (GSSDPClient *client,
                                gint32       config_id);
 
+gboolean
+gssdp_client_can_reach (GSSDPClient *client,
+                        GInetSocketAddress *address);
 
 G_END_DECLS
 

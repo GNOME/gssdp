@@ -1253,6 +1253,34 @@ gssdp_client_set_config_id (GSSDPClient *client, gint32 config_id)
 }
 
 /**
+ * gssdp_client_can_reach:
+ * @client: A #GSSDPClient
+ * @address: A #GInetSocketAddress of the target. The port part of the address may be 0
+ *
+ * Check if the peer at @address is reachable using this @client.
+ *
+ * Since: 1.2.4
+ * Returns: %TRUE if considered reachable, %FALSE otherwise.
+ */
+gboolean
+gssdp_client_can_reach (GSSDPClient *client, GInetSocketAddress *address)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), FALSE);
+        g_return_val_if_fail (G_IS_INET_SOCKET_ADDRESS (address), FALSE);
+
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+        gboolean retval = FALSE;
+
+        GInetAddress *addr = g_inet_socket_address_get_address (address);
+        if (g_inet_address_get_is_link_local (addr)) {
+                return g_inet_socket_address_get_scope_id (address) ==
+                       priv->device.index;
+        }
+
+        return g_inet_address_mask_matches (priv->device.host_mask, addr);
+}
+
+/**
  * _gssdp_client_send_message:
  * @client: A #GSSDPClient
  * @dest_ip: (allow-none): The destination IP address, or %NULL to broadcast
@@ -1587,14 +1615,9 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
          * on this socket from a particular interface but AFAIK that is not
          * possible, at least not in a portable way.
          */
-        {
-                GInetAddress *inet_address;
-                GInetSocketAddress *sockaddr;
 
-                sockaddr = G_INET_SOCKET_ADDRESS (address);
-                inet_address = g_inet_socket_address_get_address (sockaddr);
-                if (!g_inet_address_mask_matches (priv->device.host_mask, inet_address))
-                        goto out;
+        if (!gssdp_client_can_reach (client, G_INET_SOCKET_ADDRESS(address))) {
+                goto out;
         }
 #endif
 

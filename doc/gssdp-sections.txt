@@ -24,6 +24,7 @@ gssdp_client_clear_headers
 gssdp_client_remove_header
 gssdp_client_add_cache_entry
 gssdp_client_guess_user_agent
+gssdp_client_can_reach
 <SUBSECTION Standard>
 GSSDP_TYPE_UDA_VERSION
 gssdp_uda_version_get_type

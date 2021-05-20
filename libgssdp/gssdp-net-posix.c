@@ -58,7 +58,13 @@ int
 gssdp_net_query_ifindex (GSSDPNetworkDevice *device)
 {
 #if defined(HAVE_IFNAMETOINDEX)
-    return if_nametoindex (device->iface_name);
+        errno = 0;
+        int index = if_nametoindex (device->iface_name);
+        if (index == 0 && errno != 0) {
+                return -1;
+        } else {
+                return index;
+        }
 
 #elif defined(HAVE_SIOCGIFINDEX)
     int fd;
