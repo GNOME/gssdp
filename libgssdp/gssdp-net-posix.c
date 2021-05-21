@@ -215,7 +215,11 @@ gssdp_net_mac_lookup (GSSDPNetworkDevice *device, const char *ip_address)
                                 } else if (rtattr->rta_type == NDA_LLADDR) {
                                         g_clear_pointer (&data, g_free);
                                         data_length = RTA_PAYLOAD (rtattr);
+#if GLIB_CHECK_VERSION(2, 68, 0)
+                                        data = g_memdup2 (RTA_DATA (rtattr), data_length);
+#else
                                         data = g_memdup (RTA_DATA (rtattr), data_length);
+#endif
                                 }
 
                                 rtattr = RTA_NEXT (rtattr, rtattr_len);
