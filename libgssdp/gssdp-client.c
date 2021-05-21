@@ -1289,7 +1289,6 @@ gssdp_client_can_reach (GSSDPClient *client, GInetSocketAddress *address)
         g_return_val_if_fail (G_IS_INET_SOCKET_ADDRESS (address), FALSE);
 
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
-        gboolean retval = FALSE;
 
         GInetAddress *addr = g_inet_socket_address_get_address (address);
         if (g_inet_address_get_is_link_local (addr)) {
