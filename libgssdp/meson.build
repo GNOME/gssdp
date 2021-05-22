@@ -69,6 +69,8 @@ gssdp = declare_dependency(link_with : libgssdp,
                            dependencies : dependencies
                        )
 
+meson.override_dependency('gssdp-1.2', gssdp)
+
 pkg.generate(libraries: [ libgssdp ],
              subdirs: 'gssdp-1.2',
              version: meson.project_version(),
