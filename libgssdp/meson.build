@@ -81,6 +81,7 @@ pkg.generate(libgssdp,
              requires_private: ['gobject-2.0', 'gio-2.0'])
 
 if get_option('introspection')
+    gssdp_gir_dir = meson.current_build_dir()
     gir = gnome.generate_gir(libgssdp,
             sources : headers + sources + enums,
             namespace : 'GSSDP',
