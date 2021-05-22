@@ -135,6 +135,14 @@ test-fedora@x86_64:
     - build-fedora@x86_64
   <<: *test
 
+trigger-gupnp:
+  stage: analysis
+  needs:
+    - test-fedora@x86_64
+  trigger: GNOME/gupnp
+  only:
+    - master
+
 coverage-analysis:
   extends:
     - .fdo.distribution-image@fedora
