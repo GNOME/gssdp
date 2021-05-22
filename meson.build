@@ -1,4 +1,4 @@
-project('gssdp', 'c', version: '1.2.4', meson_version : '>= 0.54.0')
+project('gssdp', 'c', version: '1.2.4', meson_version : '>= 0.48.0')
 gnome = import('gnome')
 pkg = import('pkgconfig')
 
@@ -37,6 +37,8 @@ siocgifindex_available = cc.compiles(siocgifindex_test,
 conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
 configure_file(output : 'config.h', configuration : conf)
+
+add_global_arguments('-DHAVE_CONFIG_H=1', language : 'c')
 
 system_deps = []
 

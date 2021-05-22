@@ -12,6 +12,5 @@ sniffer = executable(
     dependencies : [gssdp, gtk],
     install: true,
     export_dynamic : true,
-    gui_app : true,
-    c_args : '-DHAVE_CONFIG_H=1',
+    gui_app : true
 )

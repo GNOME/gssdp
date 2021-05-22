@@ -62,9 +62,7 @@ libgssdp = library('gssdp-1.2', sources + enums,
     darwin_versions : darwin_versions,
     dependencies : dependencies + system_deps,
     include_directories : include_directories('..'),
-    install : true,
-    c_args : '-DHAVE_CONFIG_H=1',
-)
+    install : true)
 
 gssdp = declare_dependency(link_with : libgssdp,
                            include_directories: include_directories('..'),
