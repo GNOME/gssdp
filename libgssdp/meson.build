@@ -73,10 +73,11 @@ gssdp = declare_dependency(link_with : libgssdp,
 
 meson.override_dependency('gssdp-1.2', gssdp)
 
-pkg.generate(libraries: [ libgssdp ],
+pkg.generate(libgssdp,
              subdirs: 'gssdp-1.2',
              version: meson.project_version(),
              name: 'gssdp-1.2',
+             requires: ['gio-2.0', 'glib-2.0', 'gobject-2.0'],
              filebase : 'gssdp-1.2',
              description: 'GObject-based SSDP library',
              requires_private: ['gobject-2.0', 'gio-2.0'])
