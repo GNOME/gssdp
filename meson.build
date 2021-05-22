@@ -38,7 +38,7 @@ conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
 configure_file(output : 'config.h', configuration : conf)
 
-add_global_arguments('-DHAVE_CONFIG_H=1', language : 'c')
+add_project_arguments('-DHAVE_CONFIG_H=1', language : 'c')
 
 system_deps = []
 
