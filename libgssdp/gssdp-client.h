@@ -36,6 +36,9 @@ typedef struct _GSSDPClientClass GSSDPClientClass;
 
 /**
  * GSSDPUDAVersion:
+ *
+ * Implemented behavior of the UDA (Unified Device Architecture) protocol.
+ *
  * @GSSDP_UDA_VERSION_UNSPECIFIED: When creating a client, use the default version
  * @GSSDP_UDA_VERSION_1_0: Use Version 1.0 of the UDA specification (UPnP/1.0)
  * @GSSDP_UDA_VERSION_1_1: Use Version 1.1 of the UDA specification (UPnP/1.1)

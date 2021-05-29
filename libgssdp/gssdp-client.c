@@ -24,14 +24,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/**
- * SECTION:gssdp-client
- * @short_description: SSDP "bus" wrapper.
- *
- * #GSSDPClient wraps the SSDP "bus" as used by both #GSSDPResourceBrowser
- * and #GSSDPResourceGroup.
- */
-
 #define G_LOG_DOMAIN "gssdp-client"
 
 #ifdef HAVE_CONFIG_H
@@ -110,10 +102,11 @@ typedef struct _GSSDPClientPrivate GSSDPClientPrivate;
  *
  * A simple SSDP bus handler.
  *
- * The GSSDPClient will usually be used by the #GSSDPResourceGroup for announcing
- * or the #GSSDPResourceBrowser for finding resources on the network.
+ * The [class@GSSDP.Client] will usually be used by the [class@GSSDP.ResourceGroup]
+ * for announcing or the [class@GSSDP.ResourceBrowser] for finding resources on the network.
  *
- * A GSSDPClient is required per IP address that you want to use with.
+ * A GSSDPClient is required per IP address that you want to use, even if those
+ * belong t the same network device.
  */
 G_DEFINE_TYPE_EXTENDED (GSSDPClient,
                         gssdp_client,
@@ -122,7 +115,7 @@ G_DEFINE_TYPE_EXTENDED (GSSDPClient,
                         G_ADD_PRIVATE(GSSDPClient)
                         G_IMPLEMENT_INTERFACE
                                 (G_TYPE_INITABLE,
-                                 gssdp_client_initable_iface_init));
+                                 gssdp_client_initable_iface_init))
 
 struct _GSSDPHeaderField {
         char *name;
@@ -480,7 +473,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
         object_class->finalize     = gssdp_client_finalize;
 
         /**
-         * GSSDPClient:server-id:
+         * GSSDPClient:server-id:(attributes org.gtk.Property.get=gssdp_client_get_server_id org.gtk.Property.set=gssdp_client_set_server_id):
          *
          * The SSDP server's identifier.
          **/
@@ -497,7 +490,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:interface:
+         * GSSDPClient:interface:(attributes org.gtk.Property.get=gssdp_client_get_interface):
          *
          * The name of the network interface this client is associated with.
          * Set to NULL to autodetect.
@@ -517,7 +510,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:network:
+         * GSSDPClient:network:(attributes org.gtk.Property.get=gssdp_client_get_network):
          *
          * The network this client is currently connected to. You could set this
          * to anything you want to identify the network this client is
@@ -541,7 +534,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:host-ip:
+         * GSSDPClient:host-ip:(attributes org.gtk.Property.get=gssdp_client_get_host_ip):
          *
          * The IP address of the assoicated network interface.
          **/
@@ -560,7 +553,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPClient:host-mask:
+         * GSSDPClient:host-mask:(attributes org.gtk.Property.get=gssdp_client_get_address_mask):
          *
          * The network mask of the assoicated network interface.
          **/
@@ -577,7 +570,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       G_PARAM_STATIC_STRINGS));
 
         /**
-         * GSSDPClient:active:
+         * GSSDPClient:active:(attributes org.gtk.Property.get=gssdp_client_get_active):
          *
          * Whether this client is active or not (passive). When active
          * (default), the client sends messages on the network, otherwise
@@ -638,17 +631,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
         /**
-         * GSSDPClient:address-family:
+         * GSSDPClient:address-family:(attributes org.gtk.Property.get=gssdp_client_get_family):
          *
          * The IP protocol address family this client works on. When specified
          * during construction without giving a concrete address, it will be
          * used to determine the proper address.
          *
          * If not specified, will contain the currrent address family after
-         * the call to g_initable_init()<!-- -->. Use #G_SOCKET_FAMILY_INVALID
+         * the call to g_initable_init()<!-- -->. Use %G_SOCKET_FAMILY_INVALID
          * to specifiy using the default socket family (legacy IP)
          *
-         * Since: 1.1.1
+         * Since: 1.2.0
          */
         g_object_class_install_property
                 (object_class,
@@ -664,11 +657,11 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
         /**
-         * GSSDPClient:uda-version:
+         * GSSDPClient:uda-version:(attributes org.gtk.Property.get=gssdp_client_get_uda_version):
          *
          * The UPnP version the client adheres to.
          *
-         * Since: 1.1.1
+         * Since: 1.2.0
          */
         g_object_class_install_property
                 (object_class,
@@ -684,11 +677,11 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
         /**
-         * GSSDPClient:boot-id:
+         * GSSDPClient:boot-id:(attributes org.gtk.Property.set=gssdp_client_set_boot_id):
          *
          * The value of the BOOTID.UPNP.ORG header
          *
-         * Since 1.1.2
+         * Since 1.2.0
          */
         g_object_class_install_property
                 (object_class,
@@ -705,11 +698,11 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
         /**
-         * GSSDPClient:config-id:
+         * GSSDPClient:config-id:(attributes org.gtk.Property.set=gssdp_client_set_config_id):
          *
-         * The value of the BOOTID.UPNP.ORG header
+         * The value of the CONFIGID.UPNP.ORG header
          *
-         * Since 1.1.2
+         * Since 1.2.0
          */
         g_object_class_install_property
                 (object_class,
@@ -751,10 +744,11 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                               soup_message_headers_get_type());
 }
 
+
 /**
  * gssdp_client_new:
- * @iface: (allow-none): The name of the network interface, or %NULL for auto-detection.
- * @error: (allow-none): Location to store error, or %NULL
+ * @iface: (nullable): The name of the network interface, or %NULL for auto-detection.
+ * @error: (nullable): Location to store error, or %NULL
  *
  * Creates a GSSDP client on @iface. GSSDPClient will pick the address it finds
  * suitable for using.
@@ -775,7 +769,7 @@ gssdp_client_new (const char *iface, GError **error)
 
 /**
  * gssdp_client_new_with_port:
- * @iface: (allow-none): The name of the network interface, or %NULL for
+ * @iface: (nullable): The name of the network interface, or %NULL for
  * auto-detection.
  * @msearch_port: The network port to use for M-SEARCH requests or 0 for
  * random.
@@ -802,7 +796,7 @@ gssdp_client_new_with_port (const char *iface,
 }
 
 /**
- * gssdp_client_set_server_id:
+ * gssdp_client_set_server_id:(attributes org.gtk.Method.set_property=server-id):
  * @client: A #GSSDPClient
  * @server_id: The server ID
  *
@@ -831,7 +825,7 @@ gssdp_client_set_server_id (GSSDPClient *client,
 }
 
 /**
- * gssdp_client_get_server_id:
+ * gssdp_client_get_server_id:(attributes org.gtk.Method.get_property=server-id):
  * @client: A #GSSDPClient
  *
  * Return value: The server ID.
@@ -848,7 +842,7 @@ gssdp_client_get_server_id (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_interface:
+ * gssdp_client_get_interface:(attributes org.gtk.Method.get_property=interface):
  * @client: A #GSSDPClient
  *
  * Get the name of the network interface associated to @client.
@@ -868,7 +862,7 @@ gssdp_client_get_interface (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_host_ip:
+ * gssdp_client_get_host_ip:(attributes org.gtk.Method.get_property=host-ip):
  * @client: A #GSSDPClient
  *
  * Get the IP address we advertise ourselves as using.
@@ -891,7 +885,7 @@ gssdp_client_get_host_ip (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_set_network:
+ * gssdp_client_set_network:(attributes org.gtk.Method.set_property=network):
  * @client: A #GSSDPClient
  * @network: The string identifying the network
  *
@@ -919,6 +913,15 @@ gssdp_client_set_network (GSSDPClient *client,
  * @client: A #GSSDPClient
  * @ip_address: The host to add to the cache
  * @user_agent: User agent ot the host to add
+ *
+ * Add @user_agent for @ip_address.
+ *
+ * Each [class@GSSDP.Client] maintains a mapping of addresses
+ * (MAC on systems that support it, IP addresses otherwise) to User Agents.
+ *
+ * This information can be used in higher layers to get an User-Agent for
+ * devices that do not set the User-Agent header in their SOAP requests.
+ *
  **/
 void
 gssdp_client_add_cache_entry (GSSDPClient  *client,
@@ -947,7 +950,9 @@ gssdp_client_add_cache_entry (GSSDPClient  *client,
  * @client: A #GSSDPClient
  * @ip_address: IP address to guess the user-agent for
  *
- * Returns: (transfer none): The user-agent cached for this IP, %NULL if none
+ * Try to get a User-Agent for @ip_address.
+ *
+ * Returns: (transfer none): The User-Agent cached for this IP, %NULL if none
  * is cached.
  **/
 const char *
@@ -978,13 +983,14 @@ gssdp_client_guess_user_agent (GSSDPClient *client,
 }
 
 /**
- * gssdp_client_get_network:
- * @client: A #GSSDPClient
+ * gssdp_client_get_network:(attributes org.gtk.Method.get_property=network):
+ * @client: A [class@GSSDP.Client]
  *
- * Get the network this client is associated with.
+ * Get the network identifier of the client. See [property@GSSDP.Client:network]
+ * for  details.
  *
  * Return value: The network identification. This string should not be freed.
- **/
+ */
 const char *
 gssdp_client_get_network (GSSDPClient *client)
 {
@@ -997,8 +1003,10 @@ gssdp_client_get_network (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_active:
+ * gssdp_client_get_active:(attributes org.gtk.Method.get_property=active):
  * @client: A #GSSDPClient
+ *
+ * Get the current state of the client. See [property@GSSDP.Client:active] for details.
  *
  * Return value: %TRUE if @client is active, %FALSE otherwise.
  **/
@@ -1045,11 +1053,12 @@ append_header_fields (GList *headers, const gchar *message)
  * gssdp_client_append_header:
  * @client: A #GSSDPClient
  * @name: Header name
- * @value: Header value
+ * @value: (allow-none): Header value
  *
- * Adds a header field to the message sent by this @client. It is intended to
- * be used by clients requiring vendor specific header fields. (If there is an
- * existing header with name name , then this creates a second one).
+ * Adds a header field to the messages sent by this @client. It is intended to
+ * be used by clients requiring vendor specific header fields.
+ *
+ * If there is an existing header with @name it will append another one.
  **/
 void
 gssdp_client_append_header (GSSDPClient *client,
@@ -1061,6 +1070,7 @@ gssdp_client_append_header (GSSDPClient *client,
 
         g_return_if_fail (GSSDP_IS_CLIENT (client));
         g_return_if_fail (name != NULL);
+        g_return_if_fail (value != NULL);
 
         priv = gssdp_client_get_instance_private (client);
 
@@ -1075,7 +1085,7 @@ gssdp_client_append_header (GSSDPClient *client,
  * @client: A #GSSDPClient
  * @name: Header name
  *
- * Removes @name from the list of headers . If there are multiple values for
+ * Removes @name from the list of headers. If there are multiple values for
  * @name, they are all removed.
  **/
 void
@@ -1090,8 +1100,7 @@ gssdp_client_remove_header (GSSDPClient *client,
 
         priv = gssdp_client_get_instance_private (client);
         l = priv->headers;
-        while (l != NULL)
-        {
+        while (l != NULL) {
                 GList *next = l->next;
                 GSSDPHeaderField *header = l->data;
 
@@ -1131,12 +1140,13 @@ gssdp_client_clear_headers (GSSDPClient *client)
                 }
                 l = next;
         }
-
 }
 
 /**
  * gssdp_client_get_address:
  * @client: A #GSSDPClient
+ *
+ * The IP address this client works on.
  *
  * Returns: (transfer full): The #GInetAddress this client works on
  **/
@@ -1165,7 +1175,7 @@ gssdp_client_get_index (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_family:
+ * gssdp_client_get_family:(attributes org.gtk.Method.get_property=address-family):
  * @client: A #GSSDPClient
  *
  * Returns: IP protocol version (%G_SOCKET_FAMILY_IPV4 or G_SOCKET_FAMILY_IPV6)
@@ -1181,7 +1191,7 @@ gssdp_client_get_family (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_address_mask:
+ * gssdp_client_get_address_mask:(attributes org.gtk.Method.get_property=host-mask):
  * @client: A #GSSDPClient
  *
  * Since: 1.2.3
@@ -1199,7 +1209,7 @@ gssdp_client_get_address_mask (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_uda_version:
+ * gssdp_client_get_uda_version:(attributes org.gtk.Method.get_property=uda-version):
  * @client: A #GSSDPClient
  *
  * Returns: the UDA protocol version this client adheres to
@@ -1214,7 +1224,7 @@ gssdp_client_get_uda_version  (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_set_boot_id:
+ * gssdp_client_set_boot_id:(attributes org.gtk.Method.set_property=boot-id):
  * @client: A #GSSDPClient
  * @boot_id: The new boot-id for the client
  *
@@ -1246,7 +1256,7 @@ gssdp_client_set_boot_id (GSSDPClient *client, gint32 boot_id)
 }
 
 /**
- * gssdp_client_set_config_id:
+ * gssdp_client_set_config_id:(attributes org.gtk.Method.set_property=config-id):
  * @client: A #GSSDPClient
  * @config_id: The new config-id for the client
  *
@@ -1892,7 +1902,7 @@ init_network_info (GSSDPClient *client, GError **error)
 
         g_debug ("Created SSDP client 0x%p", client);
         g_debug ("  iface_name : %s", priv->device.iface_name);
-        g_debug ("  host_ip    : %s", priv->device.host_ip);
+        g_debug ("  host_ip    : %s", gssdp_client_get_host_ip (client));
         g_debug ("  server_id  : %s", priv->server_id);
         g_debug ("  network    : %s", priv->device.network);
         g_debug ("  host_addr  : 0x%p", priv->device.host_addr);
