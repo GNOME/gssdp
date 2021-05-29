@@ -208,6 +208,7 @@ test_discovery_ssdp_all (void)
                                       G_CALLBACK (on_test_discovery_ssdp_all_resource_unavailable),
                                       &data);
         g_main_loop_run (data.loop);
+        g_signal_handler_disconnect (browser, signal_id);
 
         g_assert (data.found);
 
@@ -262,6 +263,7 @@ test_discovery_upnp_rootdevice (void)
                                       G_CALLBACK (on_test_discovery_ssdp_all_resource_unavailable),
                                       &data);
         g_main_loop_run (data.loop);
+        g_signal_handler_disconnect (browser, signal_id);
 
         g_assert (data.found);
 
@@ -316,6 +318,7 @@ test_discovery_uuid (void)
                                       G_CALLBACK (on_test_discovery_ssdp_all_resource_unavailable),
                                       &data);
         g_main_loop_run (data.loop);
+        g_signal_handler_disconnect (browser, signal_id);
 
         g_assert (data.found);
 
@@ -379,12 +382,12 @@ test_discovery_versioned (void)
         g_timeout_add_seconds (1,
                                test_discovery_send_packet,
                                create_byebye_message ("MyService:1"));
-        signal_id = g_signal_connect (browser,
-                                      "resource-available",
-                                      G_CALLBACK (on_resource_available_assert_not_reached),
-                                      NULL);
+        g_signal_connect (browser,
+                          "resource-available",
+                          G_CALLBACK (on_resource_available_assert_not_reached),
+                          NULL);
         g_source_remove (timeout_id);
-        timeout_id = g_timeout_add_seconds (5, quit_loop, data.loop);
+        g_timeout_add_seconds (5, quit_loop, data.loop);
         g_main_loop_run (data.loop);
 
         g_object_unref (browser);
@@ -435,10 +438,11 @@ test_discovery_versioned_backwards_compatible (void)
         g_timeout_add_seconds (1,
                                test_discovery_send_packet,
                                create_byebye_message (VERSIONED_NT_2));
-        signal_id = g_signal_connect (browser,
-                                      "resource-unavailable",
-                                      G_CALLBACK (on_test_discovery_ssdp_all_resource_unavailable),
-                                      &data);
+        g_signal_connect (
+                browser,
+                "resource-unavailable",
+                G_CALLBACK (on_test_discovery_ssdp_all_resource_unavailable),
+                &data);
         g_main_loop_run (data.loop);
 
         g_assert (data.found);
@@ -489,9 +493,6 @@ test_discovery_versioned_ignore_older (void)
 
 int main(int argc, char *argv[])
 {
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-        g_type_init ();
-#endif
         g_test_init (&argc, &argv, NULL);
 
         g_test_add_func ("/functional/resource-group/discovery/ssdp:all",

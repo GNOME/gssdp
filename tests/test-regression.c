@@ -243,6 +243,9 @@ static void test_bgo682099 (void)
         g_idle_add (unref_object, browser);
         g_timeout_add_seconds (10, quit_loop, loop);
         g_main_loop_run (loop);
+        g_signal_handler_disconnect (browser, signal_id);
+        g_object_unref (browser);
+        g_main_loop_unref (loop);
 }
 
 /* END Regression test
@@ -363,7 +366,8 @@ static void test_bgo724030 (void)
                                       loop);
         g_main_loop_run (loop);  /* unavailable + available */
         g_main_loop_run (loop);  /* unavailable */
-        unref_object(browser);
+        g_signal_handler_disconnect (browser, available_signal_id);
+        g_object_unref (browser);
 }
 
 /* END Regression test

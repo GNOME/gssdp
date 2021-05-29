@@ -465,7 +465,7 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
         /*
          * Now go through the devices we consider worthy
          */
-        family = G_SOCKET_FAMILY_INVALID;
+        family = device->address_family;
 
         /* If we have an address, its family will take precendence.
          * Otherwise take the family from the client's config
@@ -483,8 +483,6 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                         g_free (addr);
                         g_clear_object (&device->host_addr);
                 }
-        } else {
-                family = device->address_family;
         }
 
         for (ifaceptr = up_ifaces;
