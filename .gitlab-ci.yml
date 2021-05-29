@@ -170,11 +170,16 @@ static-scan:
     - build-fedora-container@x86_64
   script:
     - meson --buildtype=debug _scan_build
+    - export SCANBUILD="$PWD/.gitlab-ci/scanbuild-wrapper.sh"
     - ninja -C _scan_build scan-build
   artifacts:
     paths:
       - _scan_build/meson-logs
-  allow_failure: true
+  after_script:
+    - .gitlab-ci/scanbuild-plist-to-junit.py _scan_build/meson-logs/scanbuild/ > _scan_build/junit-scan-build.xml
+  artifacts:
+    reports:
+      junit: "_scan_build/junit-scan-build.xml"
 
 pages:
   extends:
