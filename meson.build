@@ -75,7 +75,7 @@ subdir('libgssdp')
 subdir('tests')
 
 if get_option('sniffer')
-  gtk = dependency('gtk+-3.0', version : '>= 3.12')
+  gtk = dependency('gtk4', version : '>= 4')
   subdir('tools')
 endif
 
