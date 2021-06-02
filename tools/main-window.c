@@ -721,22 +721,28 @@ static GActionEntry actions[] = { { "clear-capture", on_clear_capture },
 static void
 on_button_release (GtkGesture *click,
                    int n_press,
-                   int x,
-                   int y,
+                   gdouble x,
+                   gdouble y,
                    gpointer user_data)
 {
         GSSDPDeviceSnifferMainWindow *self =
                 GSSDP_DEVICE_SNIFFER_MAIN_WINDOW (user_data);
 
-        GdkEvent *event = gtk_gesture_get_last_event (
-                click,
-                gtk_gesture_single_get_current_sequence (
-                        GTK_GESTURE_SINGLE (click)));
+        GdkEventSequence *sequence = gtk_gesture_single_get_current_sequence (
+                GTK_GESTURE_SINGLE (click));
+
+        GdkEvent *event = gtk_gesture_get_last_event (click, sequence);
+
+        if (n_press != 1) {
+                return;
+        }
 
         if (!gdk_event_triggers_context_menu (event)) {
                 return;
         }
 
+        gtk_gesture_set_sequence_state (GTK_GESTURE (click), sequence,
+                                        GTK_EVENT_SEQUENCE_CLAIMED);
         GtkTreeModel *model;
         GtkTreeIter iter;
 
@@ -786,7 +792,7 @@ gssdp_device_sniffer_main_window_init (GSSDPDeviceSnifferMainWindow *self)
                           self);
 
         g_signal_connect (G_OBJECT (click),
-                          "released",
+                          "pressed",
                           G_CALLBACK (on_button_release),
                           self);
 
