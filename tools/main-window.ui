@@ -314,6 +314,45 @@
                 <property name="position">2</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+                <property name="spacing">6</property>
+                <property name="visible">True</property>
+                <child>
+                      <object class="GtkLabel" id="info_label">
+                        <property name="label"></property>
+                        <property name="visible">True</property>
+                        <property name="halign">start</property>
+                        <property name="valign">center</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                  </child>
+                  <child>
+                      <object class="GtkLabel" id="counter_label">
+                        <property name="label"></property>
+                        <property name="visible">True</property>
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                         <property name="position">2</property>
+                      </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+
           </object>
           <packing>
             <property name="name">page0</property>

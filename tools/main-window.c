@@ -46,6 +46,8 @@ struct _GSSDPDeviceSnifferMainWindow {
         GSocketFamily family;
         GSSDPClient *client;
         GSSDPResourceBrowser *browser;
+        int packets;
+        int devices;
 
         // Bound child widgets
         GtkWidget *packet_treeview;
@@ -57,6 +59,8 @@ struct _GSSDPDeviceSnifferMainWindow {
         GtkWidget *searchbar;
         GtkWidget *address_filter;
         GtkWidget *searchbutton;
+        GtkWidget *info_label;
+        GtkWidget *counter_label;
 
         // Other widgets
         GtkWidget *context_menu;
@@ -202,6 +206,14 @@ append_packet (GSSDPDeviceSnifferMainWindow *self,
 }
 
 static void
+update_counter_label (GSSDPDeviceSnifferMainWindow *self)
+{
+        char *text = g_strdup_printf (_ ("%d packets, %d devices"), self->packets, self->devices);
+        gtk_label_set_text (GTK_LABEL (self->counter_label), text);
+        g_free (text);
+}
+
+static void
 on_ssdp_message (GSSDPClient *ssdp_client,
                  const gchar *from_ip,
                  gushort from_port,
@@ -226,9 +238,11 @@ on_ssdp_message (GSSDPClient *ssdp_client,
         if (!self->capture)
                 return;
 
+        self->packets++;
         arrival_time = g_date_time_new_now_local ();
         append_packet (self, from_ip, arrival_time, type, headers);
         g_date_time_unref (arrival_time);
+        update_counter_label (self);
 }
 
 static gboolean
@@ -254,7 +268,7 @@ find_device (GtkTreeModel *model, const char *uuid, GtkTreeIter *iter)
         return found;
 }
 
-static void
+static gboolean
 append_device (GtkWidget *treeview,
                const char *uuid,
                const char *first_notify,
@@ -263,6 +277,7 @@ append_device (GtkWidget *treeview,
 {
         GtkTreeModel *model;
         GtkTreeIter iter;
+        gboolean result = FALSE;
 
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
 
@@ -272,12 +287,15 @@ append_device (GtkWidget *treeview,
                                                    DEVICE_STORE_COLUMN_UUID, uuid,
                                                    DEVICE_STORE_COLUMN_FIRST_SEEN, first_notify,
                                                    DEVICE_STORE_COLUMN_LOCATION, location, -1);
+                result = TRUE;
         }
 
         if (device_type) {
                 gtk_list_store_set (GTK_LIST_STORE (model), &iter,
                                     DEVICE_STORE_COLUMN_TYPE, device_type, -1);
         }
+
+        return result;
 }
 
 static void
@@ -313,18 +331,21 @@ resource_available_cb (GSSDPDeviceSnifferMainWindow *self,
         }
 
         /* Device Announcement */
-        append_device (self->device_treeview,
-                       uuid,
-                       first_notify,
-                       device_type,
-                       (char *) locations->data);
+        if (append_device (self->device_treeview,
+                           uuid,
+                           first_notify,
+                           device_type,
+                           (char *) locations->data)) {
+                self->devices++;
+                update_counter_label (self);
+        }
 
         g_free (device_type);
         g_free (first_notify);
         g_strfreev (usn_tokens);
 }
 
-static void
+static gboolean
 remove_device (GtkWidget *treeview, const char *uuid)
 {
         GtkTreeModel *model;
@@ -334,7 +355,11 @@ remove_device (GtkWidget *treeview, const char *uuid)
 
         if (find_device (model, uuid, &iter)) {
                 gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
+
+                return TRUE;
         }
+
+        return FALSE;
 }
 
 static void
@@ -349,7 +374,10 @@ resource_unavailable_cb (GSSDPDeviceSnifferMainWindow *self,
         g_assert (usn_tokens != NULL && usn_tokens[0] != NULL);
         uuid = usn_tokens[0] + 5; /* skip the prefix 'uuid:' */
 
-        remove_device (self->device_treeview, uuid);
+        if (remove_device (self->device_treeview, uuid)) {
+                self->devices--;
+                update_counter_label (self);
+        }
 
         g_strfreev (usn_tokens);
 }
@@ -397,7 +425,14 @@ main_window_constructed (GObject *object)
                                   G_CALLBACK (resource_unavailable_cb),
                                   self);
 
-        gssdp_resource_browser_set_active (self->browser, TRUE);        
+        gssdp_resource_browser_set_active (self->browser, TRUE);
+
+        char *status =
+                g_strdup_printf (_ ("Capturing on %s (%s)…"),
+                                 gssdp_client_get_interface (self->client),
+                                 gssdp_client_get_host_ip (self->client));
+        gtk_label_set_text (GTK_LABEL (self->info_label), status);
+        g_free (status);
 }
 
 static void
@@ -444,6 +479,13 @@ gssdp_device_sniffer_main_window_class_init (
                                               GSSDPDeviceSnifferMainWindow,
                                               searchbutton);
 
+        gtk_widget_class_bind_template_child (widget_class,
+                                              GSSDPDeviceSnifferMainWindow,
+                                              info_label);
+
+        gtk_widget_class_bind_template_child (widget_class,
+                                              GSSDPDeviceSnifferMainWindow,
+                                              counter_label);
 
         GObjectClass *object_class = G_OBJECT_CLASS (klass);
         object_class->set_property = main_window_set_property;
@@ -611,6 +653,8 @@ on_clear_capture (GSimpleAction *action,
 
         model = gtk_tree_view_get_model (GTK_TREE_VIEW (self->packet_treeview));
         gtk_list_store_clear (GTK_LIST_STORE (model));
+        self->packets = 0;
+        update_counter_label (self);
 }
 
 static void
