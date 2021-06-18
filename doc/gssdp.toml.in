@@ -4,6 +4,7 @@ version = "@VERSION@"
 browse_url = "https://gitlab.gnome.org/GNOME/gssdp/"
 repository_url = "https://gitlab.gnome.org/GNOME/gssdp.git"
 website_url = "https://gupnp.org"
+logo_url = "gupnp-logo-short.svg"
 license = "LGPL-2.1-or-later"
 description = "SSDP implementation using GObject"
 dependencies = [ "GObject-2.0", "Soup-2.4", "libxml2-2.0" ]
@@ -17,3 +18,7 @@ show_index_summary = true
 [source-location]
 base_url = "https://gitlab.gnome.org/GNOME/gssdp/-/blob/master"
 
+[extra]
+content_images = [
+    "images/gupnp-logo-short.svg"
+]
