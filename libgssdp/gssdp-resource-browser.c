@@ -19,16 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/**
- * SECTION:gssdp-resource-browser
- * @short_description: Class handling resource discovery.
- *
- * #GSSDPResourceBrowser handles resource discovery. After creating a browser
- * and activating it, the ::resource-available and ::resource-unavailable
- * signals will be emitted whenever the availability of a resource matching the
- * specified discovery target changes. A discovery request is sent out
- * automatically when activating the browser.
- */
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -72,7 +63,7 @@ typedef struct _GSSDPResourceBrowserPrivate GSSDPResourceBrowserPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GSSDPResourceBrowser,
                             gssdp_resource_browser,
-                            G_TYPE_OBJECT);
+                            G_TYPE_OBJECT)
 
 enum {
         PROP_0,
@@ -257,8 +248,24 @@ gssdp_resource_browser_finalize (GObject *object)
         g_hash_table_destroy (priv->resources);
 
         G_OBJECT_CLASS (gssdp_resource_browser_parent_class)->finalize (object);
+
 }
 
+/**
+ * GSSDPResourceBrowser:
+ *
+ * Class handling resource discovery.
+ *
+ * After creating a browser
+ * and activating it, the [signal@GSSDP.ResourceBrowser::resource-available] and
+ * [signal@GSSDP.ResourceBrowser::resource-unavailable] signals will be emitted
+ * whenever the availability of a resource matching the specified discovery target
+ * changes. A discovery request is sent out automatically when activating the browser.
+ *
+ * If the associated [class@GSSDP.Client] was configured to support UDA 1.1, it
+ * will also emit the [signal@GSSDP.ResourceBrowser::resource-update] if any of
+ * the UDA 1.1 devices on the nework annouced its upcoming BOOTID change.
+ */
 static void
 gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
 {
@@ -272,9 +279,9 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
         object_class->finalize     = gssdp_resource_browser_finalize;
 
         /**
-         * GSSDPResourceBrowser:client:
+         * GSSDPResourceBrowser:client:(attributes org.gtk.Property.get=gssdp_resource_browser_get_client):
          *
-         * The #GSSDPClient to use.
+         * The [class@GSSDP.Client] to use for listening to SSDP messages
          **/
         g_object_class_install_property
                 (object_class,
@@ -289,9 +296,9 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceBrowser:target:
+         * GSSDPResourceBrowser:target:(attributes org.gtk.Property.get=gssdp_resource_browser_get_target):
          *
-         * The discovery target.
+         * The discovery target this resource browser is looking for.
          **/
         g_object_class_install_property
                 (object_class,
@@ -306,7 +313,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceBrowser:mx:
+         * GSSDPResourceBrowser:mx:(attributes org.gtk.Property.get=gssdp_resource_browser_get_mx org.gtk.Property.set=gssdp_resource_browser_set_mx):
          *
          * The maximum number of seconds in which to request other parties
          * to respond.
@@ -327,7 +334,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceBrowser:active:
+         * GSSDPResourceBrowser:active:(attributes org.gtk.Property.get=gssdp_resource_browser_get_active org.gtk.Property.set=gssdp_resource_browser_set_active)
          *
          * Whether this browser is active or not.
          **/
@@ -348,7 +355,7 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
          * @resource_browser: The #GSSDPResourceBrowser that received the
          * signal
          * @usn: The USN of the discovered resource
-         * @locations: (type GList*) (transfer none) (element-type utf8): A #GList of strings describing the locations of the
+         * @locations: (type GList*) (transfer none) (element-type utf8): A [struct@GLib.List] of strings describing the locations of the
          * discovered resource.
          *
          * The ::resource-available signal is emitted whenever a new resource
@@ -396,6 +403,8 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
          *
          * The ::resource-update signal is emitted whenever an UPnP 1.1
          * device is about to change it's BOOTID.
+         *
+         * Since: 1.2.0
          **/
         signals[RESOURCE_UPDATE] =
                 g_signal_new ("resource-update",
@@ -416,22 +425,20 @@ gssdp_resource_browser_class_init (GSSDPResourceBrowserClass *klass)
  * @client: The #GSSDPClient to associate with
  * @target: A SSDP search target
  *
+ * Create a new resource browser for @target.
+ *
  * @target is a generic string the resource browser listens for on the SSDP
  * bus. There are several possible targets such as
- * <itemizedlist>
- *   <listitem><para>"ssdp:all" for everything</para></listitem>
- *   <listitem><para>
- *     "upnp:rootdevice" for UPnP device entry points, not caring about the
- *     device type</para></listitem>
- *   <listitem><para>The UUID of a specific device</para></listitem>
- *   <listitem><para>Device types such as
- *   "urn:schemas-upnp-org:device:MediaServer:1"</para></listitem>
- *   <listitem><para>Service types such as
- *   "urn:schemas-upnp-org:service:ContentDirectory:1"</para></listitem>
- * </itemizedlist>
+ *
+ * - `ssdp:all` for everything that is announced using SSDP
+ * - `upnp:rootdevice` for UPnP device entry points, not caring about
+ *   a special device type
+ * - The UUID of a specific device
+ * - Device types, such as `urn:schemas-upnp-org:device:MediaServer:1`
+ * - Service types, such as `urn:schemas-upnp-org:service:ContentDirectory:1`
  *
  * Return value: A new #GSSDPResourceBrowser object.
- **/
+ */
 GSSDPResourceBrowser *
 gssdp_resource_browser_new (GSSDPClient *client,
                             const char  *target)
@@ -469,8 +476,10 @@ gssdp_resource_browser_set_client (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_client:
+ * gssdp_resource_browser_get_client:(attributes org.gtk.Method.get_property=client):
  * @resource_browser: A #GSSDPResourceBrowser
+ *
+ * Get the GSSDPClient this resource browser is using for SSDP.
  *
  * Returns: (transfer none): The #GSSDPClient @resource_browser is associated with.
  **/
@@ -488,7 +497,7 @@ gssdp_resource_browser_get_client (GSSDPResourceBrowser *resource_browser)
 }
 
 /**
- * gssdp_resource_browser_set_target:
+ * gssdp_resource_browser_set_target:(attributes org.gtk.Method.set_property=target):
  * @resource_browser: A #GSSDPResourceBrowser
  * @target: The browser target
  *
@@ -550,8 +559,10 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_target:
+ * gssdp_resource_browser_get_target:(attributes org.gtk.Method.get_property=target):
  * @resource_browser: A #GSSDPResourceBrowser
+ *
+ * Get the current browse target.
  *
  * Return value: The browser target.
  **/
@@ -567,7 +578,7 @@ gssdp_resource_browser_get_target (GSSDPResourceBrowser *resource_browser)
 }
 
 /**
- * gssdp_resource_browser_set_mx:
+ * gssdp_resource_browser_set_mx:(attributes org.gtk.Method.set_property=mx):
  * @resource_browser: A #GSSDPResourceBrowser
  * @mx: The to be used MX value
  *
@@ -592,8 +603,10 @@ gssdp_resource_browser_set_mx (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_mx:
+ * gssdp_resource_browser_get_mx:(attributes org.gtk.Method.get_property=mx):
  * @resource_browser: A #GSSDPResourceBrowser
+ *
+ * Get the current MX value.
  *
  * Return value: The used MX value.
  **/
@@ -610,7 +623,7 @@ gssdp_resource_browser_get_mx (GSSDPResourceBrowser *resource_browser)
 }
 
 /**
- * gssdp_resource_browser_set_active:
+ * gssdp_resource_browser_set_active:(attributes org.gtk.Method.set_property=active):
  * @resource_browser: A #GSSDPResourceBrowser
  * @active: %TRUE to activate @resource_browser
  *
@@ -642,8 +655,10 @@ gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
 }
 
 /**
- * gssdp_resource_browser_get_active:
+ * gssdp_resource_browser_get_active:(attributes org.gtk.Method.get_property=active):
  * @resource_browser: A #GSSDPResourceBrowser
+ *
+ * Get whether the browser is currently active.
  *
  * Return value: %TRUE if @resource_browser is active.
  **/
@@ -706,8 +721,7 @@ resource_expire (gpointer user_data)
         /* Steal the USN pointer from the resource as we need it for the signal
          * emission.
          */
-        usn = resource->usn;
-        resource->usn = NULL;
+        usn = g_steal_pointer (&resource->usn);
 
         if (priv->version > 0) {
                 char *version;
