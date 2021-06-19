@@ -10,6 +10,7 @@ description = "SSDP implementation using GObject"
 dependencies = [ "GObject-2.0", "Soup-2.4", "libxml2-2.0" ]
 devhelp = true
 search_index = true
+authors = "The GUPnP developers"
 
 [theme]
 name="basic"
