@@ -93,3 +93,7 @@ endif
 if get_option('examples')
   subdir('examples')
 endif
+
+if not meson.is_subproject()
+  meson.add_dist_script('build-aux/dist-docs.py')
+endif
