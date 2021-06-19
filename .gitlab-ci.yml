@@ -190,7 +190,7 @@ pages:
       - meson doc-build -Dgtk_doc=true
       - ninja -C doc-build doc/GSSDP
       - mkdir -p public
-      - mv doc-build/doc/GSSDP public/GSSDP
+      - mv doc-build/doc/GSSDP public/docs
 
   artifacts:
     paths:
