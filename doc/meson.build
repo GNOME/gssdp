@@ -1,8 +1,5 @@
 entities = configuration_data()
 entities.set('VERSION', meson.project_version())
-configure_file(input: 'version.xml.in',
-               output: 'version.xml', configuration:
-               entities)
 
 gidocgen = find_program('gi-docgen', required: true)
 
