@@ -16,7 +16,7 @@ docs_dir = join_paths(get_option('prefix'), get_option('datadir')) / 'doc/gssdp-
 
 custom_target(
     'gssdp-doc',
-    input: gir[0],
+    input: [ gssdp_toml, gir[0] ],
     output: 'GSSDP',
     command : [
         gidocgen,
@@ -27,7 +27,7 @@ custom_target(
         '--output-dir=@OUTPUT@',
         '--no-namespace-dir',
         '--content-dir=@0@'.format(meson.current_source_dir()),
-        '@INPUT@',
+        '@INPUT1@',
     ],
     depend_files : gssdp_toml,
     build_by_default: true,
