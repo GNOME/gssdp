@@ -26,11 +26,9 @@
 
 #define G_LOG_DOMAIN "gssdp-client"
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
-#include <gio/gio.h>
 
+#include <gio/gio.h>
 
 #include "gssdp-client.h"
 #include "gssdp-client-private.h"

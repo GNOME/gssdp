@@ -38,7 +38,7 @@ conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
 subdir('internal')
 
-system_deps = [config_header]
+system_deps = []
 
 # Check whether we are compiling against Android libc
 bionic_test = '''#include <sys/cdefs.h>
