@@ -12,6 +12,8 @@
 
 #include <libsoup/soup.h>
 
+#define LOGO_RESOURCE "/org/gupnp/Logo.svg"
+
 typedef enum
 {
         PACKET_STORE_COLUMN_TIME,
@@ -665,7 +667,11 @@ static void
 on_about (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
         const char *AUTHORS[] = { "Zeeshan Ali (Khattak) <zeeshanak@gnome.org>",
+                                  "Jens Georg <mail@jensge.org>",
                                   NULL };
+
+        GdkTexture *logo = gdk_texture_new_from_resource (LOGO_RESOURCE);
+
         gtk_show_about_dialog (
                 GTK_WINDOW (user_data),
                 "copyright",
@@ -681,7 +687,10 @@ on_about (GSimpleAction *action, GVariant *parameter, gpointer user_data)
                 "translator-credits",
                 "license-type",
                 GTK_LICENSE_LGPL_2_1,
+                "logo", logo,
                 NULL);
+
+        g_object_unref (logo);
 }
 
 static void

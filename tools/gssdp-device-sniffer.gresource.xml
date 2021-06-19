@@ -3,4 +3,7 @@
   <gresource prefix="/org/gupnp/GSSDP">
     <file preprocess="xml-stripblanks" alias="MainWindow.ui">main-window.ui</file>
   </gresource>
+  <gresource prefix="/org/gupnp">
+    <file preprocess="xml-stripblanks" alias="Logo.svg">images/gupnp-logo-short.svg</file>
+  </gresource>
 </gresources>
