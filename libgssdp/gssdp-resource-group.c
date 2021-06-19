@@ -19,15 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/**
- * SECTION:gssdp-resource-group
- * @short_description: Class for controlling resource announcement.
- *
- * A #GSSDPResourceGroup is a group of SSDP resources whose availability can
- * be controlled as one. This is useful when one needs to announce a single
- * service as multiple SSDP resources (UPnP does this for example).
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -68,7 +59,7 @@ typedef struct _GSSDPResourceGroupPrivate GSSDPResourceGroupPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GSSDPResourceGroup,
                             gssdp_resource_group,
-                            G_TYPE_OBJECT);
+                            G_TYPE_OBJECT)
 
 enum {
         PROP_0,
@@ -275,6 +266,16 @@ gssdp_resource_group_dispose (GObject *object)
         G_OBJECT_CLASS (gssdp_resource_group_parent_class)->dispose (object);
 }
 
+/**
+ * GSSDPResourceGroup:
+ *
+ * Class for controlling resource announcement.
+ *
+ * A #GSSDPResourceGroup is a group of SSDP resources whose availability can
+ * be controlled as one. This is useful when one needs to announce a single
+ * service as multiple SSDP resources (UPnP does this for example).
+ */
+
 static void
 gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
 {
@@ -287,7 +288,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
         object_class->dispose      = gssdp_resource_group_dispose;
 
         /**
-         * GSSDPResourceGroup:client:
+         * GSSDPResourceGroup:client:(attributes org.gtk.Property.get=gssdp_resource_group_get_client):
          *
          * The #GSSDPClient to use.
          **/
@@ -304,7 +305,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceGroup:max-age:
+         * GSSDPResourceGroup:max-age:(attributes org.gtk.Property.set=gssdp_resource_group_set_max_age org.gtk.Property.get=gssdp_resource_group_get_max_age ):
          *
          * The number of seconds our advertisements are valid.
          **/
@@ -323,7 +324,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceGroup:available:
+         * GSSDPResourceGroup:available:(attributes org.gtk.Property.set=gssdp_resource_group_set_available org.gtk.Property.get=gssdp_resource_group_get_available ):
          *
          * Whether this group of resources is available or not.
          **/
@@ -341,7 +342,7 @@ gssdp_resource_group_class_init (GSSDPResourceGroupClass *klass)
                           G_PARAM_STATIC_BLURB));
 
         /**
-         * GSSDPResourceGroup:message-delay:
+         * GSSDPResourceGroup:message-delay:(attributes org.gtk.Property.set=gssdp_resource_group_set_message_delay org.gtk.Property.get=gssdp_resource_group_get_message_delay ):
          *
          * The minimum number of milliseconds between SSDP messages.
          * The default is 120 based on DLNA specification.
@@ -402,7 +403,7 @@ gssdp_resource_group_set_client (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_client:
+ * gssdp_resource_group_get_client:(attributes org.gtk.Method.get_property=client):
  * @resource_group: A #GSSDPResourceGroup
  *
  * Returns: (transfer none): The #GSSDPClient @resource_group is associated with.
@@ -420,7 +421,7 @@ gssdp_resource_group_get_client (GSSDPResourceGroup *resource_group)
 }
 
 /**
- * gssdp_resource_group_set_max_age:
+ * gssdp_resource_group_set_max_age:(attributes org.gtk.Method.set_property=max-age):
  * @resource_group: A #GSSDPResourceGroup
  * @max_age: The number of seconds advertisements are valid
  *
@@ -444,7 +445,7 @@ gssdp_resource_group_set_max_age (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_max_age:
+ * gssdp_resource_group_get_max_age:(attributes org.gtk.Method.get_property=max-age):
  * @resource_group: A #GSSDPResourceGroup
  *
  * Return value: The number of seconds advertisements are valid.
@@ -461,7 +462,7 @@ gssdp_resource_group_get_max_age (GSSDPResourceGroup *resource_group)
 }
 
 /**
- * gssdp_resource_group_set_message_delay:
+ * gssdp_resource_group_set_message_delay:(attributes org.gtk.Method.set_property=message-delay):
  * @resource_group: A #GSSDPResourceGroup
  * @message_delay: The message delay in ms.
  *
@@ -485,7 +486,7 @@ gssdp_resource_group_set_message_delay (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_message_delay:
+ * gssdp_resource_group_get_message_delay:(attributes org.gtk.Method.get_property=message-delay):
  * @resource_group: A #GSSDPResourceGroup
  *
  * Return value: the minimum time between each SSDP message in ms.
@@ -556,7 +557,7 @@ setup_reannouncement_timeout (GSSDPResourceGroup *resource_group)
 }
 
 /**
- * gssdp_resource_group_set_available:
+ * gssdp_resource_group_set_available:(attributes org.gtk.Method.set_property=available):
  * @resource_group: A #GSSDPResourceGroup
  * @available: %TRUE if @resource_group should be available (advertised)
  *
@@ -604,7 +605,7 @@ gssdp_resource_group_set_available (GSSDPResourceGroup *resource_group,
 }
 
 /**
- * gssdp_resource_group_get_available:
+ * gssdp_resource_group_get_available:(attributes org.gtk.Method.get_property=available):
  * @resource_group: A #GSSDPResourceGroup
  *
  * Return value: TRUE if @resource_group is available (advertised).
@@ -625,10 +626,19 @@ gssdp_resource_group_get_available (GSSDPResourceGroup *resource_group)
  * @resource_group: A #GSSDPResourceGroup
  * @target: The resource's target
  * @usn: The resource's USN
- * @locations: (element-type utf8): A #GList of the resource's locations
+ * @locations: (element-type utf8)(transfer none): A #GList of the resource's locations
+ *
+ * Add an additional resource to announce in this resource group.
  *
  * Adds a resource with target @target, USN @usn, and locations @locations
- * to @resource_group.
+ * to @resource_group. If the resource group is set [property@GSSDP.ResourceGroup:available],
+ * it will be announced right away.
+ *
+ * If your resource only has one location, you can use [method@GSSDP.ResourceGroup.add_resource_simple]
+ * instead.
+ *
+ * The resource id that is returned by this function can be used with
+ * [method@GSSDP.ResourceGroup.remove_resource].
  *
  * Return value: The ID of the added resource.
  **/
@@ -692,8 +702,12 @@ gssdp_resource_group_add_resource (GSSDPResourceGroup *resource_group,
  * @location: The resource's location
  *
  * Adds a resource with target @target, USN @usn, and location @location
- * to @resource_group.
+ * to @resource_group. If the resource group is set [property@GSSDP.ResourceGroup:available],
+ * it will be announced right away.
  *
+ * The resource id that is returned by this function can be used with
+ * [method@GSSDP.ResourceGroup.remove_resource].
+
  * Return value: The ID of the added resource.
  **/
 guint
@@ -702,18 +716,13 @@ gssdp_resource_group_add_resource_simple (GSSDPResourceGroup *resource_group,
                                           const char         *usn,
                                           const char         *location)
 {
-        GList *locations = NULL;
-        guint  resource_id;
+        GList list = { 0 };
+        list.data = (gpointer)location;
 
-        locations = g_list_append (locations, (gpointer) location);
-        resource_id = gssdp_resource_group_add_resource (resource_group,
-                                                         target,
-                                                         usn,
-                                                         locations);
-
-        g_list_free (locations);
-
-        return resource_id;
+        return gssdp_resource_group_add_resource (resource_group,
+                                                  target,
+                                                  usn,
+                                                  &list);
 }
 
 /**
@@ -790,8 +799,10 @@ resource_update (Resource *resource, gpointer user_data)
  * @resource_group: A #GSSDPResourceGroup
  * @new_boot_id: The new boot id of the device
  *
- * Send an ssdp::update message if the underlying #GSSDPClient is running
+ * Send an `ssdp::update` message if the underlying `GSSDPClient` is running
  * the UDA 1.1 protocol. Does nothing otherwise.
+ *
+ * Since: 1.2.0
  */
 void
 gssdp_resource_group_update (GSSDPResourceGroup *self,
@@ -1263,6 +1274,7 @@ get_version_for_target (char *target)
                 return NULL;
         }
 
+        // This is ok since there is at least the ":" from URN and the byte after that is the \0
         version = g_strrstr (target, ":") + 1;
         if (version == NULL ||
             !g_regex_match_simple (VERSION_PATTERN, version, 0, 0))
