@@ -36,11 +36,9 @@ siocgifindex_available = cc.compiles(siocgifindex_test,
                                      name : 'SIOCGIFINDEX is available')
 conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
-configure_file(output : 'config.h', configuration : conf)
+subdir('internal')
 
-add_project_arguments('-DHAVE_CONFIG_H=1', language : 'c')
-
-system_deps = []
+system_deps = [config_header]
 
 # Check whether we are compiling against Android libc
 bionic_test = '''#include <sys/cdefs.h>
