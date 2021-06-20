@@ -33,12 +33,12 @@ gssdp_error_quark (void) G_GNUC_CONST;
 
 /**
  * GSSDPError:
- *
- * Error used in client creation.
- *
  * @GSSDP_ERROR_NO_IP_ADDRESS: GSSDP could not find a valid IP address of a
  * #GSSDPClient.
  * @GSSDP_ERROR_FAILED: Unknown error.
+ *
+ * Error used in client creation.
+ *
  */
 typedef enum {
         GSSDP_ERROR_NO_IP_ADDRESS,
