@@ -202,7 +202,10 @@ gssdp_net_mac_lookup (GSSDPNetworkDevice *device, const char *ip_address)
                                         g_clear_pointer (&data, g_free);
                                         data_length = RTA_PAYLOAD (rtattr);
 #if GLIB_CHECK_VERSION(2, 68, 0)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
                                         data = g_memdup2 (RTA_DATA (rtattr), data_length);
+#pragma GCC diagnostic pop
 #else
                                         data = g_memdup (RTA_DATA (rtattr), data_length);
 #endif
