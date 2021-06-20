@@ -7,9 +7,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include "gssdp-resource-browser.h"
 #include "gssdp-client-private.h"

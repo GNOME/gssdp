@@ -12,10 +12,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
-#include <gio/gio.h>
 
 #include "gssdp-socket-functions.h"
 #include "gssdp-socket-source.h"
@@ -23,6 +20,7 @@
 #include "gssdp-error.h"
 
 #include <glib.h>
+#include <gio/gio.h>
 
 struct _GSSDPSocketSource {
         GObject parent;
