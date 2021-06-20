@@ -36,6 +36,11 @@ siocgifindex_available = cc.compiles(siocgifindex_test,
                                      name : 'SIOCGIFINDEX is available')
 conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
+glib_version = '2.54'
+conf.set('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_@0@'.format(glib_version.underscorify()))
+conf.set('GLIB_VERSION_MAX_ALLOWED', 'GLIB_VERSION_@0@'.format(glib_version.underscorify()))
+
+# Generate config.h, so all config has to be set up until here
 subdir('internal')
 
 system_deps = []
@@ -60,9 +65,9 @@ endif
 generic_unix = not bionic_available and host_machine.system() != 'windows'
 
 dependencies = [
-    dependency('glib-2.0', version : '>= 2.54'),
-    dependency('gobject-2.0', version : '>= 2.54'),
-    dependency('gio-2.0', version : '>= 2.54'),
+    dependency('glib-2.0', version : '>= ' + glib_version),
+    dependency('gobject-2.0', version : '>= ' + glib_version),
+    dependency('gio-2.0', version : '>= ' + glib_version),
     dependency('libsoup-2.4', version : '>= 2.26.1')
 ]
 
