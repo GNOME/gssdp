@@ -20,10 +20,6 @@ main (G_GNUC_UNUSED int    argc,
         GError *error;
         GMainLoop *main_loop;
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-        g_type_init ();
-#endif
-
         error = NULL;
         client = gssdp_client_new (NULL, &error);
         if (error) {
