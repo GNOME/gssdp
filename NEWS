@@ -1,3 +1,21 @@
+1.3.0
+=====
+ - Sniffer: Various deprecated function clean-up
+ - Sniffer: Port to GTK4
+ - Docs: Ported to gi-docgen
+ - Docs: Clean-up and other improvements
+ - Client: Minor dead code clean-up
+ - Build: Make GSSDP usable as a subproject
+ - All: Fixes from scan-build
+ - All: Minor introspection fixes
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/7
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Andre Klapper <a9016009@gmx.de>
+
 1.2.3
 =====
  - Prevent crash if client is not initialized
