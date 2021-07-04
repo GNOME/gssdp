@@ -91,8 +91,28 @@ extract_address_and_prefix (PIP_ADAPTER_UNICAST_ADDRESS  adapter,
 int
 gssdp_net_query_ifindex (GSSDPNetworkDevice *device)
 {
-        /* TODO: if_nametoindex is supported on Vista or later */
-        return -1;
+        gunichar2 *wname =
+                g_utf8_to_utf16 (device->iface_name, -1, NULL, NULL, NULL);
+        CLSID clsid;
+        HRESULT hr = CLSIDFromString (wname, &clsid);
+        g_free (wname);
+
+        if (FAILED (hr)) {
+                return -1;
+        }
+
+        NET_LUID luid;
+        if (!NETIO_SUCCESS (ConvertInterfaceGuidToLuid ((const GUID *) &clsid,
+                                                        &luid))) {
+                return -1;
+        }
+
+        NET_IFINDEX ifindex;
+        if (!NETIO_SUCCESS (ConvertInterfaceLuidToIndex (&luid, &ifindex))) {
+                return -1;
+        }
+
+        return ifindex;
 }
 
 char *
