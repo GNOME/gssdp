@@ -36,9 +36,14 @@ siocgifindex_available = cc.compiles(siocgifindex_test,
                                      name : 'SIOCGIFINDEX is available')
 conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
+getipnettable2_available = cc.compiles(files('build-aux/getipnettable2-test.c'), args: '-liphlpapi', name: 'GetIpNetTable2 is available')
+conf.set('HAVE_GETIPNETTABLE2', getipnettable2_available)
+
+
 glib_version = '2.54'
 conf.set('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_@0@'.format(glib_version.underscorify()))
 conf.set('GLIB_VERSION_MAX_ALLOWED', 'GLIB_VERSION_@0@'.format(glib_version.underscorify()))
+
 
 # Generate config.h, so all config has to be set up until here
 subdir('internal')

@@ -7,7 +7,9 @@
  *
  */
 
-#define _WIN32_WINNT 0x502
+#define _WIN32_WINNT 0x601
+#include <config.h>
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
@@ -96,9 +98,70 @@ gssdp_net_query_ifindex (GSSDPNetworkDevice *device)
 char *
 gssdp_net_mac_lookup (GSSDPNetworkDevice *device, const char *ip_address)
 {
-        /* TODO: Is there a way to make this work? */
-        /* GetIpNetTable / GetIpNetTable2 for Vista (ipv6) */
+#ifdef HAVE_GETIPNETTABLE2
+        char *result = NULL;
+        GInetAddress *address = g_inet_address_new_from_string (ip_address);
+
+        PMIB_IPNET_TABLE2 pipTable = NULL;
+
+        unsigned long rc = 0;
+        GSocketFamily family = g_inet_address_get_family (address);
+        rc = GetIpNetTable2 (family, &pipTable);
+        if (rc != NO_ERROR) {
+                g_object_unref (address);
+                g_warning (
+                        "Failed to GetIpNetTable2 for %s: %s",
+                        g_enum_to_string (g_socket_family_get_type (), family),
+                        g_win32_error_message (WSAGetLastError ()));
+                return g_strdup (ip_address);
+        }
+
+        for (guint i = 0; i < pipTable->NumEntries; i++) {
+                GInetAddress *adapter_address;
+                if (family == G_SOCKET_FAMILY_IPV4) {
+                        adapter_address = g_inet_address_new_from_bytes (
+                                (guint8 *) &pipTable->Table[i]
+                                        .Address.Ipv4.sin_addr,
+                                family);
+                } else {
+                        adapter_address = g_inet_address_new_from_bytes (
+                                (guint8 *) &pipTable->Table[i]
+                                        .Address.Ipv6.sin6_addr,
+                                family);
+                }
+                char *ip = g_inet_address_to_string (adapter_address);
+                if (!g_inet_address_equal (address, adapter_address)) {
+                        g_object_unref (adapter_address);
+                        continue;
+                }
+                g_free (ip);
+
+                if (pipTable->Table[i].PhysicalAddressLength == 0) {
+                        result = g_strdup (ip_address);
+                        break;
+                }
+                gssize j;
+                GString *mac_str = g_string_new ("");
+                for (j = 0; j < pipTable->Table[i].PhysicalAddressLength; j++) {
+                        if (j > 0) {
+                                g_string_append_c (mac_str, ':');
+                        }
+                        g_string_append_printf (
+                                mac_str,
+                                "%02x",
+                                pipTable->Table[i].PhysicalAddress[j]);
+                }
+
+                result = g_string_free (mac_str, FALSE);
+                break;
+        }
+        g_clear_pointer (&pipTable, FreeMibTable);
+        g_object_unref (address);
+
+        return result;
+#else
         return g_strdup (ip_address);
+#endif
 }
 
 gboolean
