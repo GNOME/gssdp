@@ -42,10 +42,10 @@ conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 getipnettable2_available = cc.compiles(files('build-aux/getipnettable2-test.c'), args: '-liphlpapi', name: 'GetIpNetTable2 is available')
 conf.set('HAVE_GETIPNETTABLE2', getipnettable2_available)
 
+glib_version = '2.69'
+conf.set('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_2_70'.format(glib_version.underscorify()))
+conf.set('GLIB_VERSION_MAX_ALLOWED', 'GLIB_VERSION_2_70'.format(glib_version.underscorify()))
 
-glib_version = '2.54'
-conf.set('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_@0@'.format(glib_version.underscorify()))
-conf.set('GLIB_VERSION_MAX_ALLOWED', 'GLIB_VERSION_@0@'.format(glib_version.underscorify()))
 
 
 # Generate config.h, so all config has to be set up until here
@@ -76,7 +76,7 @@ dependencies = [
     dependency('glib-2.0', version : '>= ' + glib_version),
     dependency('gobject-2.0', version : '>= ' + glib_version),
     dependency('gio-2.0', version : '>= ' + glib_version),
-    dependency('libsoup-2.4', version : '>= 2.26.1')
+    dependency('libsoup-3.0', version : '>= 2.99.0')
 ]
 
 subdir('libgssdp')

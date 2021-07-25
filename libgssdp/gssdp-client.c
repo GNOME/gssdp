@@ -1533,7 +1533,7 @@ parse_http_request (char                *buf,
 
                 return TRUE;
         } else {
-                soup_message_headers_free (*headers);
+                soup_message_headers_unref (*headers);
                 *headers = NULL;
 
                 g_free (path);
@@ -1564,8 +1564,7 @@ parse_http_response (char                *buf,
 
                 return TRUE;
         } else {
-                soup_message_headers_free (*headers);
-                *headers = NULL;
+                g_clear_pointer (headers, soup_message_headers_unref);
 
                 return FALSE;
         }
@@ -1745,7 +1744,7 @@ out:
 
         g_free (ip_string);
 
-        g_clear_pointer (&headers, soup_message_headers_free);
+        g_clear_pointer (&headers, soup_message_headers_unref);
         g_clear_object (&address);
 
         if (messages) {

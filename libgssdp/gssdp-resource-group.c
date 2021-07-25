@@ -1012,7 +1012,6 @@ discovery_response_timeout (gpointer user_data)
 {
         DiscoveryResponse *response = user_data;
         GSSDPClient *client;
-        SoupDate *date;
         char *al, *date_str, *message;
         guint max_age;
         char *usn;
@@ -1030,9 +1029,9 @@ discovery_response_timeout (gpointer user_data)
         usn = construct_usn (response->resource->usn,
                              response->target,
                              response->resource->target);
-        date = soup_date_new_from_now (0);
-        date_str = soup_date_to_string (date, SOUP_DATE_HTTP);
-        soup_date_free (date);
+        GDateTime *date = g_date_time_new_now_local ();
+        date_str = soup_date_time_to_string (date, SOUP_DATE_HTTP);
+        g_date_time_unref (date);
 
         message = g_strdup_printf (SSDP_DISCOVERY_RESPONSE,
                                    (char *) response->resource->locations->data,

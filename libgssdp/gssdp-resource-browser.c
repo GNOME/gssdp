@@ -878,17 +878,13 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
                 expires = soup_message_headers_get_one (headers, "Expires");
                 if (expires) {
-                        SoupDate *soup_exp_time;
-                        time_t exp_time, cur_time;
+                        GDateTime *exp_time;
 
-                        soup_exp_time = soup_date_new_from_string (expires);
-                        exp_time = soup_date_to_time_t (soup_exp_time);
-                        soup_date_free (soup_exp_time);
+                        exp_time = soup_date_time_new_from_http_string (expires);
+                        GDateTime *now = g_date_time_new_now_local ();
 
-                        cur_time = time (NULL);
-
-                        if (exp_time > cur_time)
-                                timeout = exp_time - cur_time;
+                        if (g_date_time_compare (now, exp_time) == 1)
+                                timeout = g_date_time_difference (now, exp_time) / 1000 / 1000;
                         else {
                                 g_warning ("Invalid 'Expires' header. Assuming "
                                            "default max-age of %d.\n"
@@ -898,6 +894,8 @@ resource_available (GSSDPResourceBrowser *resource_browser,
 
                                 timeout = SSDP_DEFAULT_MAX_AGE;
                         }
+                        g_date_time_unref (exp_time);
+                        g_date_time_unref (now);
                 } else {
                         g_warning ("No 'Cache-Control' nor any 'Expires' "
                                    "header was specified. Assuming default "
