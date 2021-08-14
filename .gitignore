@@ -1,3 +1,7 @@
 build
 meson.build.user
 .vscode
+.flatpak-builder
+build-dir
+*.orig
+*~
