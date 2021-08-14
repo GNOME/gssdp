@@ -1,7 +1,7 @@
 resource = gnome.compile_resources(
     'org.gupnp.GSSDP.DeviceSniffer',
     'gssdp-device-sniffer.gresource.xml',
-    source_dir: [meson.current_source_dir(), meson.source_root() / 'doc']
+    source_dir: [meson.current_source_dir(), meson.current_source_dir() / .. / 'doc']
 )
 
 sniffer = executable(
