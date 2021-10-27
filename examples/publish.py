@@ -27,7 +27,7 @@
 # DAMAGE.
 
 import gi
-gi.require_version('GSSDP', '1.2')
+gi.require_version('GSSDP', '1.6')
 from gi.repository import GSSDP
 from gi.repository import GLib
 import time

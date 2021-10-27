@@ -1,4 +1,4 @@
-project('gssdp', 'c', version: '1.4.0', meson_version : '>= 0.54.0')
+project('gssdp', 'c', version: '1.5.0', meson_version : '>= 0.54.0')
 gnome = import('gnome')
 pkg = import('pkgconfig')
 
@@ -6,6 +6,9 @@ cc = meson.get_compiler('c')
 
 conf = configuration_data()
 conf.set_quoted('VERSION', meson.project_version())
+
+GSSDP_API_VERSION='1.6'
+GSSDP_API_NAME='gssdp-@0@'.format(GSSDP_API_VERSION)
 
 # Check for struct in_pktinfo
 pktinfo_test = '''#define _GNU_SOURCE

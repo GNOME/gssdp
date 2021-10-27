@@ -9,7 +9,7 @@ enums = gnome.mkenums(
     c_template : 'gssdp-enums.c.template',
     h_template : 'gssdp-enums.h.template',
     install_header : true,
-    install_dir : join_paths(get_option('includedir'), 'gssdp-1.2/libgssdp')
+    install_dir : join_paths(get_option('includedir'), GSSDP_API_NAME, 'libgssdp')
 )
 
 headers = files(
@@ -20,7 +20,7 @@ headers = files(
     'gssdp.h',
 )
 
-install_headers(headers, subdir : 'gssdp-1.2/libgssdp')
+install_headers(headers, subdir : GSSDP_API_NAME / 'libgssdp')
 
 sources = files(
     'gssdp-client.c',
@@ -62,7 +62,9 @@ current = major_version + minor_version + 1
 interface_age = micro_version
 darwin_versions = [current, '@0@.@1@'.format(current, interface_age)]
 
-libgssdp = library('gssdp-1.2', sources + enums,
+libgssdp = library(
+    GSSDP_API_NAME,
+    sources + enums,
     version : version,
     darwin_versions : darwin_versions,
     dependencies : dependencies + system_deps,
@@ -74,14 +76,14 @@ gssdp = declare_dependency(link_with : libgssdp,
                            dependencies : dependencies
                        )
 
-meson.override_dependency('gssdp-1.2', gssdp)
+meson.override_dependency(GSSDP_API_NAME, gssdp)
 
 pkg.generate(libgssdp,
-             subdirs: 'gssdp-1.2',
+             subdirs: GSSDP_API_NAME,
              version: meson.project_version(),
-             name: 'gssdp-1.2',
+             name: GSSDP_API_NAME,
              requires: ['gio-2.0', 'glib-2.0', 'gobject-2.0'],
-             filebase : 'gssdp-1.2',
+             filebase : GSSDP_API_NAME,
              description: 'GObject-based SSDP library',
              requires_private: ['gobject-2.0', 'gio-2.0'])
 
@@ -90,11 +92,11 @@ if get_option('introspection')
     gir = gnome.generate_gir(libgssdp,
             sources : headers + sources + enums,
             namespace : 'GSSDP',
-            nsversion : '1.2',
+            nsversion : GSSDP_API_VERSION,
             header : 'libgssdp/gssdp.h',
             symbol_prefix : 'gssdp',
             identifier_prefix : 'GSSDP',
-            export_packages : 'gssdp-1.2',
+            export_packages : GSSDP_API_NAME,
             includes : ['GObject-2.0', 'Gio-2.0', 'Soup-2.4'],
             install: true)
 endif
