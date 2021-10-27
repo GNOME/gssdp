@@ -123,6 +123,7 @@ enum {
         PROP_UDA_VERSION,
         PROP_BOOT_ID,
         PROP_CONFIG_ID,
+        PROP_PORT,
 };
 
 enum {
@@ -333,6 +334,7 @@ gssdp_client_get_property (GObject    *object,
                 g_value_set_uint (value, priv->socket_ttl);
                 break;
         case PROP_MSEARCH_PORT:
+        case PROP_PORT:
                 g_value_set_uint (value, priv->msearch_port);
                 break;
         case PROP_ADDRESS_FAMILY:
@@ -392,6 +394,7 @@ gssdp_client_set_property (GObject      *object,
                 priv->socket_ttl = g_value_get_uint (value);
                 break;
         case PROP_MSEARCH_PORT:
+        case PROP_PORT:
                 priv->msearch_port = g_value_get_uint (value);
                 break;
         case PROP_ADDRESS_FAMILY:
@@ -602,6 +605,8 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * UDP port to use for sending multicast M-SEARCH requests on the
          * network. If not set (or set to 0) a random port will be used.
          * This property can be only set during object construction.
+         *
+         * Deprecated: 1.6.0: Use GSSDPClient:port instead
          */
         g_object_class_install_property
                 (object_class,
@@ -616,6 +621,27 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS));
 
+        /**
+         * GSSDPClient:port:
+         *
+         * UDP port to use for sending multicast M-SEARCH requests on the
+         * network. If not set (or set to 0) a random port will be used.
+         * This property can be only set during object construction.
+         *
+         * Deprecated: 1.6.0
+         */
+        g_object_class_install_property
+                (object_class,
+                 PROP_PORT,
+                 g_param_spec_uint
+                 ("port",
+                  "M-SEARCH port",
+                  "UDP port to use for M-SEARCH requests",
+                  0, G_MAXUINT16,
+                  0,
+                  G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_STRINGS));
         /**
          * GSSDPClient:address-family:(attributes org.gtk.Property.get=gssdp_client_get_family):
          *
@@ -1293,6 +1319,16 @@ gssdp_client_can_reach (GSSDPClient *client, GInetSocketAddress *address)
         }
 
         return g_inet_address_mask_matches (priv->device.host_mask, addr);
+}
+
+guint
+gssdp_client_get_port (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), 0);
+
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        return priv->msearch_port;
 }
 
 /**

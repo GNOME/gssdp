@@ -88,6 +88,9 @@ gssdp_client_get_index        (GSSDPClient *client);
 GSocketFamily
 gssdp_client_get_family       (GSSDPClient *client);
 
+guint
+gssdp_client_get_port (GSSDPClient *client);
+
 GInetAddressMask *
 gssdp_client_get_address_mask (GSSDPClient *client);
 
