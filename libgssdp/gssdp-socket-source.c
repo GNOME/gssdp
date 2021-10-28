@@ -345,10 +345,9 @@ gssdp_socket_source_do_init (GInitable                   *initable,
         success = TRUE;
 
 error:
-        if (bind_address != NULL)
-                g_object_unref (bind_address);
-        if (group != NULL)
-                g_object_unref (group);
+        g_clear_object (&bind_address);
+        g_clear_object (&group);
+
         if (!success)
                 /* Be aware that inner_error has already been free'd by
                  * g_propagate_error(), so we cannot access its contents
