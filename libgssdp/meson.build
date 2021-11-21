@@ -97,6 +97,6 @@ if get_option('introspection')
             symbol_prefix : 'gssdp',
             identifier_prefix : 'GSSDP',
             export_packages : GSSDP_API_NAME,
-            includes : ['GObject-2.0', 'Gio-2.0', 'Soup-2.4'],
+            includes : ['GObject-2.0', 'Gio-2.0', 'Soup-3.0'],
             install: true)
 endif
