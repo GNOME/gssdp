@@ -890,8 +890,9 @@ gssdp_client_get_host_ip (GSSDPClient *client)
         priv = gssdp_client_get_instance_private (client);
 
         if (priv->device.host_ip == NULL)
-                priv->device.host_ip = g_inet_address_to_string
-                                    (priv->device.host_addr);
+                if (priv->device.host_addr != NULL)
+                        priv->device.host_ip = g_inet_address_to_string
+                                            (priv->device.host_addr);
 
         return priv->device.host_ip;
 }
