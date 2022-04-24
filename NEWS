@@ -1,3 +1,12 @@
+1.5.0 (unstable)
+================
+ - Switch to libsoup3
+ - Bump API and ABI
+ - Deprecate Client:msearch-port property for Client:port
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.4.0 (stable)
 ==============
  - Fix building the sniffer when built as subproject
