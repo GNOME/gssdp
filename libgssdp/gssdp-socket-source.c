@@ -519,7 +519,7 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
                         ("index",
                          "Interface index",
                          "Interface index of the network device",
-                         -1, G_MAXUINT16,
+                         -1, G_MAXINT,
                          -1,
                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS));
