@@ -1922,13 +1922,14 @@ init_network_info (GSSDPClient *client, GError **error)
                 ret = FALSE;
         }
 
-        g_debug ("Created SSDP client 0x%p", client);
+        g_debug ("Created SSDP client %p", client);
         g_debug ("  iface_name : %s", priv->device.iface_name);
         g_debug ("  host_ip    : %s", gssdp_client_get_host_ip (client));
         g_debug ("  server_id  : %s", priv->server_id);
         g_debug ("  network    : %s", priv->device.network);
-        g_debug ("  host_addr  : 0x%p", priv->device.host_addr);
-        g_debug ("  host_mask  : 0x%p", priv->device.host_mask);
+        g_debug ("  index      : %d", priv->device.index);
+        g_debug ("  host_addr  : %p", priv->device.host_addr);
+        g_debug ("  host_mask  : %p", priv->device.host_mask);
 
         return ret;
 }
