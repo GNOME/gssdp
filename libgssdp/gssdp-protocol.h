@@ -15,6 +15,8 @@ G_BEGIN_DECLS
 #define SSDP_ADDR "239.255.255.250"
 #define SSDP_V6_LL "FF02::C"
 #define SSDP_V6_SL "FF05::C"
+#define SSDP_V6_GL "FF0E::C"
+
 #define SSDP_PORT 1900
 #define SSDP_PORT_STR "1900"
 

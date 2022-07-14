@@ -55,6 +55,7 @@
 
 static GInetAddress *SSDP_V6_LL_ADDR = NULL;
 static GInetAddress *SSDP_V6_SL_ADDR = NULL;
+static GInetAddress *SSDP_V6_GL_ADDR = NULL;
 static GInetAddress *SSDP_V4_ADDR = NULL;
 
 static void
@@ -1421,8 +1422,11 @@ _gssdp_client_get_mcast_group (GSSDPClient *client)
                  * address to use the proper multicast group */
                 if (g_inet_address_get_is_link_local (priv->device.host_addr)) {
                             return SSDP_V6_LL;
+                } else if (g_inet_address_get_is_site_local (
+                                   priv->device.host_addr)) {
+                        return SSDP_V6_SL;
                 } else {
-                            return SSDP_V6_SL;
+                        return SSDP_V6_GL;
                 }
         }
 }
@@ -1457,10 +1461,15 @@ _gssdp_client_get_mcast_group_addr (GSSDPClient *client)
                             ENSURE_V6_GROUP(LL);
 
                             return SSDP_V6_LL_ADDR;
-                } else {
-                            ENSURE_V6_GROUP(SL);
+                } else if (g_inet_address_get_is_site_local (
+                                   priv->device.host_addr)) {
+                        ENSURE_V6_GROUP (SL);
 
-                            return SSDP_V6_SL_ADDR;
+                        return SSDP_V6_SL_ADDR;
+                } else {
+                        ENSURE_V6_GROUP (GL);
+
+                        return SSDP_V6_GL_ADDR;
                 }
         }
 }

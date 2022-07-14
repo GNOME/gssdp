@@ -461,17 +461,6 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
          */
         if (device->host_addr) {
                 family = g_inet_address_get_family (device->host_addr);
-                if (family == G_SOCKET_FAMILY_IPV6 &&
-                    !g_inet_address_get_is_link_local (device->host_addr) &&
-                    !g_inet_address_get_is_site_local (device->host_addr) &&
-                    !g_inet_address_get_is_loopback (device->host_addr)) {
-                        char *addr = g_inet_address_to_string (device->host_addr);
-                        /* FIXME: Discard the address, but use the interface */
-                        g_warning("Invalid IP address given: %s, discarding",
-                                        addr);
-                        g_free (addr);
-                        g_clear_object (&device->host_addr);
-                }
         }
 
         for (ifaceptr = up_ifaces;
@@ -500,15 +489,8 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
                                 device->host_addr = g_object_ref (device_addr);
                                 break;
                         case AF_INET6:
-                                /* IP: Bit more complicated. We have to select a link-local or
-                                 * ULA address */
-                                if (!g_inet_address_get_is_link_local (device_addr) &&
-                                    !g_inet_address_get_is_site_local (device_addr)) {
-                                        g_clear_object (&device_addr);
-
-                                        continue;
-                                }
-
+                                /* IP: Bit more complicated. We have to select a
+                                 * link-local or ULA address */
                                 device->host_addr = g_object_ref (device_addr);
                                 break;
                         default:
