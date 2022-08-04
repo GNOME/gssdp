@@ -503,9 +503,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                           NULL,
                           G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_STATIC_NAME |
-                          G_PARAM_STATIC_NICK |
-                          G_PARAM_STATIC_BLURB));
+                          G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:network:(attributes org.gtk.Property.get=gssdp_client_get_network):
@@ -517,19 +515,16 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * the network. Otherwise, expect this to be the network IP address by
          * default.
          **/
-        g_object_class_install_property
-                (object_class,
-                 PROP_NETWORK,
-                 g_param_spec_string
-                         ("network",
-                          "Network ID",
-                          "The network this client is currently connected to.",
-                          NULL,
-                          G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT |
-                          G_PARAM_STATIC_NAME |
-                          G_PARAM_STATIC_NICK |
-                          G_PARAM_STATIC_BLURB));
+        g_object_class_install_property (
+                object_class,
+                PROP_NETWORK,
+                g_param_spec_string (
+                        "network",
+                        "Network ID",
+                        "The network this client is currently connected to.",
+                        NULL,
+                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:host-ip:(attributes org.gtk.Property.get=gssdp_client_get_host_ip):
@@ -574,17 +569,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * The network mask of the assoicated network interface.
          **/
-        g_object_class_install_property
-                (object_class,
-                 PROP_HOST_MASK,
-                 g_param_spec_object ("host-mask",
-                                      "Host network mask",
-                                      "The IP netmask of the associated"
-                                      "network interface",
-                                      G_TYPE_INET_ADDRESS_MASK,
-                                      G_PARAM_READWRITE |
-                                      G_PARAM_CONSTRUCT |
-                                      G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_HOST_MASK,
+                g_param_spec_object ("host-mask",
+                                     "Host network mask",
+                                     "The IP netmask of the associated"
+                                     "network interface",
+                                     G_TYPE_INET_ADDRESS_MASK,
+                                     G_PARAM_READWRITE |
+                                             G_PARAM_CONSTRUCT_ONLY |
+                                             G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:active:(attributes org.gtk.Property.get=gssdp_client_get_active):
@@ -594,18 +589,15 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * not. In most cases, you don't want to touch this property.
          *
          **/
-        g_object_class_install_property
-                (object_class,
-                 PROP_ACTIVE,
-                 g_param_spec_boolean
-                         ("active",
-                          "Active",
-                          "TRUE if the client is active.",
-                          TRUE,
-                          G_PARAM_READWRITE |
-                          G_PARAM_STATIC_NAME |
-                          G_PARAM_STATIC_NICK |
-                          G_PARAM_STATIC_BLURB));
+        g_object_class_install_property (
+                object_class,
+                PROP_ACTIVE,
+                g_param_spec_boolean ("active",
+                                      "Active",
+                                      "TRUE if the client is active.",
+                                      TRUE,
+                                      G_PARAM_READWRITE |
+                                              G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:socket-ttl:
@@ -614,18 +606,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * If not set (or set to 0) the value recommended by UPnP will be used.
          * This property can only be set during object construction.
          */
-        g_object_class_install_property
-                (object_class,
-                 PROP_SOCKET_TTL,
-                 g_param_spec_uint
-                        ("socket-ttl",
-                         "Socket TTL",
-                         "Time To Live for client's sockets",
-                         0, 255,
-                         0,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
-                         G_PARAM_STATIC_BLURB));
+        g_object_class_install_property (
+                object_class,
+                PROP_SOCKET_TTL,
+                g_param_spec_uint ("socket-ttl",
+                                   "Socket TTL",
+                                   "Time To Live for client's sockets",
+                                   0,
+                                   255,
+                                   0,
+                                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                           G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:msearch-port:
@@ -636,18 +627,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * Deprecated: 1.6.0: Use [property@GSSDP.Client:port] instead
          */
-        g_object_class_install_property
-                (object_class,
-                 PROP_MSEARCH_PORT,
-                 g_param_spec_uint
-                        ("msearch-port",
-                         "M-SEARCH port",
-                         "UDP port to use for M-SEARCH requests",
-                         0, G_MAXUINT16,
-                         0,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_MSEARCH_PORT,
+                g_param_spec_uint ("msearch-port",
+                                   "M-SEARCH port",
+                                   "UDP port to use for M-SEARCH requests",
+                                   0,
+                                   G_MAXUINT16,
+                                   0,
+                                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                           G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:port:
@@ -658,18 +648,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * Since: 1.6.0
          */
-        g_object_class_install_property
-                (object_class,
-                 PROP_PORT,
-                 g_param_spec_uint
-                 ("port",
-                  "M-SEARCH port",
-                  "UDP port to use for M-SEARCH requests",
-                  0, G_MAXUINT16,
-                  0,
-                  G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_PORT,
+                g_param_spec_uint ("port",
+                                   "M-SEARCH port",
+                                   "UDP port to use for M-SEARCH requests",
+                                   0,
+                                   G_MAXUINT16,
+                                   0,
+                                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                           G_PARAM_STATIC_STRINGS));
         /**
          * GSSDPClient:address-family:(attributes org.gtk.Property.get=gssdp_client_get_family):
          *
@@ -678,23 +667,22 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * used to determine the proper address.
          *
          * If not specified, will contain the currrent address family after
-         * the call to g_initable_init()<!-- -->. Use %G_SOCKET_FAMILY_INVALID
+         * the call to [method@GLib.Initable.init]. Use %G_SOCKET_FAMILY_INVALID
          * to specifiy using the default socket family (legacy IP)
          *
          * Since: 1.2.0
          */
-        g_object_class_install_property
-                (object_class,
-                 PROP_ADDRESS_FAMILY,
-                 g_param_spec_enum
-                        ("address-family",
-                         "IP Address family",
-                         "IP address family to prefer when creating the client",
-                         G_TYPE_SOCKET_FAMILY,
-                         G_SOCKET_FAMILY_INVALID,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_ADDRESS_FAMILY,
+                g_param_spec_enum (
+                        "address-family",
+                        "IP Address family",
+                        "IP address family to prefer when creating the client",
+                        G_TYPE_SOCKET_FAMILY,
+                        G_SOCKET_FAMILY_INVALID,
+                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:uda-version:(attributes org.gtk.Property.get=gssdp_client_get_uda_version):
@@ -703,18 +691,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * Since: 1.2.0
          */
-        g_object_class_install_property
-                (object_class,
-                 PROP_UDA_VERSION,
-                 g_param_spec_enum
-                        ("uda-version",
-                         "UDA version",
-                         "UPnP Device Architecture version on this client",
-                         GSSDP_TYPE_UDA_VERSION,
-                         GSSDP_UDA_VERSION_1_0,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_UDA_VERSION,
+                g_param_spec_enum (
+                        "uda-version",
+                        "UDA version",
+                        "UPnP Device Architecture version on this client",
+                        GSSDP_TYPE_UDA_VERSION,
+                        GSSDP_UDA_VERSION_1_0,
+                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:boot-id:(attributes org.gtk.Property.set=gssdp_client_set_boot_id):
@@ -723,19 +710,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * Since 1.2.0
          */
-        g_object_class_install_property
-                (object_class,
-                 PROP_BOOT_ID,
-                 g_param_spec_int
-                        ("boot-id",
-                         "current boot-id value",
-                         "Value of the BOOTID.UPNP.ORG header",
-                         -1,
-                         G_MAXINT32,
-                         -1,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT |
-                         G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_BOOT_ID,
+                g_param_spec_int ("boot-id",
+                                  "current boot-id value",
+                                  "Value of the BOOTID.UPNP.ORG header",
+                                  -1,
+                                  G_MAXINT32,
+                                  -1,
+                                  G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+                                          G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:config-id:(attributes org.gtk.Property.set=gssdp_client_set_config_id):
@@ -744,19 +729,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * Since 1.2.0
          */
-        g_object_class_install_property
-                (object_class,
-                 PROP_CONFIG_ID,
-                 g_param_spec_int
-                        ("config-id",
-                         "current config-id value",
-                         "Value of the CONFIGID.UPNP.ORG header",
-                         -1,
-                         G_MAXINT32,
-                         -1,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT |
-                         G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_CONFIG_ID,
+                g_param_spec_int ("config-id",
+                                  "current config-id value",
+                                  "Value of the CONFIGID.UPNP.ORG header",
+                                  -1,
+                                  G_MAXINT32,
+                                  -1,
+                                  G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+                                          G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient::message-received: (skip)

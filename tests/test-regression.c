@@ -432,6 +432,14 @@ void test_ggo_7 () {
         char *iface = g_strdup (gssdp_client_get_interface (client));
         g_clear_object (&client);
 
+#ifdef G_OS_UNIX
+#if defined(__linux__)
+        g_assert_cmpstr (iface, ==, "lo");
+#else
+        g_assert_cmpstr (iface, ==, "lo0");
+#endif
+#endif
+
         g_debug("Found adapter %s for 127.0.0.1", iface);
 
         // Check that trying to get a client for a non-existing interface fails
