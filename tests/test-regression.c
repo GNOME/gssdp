@@ -441,7 +441,7 @@ void test_ggo_7 () {
                                  "host-ip", "127.0.0.1",
                                  "interface", "ThisShouldNotExist",
                                  NULL);
-        g_assert_error (error, GSSDP_ERROR, GSSDP_ERROR_FAILED);
+        g_assert_error (error, GSSDP_ERROR, GSSDP_ERROR_NO_IP_ADDRESS);
         g_assert_null (client);
         g_clear_error (&error);
 

@@ -656,7 +656,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * network. If not set (or set to 0) a random port will be used.
          * This property can be only set during object construction.
          *
-         * Deprecated: 1.6.0
+         * Since: 1.6.0
          */
         g_object_class_install_property
                 (object_class,
