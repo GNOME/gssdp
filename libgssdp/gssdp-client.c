@@ -110,7 +110,8 @@ struct _GSSDPHeaderField {
 };
 typedef struct _GSSDPHeaderField GSSDPHeaderField;
 
-enum {
+enum
+{
         PROP_0,
         PROP_SERVER_ID,
         PROP_IFACE,
@@ -125,6 +126,7 @@ enum {
         PROP_BOOT_ID,
         PROP_CONFIG_ID,
         PROP_PORT,
+        PROP_HOST_ADDR,
 };
 
 enum {
@@ -328,6 +330,9 @@ gssdp_client_get_property (GObject    *object,
                 g_value_set_string (value,
                                     gssdp_client_get_host_ip (client));
                 break;
+        case PROP_HOST_ADDR:
+                g_value_set_object (value, gssdp_client_get_address (client));
+                break;
         case PROP_ACTIVE:
                 g_value_set_boolean (value, priv->active);
                 break;
@@ -384,7 +389,10 @@ gssdp_client_set_property (GObject      *object,
                                     g_inet_address_new_from_string (addr);
                         }
                         break;
-                }
+        }
+        case PROP_HOST_ADDR:
+                priv->device.host_addr = g_value_dup_object (value);
+                break;
         case PROP_HOST_MASK:
                 priv->device.host_mask = g_value_dup_object (value);
                 break;
@@ -527,6 +535,8 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * GSSDPClient:host-ip:(attributes org.gtk.Property.get=gssdp_client_get_host_ip):
          *
          * The IP address of the assoicated network interface.
+         *
+         * Deprecated: 1.6. Use [property@GSSDP.Client:address] instead.
          **/
         g_object_class_install_property
                 (object_class,
@@ -541,6 +551,23 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                       G_PARAM_STATIC_NAME |
                                       G_PARAM_STATIC_NICK |
                                       G_PARAM_STATIC_BLURB));
+
+        /**
+         * GSSDPClient:address:(attributes org.gtk.Property.get=gssdp_client_get_address):
+         *
+         * The network address this client is bound to.
+         * Since: 1.6
+         **/
+        g_object_class_install_property (
+                object_class,
+                PROP_HOST_ADDR,
+                g_param_spec_object ("address",
+                                     "Network address",
+                                     "The internet address of the client",
+                                     G_TYPE_INET_ADDRESS,
+                                     G_PARAM_READWRITE |
+                                             G_PARAM_CONSTRUCT_ONLY |
+                                             G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:host-mask:(attributes org.gtk.Property.get=gssdp_client_get_address_mask):
@@ -607,7 +634,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * network. If not set (or set to 0) a random port will be used.
          * This property can be only set during object construction.
          *
-         * Deprecated: 1.6.0: Use GSSDPClient:port instead
+         * Deprecated: 1.6.0: Use [property@GSSDP.Client:port] instead
          */
         g_object_class_install_property
                 (object_class,
@@ -1157,7 +1184,7 @@ gssdp_client_clear_headers (GSSDPClient *client)
 }
 
 /**
- * gssdp_client_get_address:
+ * gssdp_client_get_address:(attributes org.gtk.Method.get_property=address):
  * @client: A #GSSDPClient
  *
  * The IP address this client works on.
