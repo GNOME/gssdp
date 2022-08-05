@@ -1885,7 +1885,6 @@ static gboolean
 init_network_info (GSSDPClient *client, GError **error)
 {
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
-        gboolean ret = TRUE;
 
         /* If we were constructed with a host_ip, try to parse a host_addr from that.
          * Further code will only work with host_addr */
@@ -1928,11 +1927,11 @@ init_network_info (GSSDPClient *client, GError **error)
          * If one is given, try to find the other, otherwise just pick an
          * interface.
          */
-        if (priv->device.iface_name == NULL ||
-            priv->device.host_addr == NULL  ||
-            priv->device.host_mask == NULL)
-                gssdp_net_get_host_ip (&(priv->device));
-        else {
+        if (priv->device.iface_name == NULL || priv->device.host_addr == NULL ||
+            priv->device.host_mask == NULL) {
+                if (!gssdp_net_get_host_ip (&(priv->device), error))
+                        return FALSE;
+        } else {
                 /* Ugly. Ideally, get_host_ip needs to be run everytime, but
                  * it is currently to stupid so just query index here if we
                  * have a name and an interface already.
@@ -1953,7 +1952,7 @@ init_network_info (GSSDPClient *client, GError **error)
                                      GSSDP_ERROR_FAILED,
                                      "No default route?");
 
-                ret = FALSE;
+                return FALSE;
         } else if (priv->device.host_addr == NULL) {
                 g_set_error (error,
                              GSSDP_ERROR,
@@ -1961,13 +1960,13 @@ init_network_info (GSSDPClient *client, GError **error)
                              "Failed to find IP of interface %s",
                              priv->device.iface_name);
 
-                ret = FALSE;
+                return FALSE;
         } else if (priv->device.host_mask == NULL) {
                 g_set_error (error,
                              GSSDP_ERROR,
                              GSSDP_ERROR_FAILED,
                              "No network mask?");
-                ret = FALSE;
+                return FALSE;
         }
 
         g_debug ("Created SSDP client %p", client);
@@ -1979,5 +1978,5 @@ init_network_info (GSSDPClient *client, GError **error)
         g_debug ("  host_addr  : %p", priv->device.host_addr);
         g_debug ("  host_mask  : %p", priv->device.host_mask);
 
-        return ret;
+        return TRUE;
 }

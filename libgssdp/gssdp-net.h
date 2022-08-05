@@ -42,7 +42,7 @@ G_GNUC_INTERNAL void
 gssdp_net_shutdown              (void);
 
 G_GNUC_INTERNAL gboolean
-gssdp_net_get_host_ip           (GSSDPNetworkDevice *device);
+gssdp_net_get_host_ip           (GSSDPNetworkDevice *device, GError **error);
 
 G_GNUC_INTERNAL int
 gssdp_net_query_ifindex         (GSSDPNetworkDevice *device);

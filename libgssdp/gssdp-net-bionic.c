@@ -112,7 +112,7 @@ gssdp_net_mac_lookup (GSSDPNetworkDevice *device, const char *ip_address)
 }
 
 gboolean
-gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
+gssdp_net_get_host_ip (GSSDPNetworkDevice *device, GError **error)
 {
         struct      ifreq *ifaces = NULL;
         struct      ifreq *iface = NULL;

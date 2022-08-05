@@ -12,6 +12,7 @@
 #include <config.h>
 
 #include "gssdp-net.h"
+#include "gssdp-error.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -389,7 +390,7 @@ get_netmask (struct sockaddr *address,
 
 
 gboolean
-gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
+gssdp_net_get_host_ip (GSSDPNetworkDevice *device, GError **error)
 {
         struct ifaddrs *ifa_list, *ifa;
         GList *up_ifaces, *ifaceptr;
@@ -398,9 +399,15 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 
         up_ifaces = NULL;
 
+        errno = 0;
         if (getifaddrs (&ifa_list) != 0) {
-                g_warning ("Failed to retrieve list of network interfaces: %s",
-                           strerror (errno));
+                int saved_errno = errno;
+                g_set_error (
+                        error,
+                        G_IO_ERROR,
+                        g_io_error_from_errno (saved_errno),
+                        "Failed to retrieve list of network interfaces: %s",
+                        g_strerror (errno));
 
                 return FALSE;
         }
@@ -511,6 +518,14 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device)
 
                 if (device->iface_name == NULL)
                         device->iface_name = g_strdup (ifa->ifa_name);
+                else {
+                        // We have found the address, and we have an iface. Does it match?
+                        if (!g_str_equal (device->iface_name, ifa->ifa_name)) {
+                                g_set_error(error, GSSDP_ERROR, GSSDP_ERROR_FAILED, "Information mismatch: Interface passed address is %s, but requested %s",
+                                             device->iface_name, ifa->ifa_name);
+                                return FALSE;
+                        }
+                }
 
                 if (device->network == NULL)
                         device->network = g_inet_address_mask_to_string (device->host_mask);
