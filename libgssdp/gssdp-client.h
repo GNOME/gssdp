@@ -47,14 +47,29 @@ struct _GSSDPClientClass {
         void (* _gssdp_reserved4) (void);
 };
 
+G_DEPRECATED_FOR(gssdp_client_new_for_address)
 GSSDPClient *
 gssdp_client_new              (const char   *iface,
                                GError      **error);
 
+G_DEPRECATED_FOR(gssdp_client_new_for_address)
 GSSDPClient *
 gssdp_client_new_with_port    (const char *iface,
                                guint16     msearch_port,
                                GError    **error);
+
+GSSDPClient *
+gssdp_client_new_for_address (GInetAddress *addr,
+                              guint16 port,
+                              GSSDPUDAVersion uda_version,
+                              GError **error);
+
+GSSDPClient *
+gssdp_client_new_full (const char *iface,
+                       GInetAddress *addr,
+                       guint16 port,
+                       GSSDPUDAVersion uda_version,
+                       GError **error);
 
 void
 gssdp_client_set_server_id    (GSSDPClient  *client,

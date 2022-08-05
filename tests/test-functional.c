@@ -478,6 +478,47 @@ test_discovery_versioned_ignore_older (void)
         g_main_loop_unref (loop);
 }
 
+void
+test_client_creation ()
+{
+        GError *error = NULL;
+
+        GSSDPClient *client = NULL;
+        client = gssdp_client_new_for_address (NULL,
+                                               0,
+                                               GSSDP_UDA_VERSION_1_0,
+                                               &error);
+        g_assert_no_error (error);
+        g_assert_nonnull (client);
+
+        g_clear_object (&client);
+
+        GInetAddress *addr = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
+        client = gssdp_client_new_for_address (addr,
+                                               0,
+                                               GSSDP_UDA_VERSION_1_0,
+                                               &error);
+        g_assert_no_error (error);
+        g_assert_nonnull (client);
+        g_assert_cmpint (G_SOCKET_FAMILY_IPV4,
+                         ==,
+                         gssdp_client_get_family (client));
+        g_clear_object (&client);
+        g_clear_object (&addr);
+
+        addr = g_inet_address_new_any (G_SOCKET_FAMILY_IPV6);
+        client = gssdp_client_new_for_address (addr,
+                                               0,
+                                               GSSDP_UDA_VERSION_1_0,
+                                               &error);
+        g_assert_no_error (error);
+        g_assert_nonnull (client);
+        g_assert_cmpint (G_SOCKET_FAMILY_IPV6,
+                         ==,
+                         gssdp_client_get_family (client));
+        g_clear_object (&client);
+        g_clear_object (&addr);
+}
 
 int main(int argc, char *argv[])
 {
@@ -500,6 +541,8 @@ int main(int argc, char *argv[])
 
         g_test_add_func ("/functional/resource-group/discovery/versioned/ignore-older",
                          test_discovery_versioned_ignore_older);
+
+        g_test_add_func ("/functional/creation", test_client_creation);
 
         g_test_run ();
 

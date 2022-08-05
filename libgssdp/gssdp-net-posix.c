@@ -468,6 +468,9 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device, GError **error)
          */
         if (device->host_addr) {
                 family = g_inet_address_get_family (device->host_addr);
+                // Address was solely added to select the address family
+                if (g_inet_address_get_is_any (device->host_addr))
+                        g_clear_object (&device->host_addr);
         }
 
         for (ifaceptr = up_ifaces;
@@ -491,15 +494,8 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device, GError **error)
                 if (device->host_addr == NULL) {
                         switch (ifa->ifa_addr->sa_family) {
                         case AF_INET:
-                                /* legacy IP: Easy, just take the first
-                                 * address we can find */
-                                device->host_addr = g_object_ref (device_addr);
-                                break;
                         case AF_INET6:
-                                /* IP: Bit more complicated. We have to select a
-                                 * link-local or ULA address */
                                 device->host_addr = g_object_ref (device_addr);
-                                break;
                         default:
                                 /* We filtered this out in the list before */
                                 g_assert_not_reached ();

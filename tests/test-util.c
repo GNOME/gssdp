@@ -45,33 +45,19 @@ unref_object (gpointer object)
 GSSDPClient *
 get_client (GError **outer_error)
 {
-        static gsize init_guard = 0;
-        static char *device = NULL;
+        GSSDPClient *client = NULL;
+        GError *error = NULL;
+        GInetAddress *lo =
+                g_inet_address_new_loopback (G_SOCKET_FAMILY_IPV4);
 
-        if (g_once_init_enter (&init_guard)) {
-                GSSDPClient *client = NULL;
-                GError *error = NULL;
+        client = gssdp_client_new_for_address (lo,
+                                               0,
+                                               GSSDP_UDA_VERSION_1_0,
+                                               &error);
 
-                g_debug ("Detecting network interface to use for tests...");
+        g_assert_no_error (error);
+        g_assert_nonnull (client);
+        g_clear_object (&lo);
 
-                client = gssdp_client_new ("lo", &error);
-                if (error == NULL) {
-                        g_debug ("Using lo");
-                        device = g_strdup ("lo");
-                        g_object_unref (client);
-                } else {
-                        g_clear_error(&error);
-                        client = gssdp_client_new ("lo0", &error);
-                        if (error == NULL) {
-                                g_debug ("Using lo0");
-                                device = g_strdup ("lo0");
-                                g_object_unref (client);
-                        } else {
-                                g_debug ("Using default interface, expect fails");
-                        }
-                }
-                g_once_init_leave (&init_guard, 1);
-        }
-
-        return gssdp_client_new (device, outer_error);
+        return client;
 }

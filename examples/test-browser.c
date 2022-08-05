@@ -46,7 +46,11 @@ main (G_GNUC_UNUSED int    argc,
         GMainLoop *main_loop;
 
         error = NULL;
-        client = gssdp_client_new (NULL, &error);
+        client = gssdp_client_new_full (NULL,
+                                        NULL,
+                                        0,
+                                        GSSDP_UDA_VERSION_1_0,
+                                        &error);
         if (error) {
                 g_printerr ("Error creating the GSSDP client: %s\n",
                             error->message);

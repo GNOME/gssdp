@@ -659,7 +659,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          * used to determine the proper address.
          *
          * If not specified, will contain the currrent address family after
-         * the call to [method@GLib.Initable.init]. Use %G_SOCKET_FAMILY_INVALID
+         * the call to [method@Glib.Initable.init]. Use %G_SOCKET_FAMILY_INVALID
          * to specifiy using the default socket family (legacy IP)
          *
          * Since: 1.2.0
@@ -762,13 +762,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
 
 /**
  * gssdp_client_new:
- * @iface: (nullable): The name of the network interface, or %NULL for auto-detection.
+ * @iface: (nullable): The name of the network interface, or %NULL for
+ * auto-detection.
  * @error: (nullable): Location to store error, or %NULL
  *
  * Creates a GSSDP client on @iface. GSSDPClient will pick the address it finds
  * suitable for using.
  *
- * Using this utility function, the created client will be using UDA 1.0 and IPv4 only.
+ * Using this utility function, the created client will be using UDA 1.0 and
+ * IPv4 only.
+ *
+ * Deprecated: 1.6. Use [ctor@GSSDP.Client.new_for_address] instead.
  *
  * Return value: (nullable): A new #GSSDPClient object.
  **/
@@ -795,6 +799,8 @@ gssdp_client_new (const char *iface, GError **error)
  *
  * Using this utility function, the created client will be using UDA 1.0 and IPv4 only.
  *
+ * Deprecated: 1.6. Use [ctor@GSSDP.Client.new_for_address] instead.
+ *
  * Return value: (nullable):  A new #GSSDPClient object or %NULL on error.
  */
 GSSDPClient *
@@ -805,9 +811,76 @@ gssdp_client_new_with_port (const char *iface,
         return g_initable_new (GSSDP_TYPE_CLIENT,
                                NULL,
                                error,
-                               "interface", iface,
-                               "msearch-port", msearch_port,
+                               "interface",
+                               iface,
+                               "port",
+                               msearch_port,
                                NULL);
+}
+
+/**
+ * gssdp_client_new_full:
+ * @iface: (nullable): the name of a network interface
+ * @addr: (nullable): an IP address or %NULL for auto-detection. If you do not
+ * care about the address, but want to specify an address family, use
+ * [ctor@Glib.InetAddress.new_any] with the appropriate family instead.
+ * @port: The network port to use for M-SEARCH requests or 0 for
+ * random.
+ * @uda_version: The UDA version this client will adhere to
+ * @error: (allow-none): Location to store error, or %NULL.
+ *
+ * Creates a GSSDP client with address @addr. If none is specified, GSSDP
+ * will chose the address it deems most suitable.
+ *
+ * Since: 1.6.
+ *
+ * Return value: (nullable):  A new #GSSDPClient object or %NULL on error.
+ */
+GSSDPClient *
+gssdp_client_new_full (const char *iface,
+                       GInetAddress *addr,
+                       guint16 port,
+                       GSSDPUDAVersion uda_version,
+                       GError **error)
+{
+        return g_initable_new (GSSDP_TYPE_CLIENT,
+                               NULL,
+                               error,
+                               "interface",
+                               iface,
+                               "address",
+                               addr,
+                               "port",
+                               port,
+                               "uda-version",
+                               uda_version,
+                               NULL);
+}
+
+/**
+ * gssdp_client_new_for_address
+ * @addr: (nullable): an IP address or %NULL for auto-detection. If you do not
+ * care about the address, but want to specify an address family, use
+ * [ctor@Glib.InetAddress.new_any] with the appropriate family instead.
+ * @port: The network port to use for M-SEARCH requests or 0 for
+ * random.
+ * @uda_version: The UDA version this client will adhere to
+ * @error: (allow-none): Location to store error, or %NULL.
+ *
+ * Creates a GSSDP client with address @addr. If none is specified, GSSDP
+ * will chose the address it deems most suitable.
+ *
+ * Since: 1.6.
+ *
+ * Return value: (nullable):  A new #GSSDPClient object or %NULL on error.
+ */
+GSSDPClient *
+gssdp_client_new_for_address (GInetAddress *addr,
+                              guint16 port,
+                              GSSDPUDAVersion uda_version,
+                              GError **error)
+{
+        return gssdp_client_new_full (NULL, addr, port, uda_version, error);
 }
 
 /**
