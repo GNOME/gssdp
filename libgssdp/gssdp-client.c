@@ -382,14 +382,8 @@ gssdp_client_set_property (GObject      *object,
                 priv->device.network = g_value_dup_string (value);
                 break;
         case PROP_HOST_IP:
-                {
-                        const char *addr = g_value_get_string (value);
-                        if (addr != NULL) {
-                                priv->device.host_addr =
-                                    g_inet_address_new_from_string (addr);
-                        }
-                        break;
-        }
+                priv->device.host_ip = g_value_dup_string (value);
+                break;
         case PROP_HOST_ADDR:
                 priv->device.host_addr = g_value_dup_object (value);
                 break;
@@ -533,19 +527,17 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * Deprecated: 1.6. Use [property@GSSDP.Client:address] instead.
          **/
-        g_object_class_install_property
-                (object_class,
-                 PROP_HOST_IP,
-                 g_param_spec_string ("host-ip",
-                                      "Host IP",
-                                      "The IP address of the associated"
-                                      "network interface",
-                                      NULL,
-                                      G_PARAM_READWRITE |
-                                      G_PARAM_CONSTRUCT |
-                                      G_PARAM_STATIC_NAME |
-                                      G_PARAM_STATIC_NICK |
-                                      G_PARAM_STATIC_BLURB));
+        g_object_class_install_property (
+                object_class,
+                PROP_HOST_IP,
+                g_param_spec_string ("host-ip",
+                                     "Host IP",
+                                     "The IP address of the associated"
+                                     "network interface",
+                                     NULL,
+                                     G_PARAM_READWRITE |
+                                             G_PARAM_CONSTRUCT_ONLY |
+                                             G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient:address:(attributes org.gtk.Property.get=gssdp_client_get_address):
@@ -1894,6 +1886,43 @@ init_network_info (GSSDPClient *client, GError **error)
 {
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
         gboolean ret = TRUE;
+
+        /* If we were constructed with a host_ip, try to parse a host_addr from that.
+         * Further code will only work with host_addr */
+        if (priv->device.host_ip != NULL) {
+                GInetAddress *addr =
+                        g_inet_address_new_from_string (priv->device.host_ip);
+                if (addr == NULL) {
+                        g_set_error (error,
+                                     GSSDP_ERROR,
+                                     GSSDP_ERROR_FAILED,
+                                     "Unparseable host_ip %s",
+                                     priv->device.host_ip);
+
+                        return FALSE;
+                }
+
+                // If there was also a host address passed (why?!) make sure
+                // they match up, otherwise exit with error as well
+                if (priv->device.host_addr != NULL) {
+                        gboolean equal =
+                                g_inet_address_equal (priv->device.host_addr,
+                                                      addr);
+                        g_object_unref (addr);
+                        if (!equal) {
+                                g_set_error_literal (
+                                        error,
+                                        GSSDP_ERROR,
+                                        GSSDP_ERROR_FAILED,
+                                        "host_ip and host_addr do not match");
+                                return FALSE;
+                        }
+
+                } else {
+                        priv->device.host_addr = addr;
+                }
+
+        }
 
         /* Either interface name or host_ip wasn't given during construction.
          * If one is given, try to find the other, otherwise just pick an
