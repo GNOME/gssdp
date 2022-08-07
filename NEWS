@@ -1,10 +1,17 @@
+1.5.2 (unstable)
+================
+ - Enable global scope v6 addresses
+ - Expose Client:address as proper property
+ - Clean-up client properties, make some construct-only
+ - Add new convenience constructors for client
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.5.1 (unstable)
 ================
  - Clean-up debug output
  - Allow interface indexes up to MAXINT
-
-Bugs fixed in this release:
- - Hopefully this should fix https://gitlab.gnome.org/GNOME/gupnp-igd/-/jobs/2021422
 
 All contributors to this release:
  - Jens Georg <mail@jensge.org>
