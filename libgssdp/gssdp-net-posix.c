@@ -496,6 +496,7 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device, GError **error)
                         case AF_INET:
                         case AF_INET6:
                                 device->host_addr = g_object_ref (device_addr);
+                                break;
                         default:
                                 /* We filtered this out in the list before */
                                 g_assert_not_reached ();
