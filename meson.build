@@ -1,4 +1,4 @@
-project('gssdp', 'c', version: '1.5.2', meson_version : '>= 0.54.0')
+project('gssdp', 'c', version: '1.5.3', meson_version : '>= 0.54.0')
 gnome = import('gnome')
 pkg = import('pkgconfig')
 
