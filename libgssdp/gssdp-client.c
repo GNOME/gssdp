@@ -1606,19 +1606,29 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
                                 msg = GSSDP_PKTINFO6_MESSAGE (messages[i]);
                                 msg_ifindex = gssdp_pktinfo6_message_get_ifindex (msg);
                                 local_addr = gssdp_pktinfo6_message_get_local_addr (msg);
-                        } else
+                        } else {
                                 continue;
+                        }
 
                         /* message needs to be on correct interface or on
                          * loopback (as kernel can be smart and route things
                          * there even if sent to another network) */
-                        if (!((msg_ifindex == priv->device.index ||
-                               msg_ifindex == LOOPBACK_IFINDEX) &&
-                              (g_inet_address_equal (local_addr,
-                                                     priv->device.host_addr) ||
-                               g_inet_address_equal (local_addr, group_addr)))) {
-                                goto out;
-                        } else {
+                        if (g_inet_address_equal (local_addr, group_addr)) {
+                                // This is a multicast packet. If the index is not our index, ignore
+                                if (msg_ifindex != priv->device.index) {
+                                        goto out;
+                                }
+                                break;
+                        }
+
+                        if (g_inet_address_equal (local_addr,
+                                                  priv->device.host_addr)) {
+                                // This is a "normal" packet. We can receive those
+
+                                if (msg_ifindex != priv->device.index &&
+                                    msg_ifindex != LOOPBACK_IFINDEX) {
+                                        goto out;
+                                }
                                 break;
                         }
                 }
