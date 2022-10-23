@@ -184,8 +184,8 @@ gssdp_net_mac_lookup (GSSDPNetworkDevice *device, const char *ip_address)
 
                         msg = NLMSG_DATA (header);
 
-                        rtattr = IFA_RTA (msg);
-                        rtattr_len = IFA_PAYLOAD (header);
+                        rtattr = RTM_RTA (msg);
+                        rtattr_len = RTM_PAYLOAD (header);
 
                         while (RT_ATTR_OK (rtattr, rtattr_len)) {
                                 if (rtattr->rta_type == NDA_DST) {
