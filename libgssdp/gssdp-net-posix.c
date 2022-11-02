@@ -510,8 +510,16 @@ gssdp_net_get_host_ip (GSSDPNetworkDevice *device, GError **error)
                 if (!equal)
                         continue;
 
-                device->host_mask = get_netmask (ifa->ifa_addr,
-                                                 ifa->ifa_netmask);
+                if (device->host_mask != NULL &&
+                    !g_inet_address_mask_matches (device->host_mask,
+                                                  device->host_addr)) {
+                        g_clear_object (&device->host_mask);
+                }
+
+                if (device->host_mask == NULL) {
+                        device->host_mask =
+                                get_netmask (ifa->ifa_addr, ifa->ifa_netmask);
+                }
 
                 if (device->iface_name == NULL)
                         device->iface_name = g_strdup (ifa->ifa_name);
