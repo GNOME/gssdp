@@ -188,9 +188,9 @@ pages:
   stage: website
   script:
       - meson doc-build -Dgtk_doc=true
-      - ninja -C doc-build doc/GSSDP
+      - ninja -C doc-build doc/gssdp-1.2
       - mkdir -p public
-      - mv doc-build/doc/GSSDP public/docs
+      - mv doc-build/doc/gssdp-1.2 public/docs
 
   artifacts:
     paths:
