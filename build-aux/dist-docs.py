@@ -4,7 +4,7 @@ import os
 import shutil
 
 references = [
-    'doc/GSSDP',
+    'doc/gssdp-1.6',
 ]
 
 sourceroot = os.environ.get('MESON_SOURCE_ROOT')
