@@ -471,6 +471,43 @@ void test_ggo_7 () {
  * ============================================================================
  */
 
+/* BEGIN Regression test
+ * https://gitlab.gnome.org/GNOME/gssdp/issues/22
+ * ============================================================================
+ *  - Calling can_reach on a v4 link-local address causes a warning
+ */
+
+void
+test_ggo_22 ()
+{
+        GError *error = NULL;
+        GInetAddress *addr = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
+        GInetAddress *target_addr =
+                g_inet_address_new_from_string ("169.254.140.39");
+        GSocketAddress *target = g_inet_socket_address_new (target_addr, 0);
+
+        GSSDPClient *client =
+                gssdp_client_new_for_address (addr,
+                                              0,
+                                              GSSDP_UDA_VERSION_1_0,
+                                              &error);
+
+        g_assert_nonnull (client);
+        g_assert_no_error (error);
+
+        // don't care for the result, just make sure that there is no warning
+        (void) gssdp_client_can_reach (client, G_INET_SOCKET_ADDRESS (target));
+
+        g_object_unref (client);
+        g_object_unref (target);
+        g_object_unref (target_addr);
+        g_object_unref (addr);
+}
+
+/* END Regression test
+ * https://gitlab.gnome.org/GNOME/gssdp/issues/7
+ * ============================================================================
+ */
 
 int main (int argc, char *argv[])
 {
@@ -486,6 +523,7 @@ int main (int argc, char *argv[])
                g_test_add_func ("/bugs/ggo/1", test_ggo_1);
         }
         g_test_add_func ("/bugs/ggo/7", test_ggo_7);
+        g_test_add_func ("/bugs/ggo/22", test_ggo_22);
 
         g_test_run ();
 

@@ -1390,7 +1390,8 @@ gssdp_client_can_reach (GSSDPClient *client, GInetSocketAddress *address)
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
 
         GInetAddress *addr = g_inet_socket_address_get_address (address);
-        if (g_inet_address_get_is_link_local (addr)) {
+        if (g_inet_address_get_is_link_local (addr) &&
+            g_inet_address_get_family (addr) == G_SOCKET_FAMILY_IPV6) {
                 return g_inet_socket_address_get_scope_id (address) ==
                        priv->device.index;
         }
