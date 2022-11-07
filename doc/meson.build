@@ -9,12 +9,12 @@ gssdp_toml = configure_file (
     configuration: entities
 )
 
-docs_dir = join_paths(get_option('prefix'), get_option('datadir'), 'doc', GSSDP_API_NAME, 'reference')
+docs_dir = join_paths(get_option('prefix'), get_option('datadir'), 'doc')
 
 custom_target(
     'gssdp-doc',
     input: [ gssdp_toml, gir[0] ],
-    output: 'GSSDP',
+    output: GSSDP_API_NAME,
     command : [
         gidocgen,
         'generate',
