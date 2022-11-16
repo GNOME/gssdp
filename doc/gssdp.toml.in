@@ -39,4 +39,8 @@ content_images = [
     "images/gupnp-logo-short.svg"
 ]
 
+content_files = [
+    "gssdp-device-sniffer.md"
+]
+
 urlmap_file = "urlmap.js"

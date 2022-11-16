@@ -3,3 +3,4 @@ option('sniffer', type: 'boolean', value: true, description: 'Compile graphical 
 option('introspection', type: 'boolean', value : true, description: 'Enable or disable GObject Introspection')
 option('vapi', type: 'boolean', value: true, description: 'Enable or disable generation of Vala vapi file')
 option('examples', type: 'boolean', value: true, description : 'Enable or disable examples')
+option('manpages', type: 'boolean', value: true, description : 'Generate man page for tools')

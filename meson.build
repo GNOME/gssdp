@@ -97,9 +97,7 @@ gidocgen_dep = dependency('gi-docgen', version: '>= 2021.1',
                           required: get_option('gtk_doc') and get_option('introspection')
                       )
 
-if get_option('gtk_doc')
-  subdir('doc')
-endif
+subdir('doc')
 
 if get_option('examples')
   subdir('examples')
