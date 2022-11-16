@@ -61,9 +61,9 @@ check-merge-request:
 
 .gssdp.fedora@common:
   variables:
-    BASE_TAG: '2022-06-04.1'
+    BASE_TAG: '2022-11-16.0'
     FDO_UPSTREAM_REPO: GNOME/gssdp
-    FDO_DISTRIBUTION_PACKAGES: 'clang clang-analyzer gcovr git libasan libubsan python3-gobject python3-pip xmlto gobject-introspection-devel gtk-doc libsoup3-devel libuuid-devel libxml2-devel vala ninja-build python3-setuptools gtk4-devel'
+    FDO_DISTRIBUTION_PACKAGES: 'clang clang-analyzer gcovr git libasan libubsan python3-gobject python3-pip xmlto gobject-introspection-devel gtk-doc libsoup3-devel libuuid-devel libxml2-devel vala ninja-build python3-setuptools gtk4-devel pandoc'
     FDO_DISTRIBUTION_EXEC: |
       dnf clean all &&
       pip3 install meson markdown gi-docgen jinja2 Markdown markupsafe pygments toml typogrify
