@@ -270,6 +270,13 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          NULL));
 
         if (priv->search_socket != NULL) {
+                if (priv->msearch_port == 0) {
+                        g_object_get (priv->search_socket,
+                                      "port",
+                                      &priv->msearch_port,
+                                      NULL);
+                }
+
                 gssdp_socket_source_set_callback
                                         (priv->search_socket,
                                          (GSourceFunc) search_socket_source_cb,
@@ -2056,6 +2063,7 @@ init_network_info (GSSDPClient *client, GError **error)
         g_debug ("Created SSDP client %p", client);
         g_debug ("  iface_name : %s", priv->device.iface_name);
         g_debug ("  host_ip    : %s", gssdp_client_get_host_ip (client));
+        g_debug ("  port       : %u", gssdp_client_get_port (client));
         g_debug ("  server_id  : %s", priv->server_id);
         g_debug ("  network    : %s", priv->device.network);
         g_debug ("  index      : %d", priv->device.index);

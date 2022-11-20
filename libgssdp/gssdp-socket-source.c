@@ -89,8 +89,17 @@ gssdp_socket_source_get_property (GObject              *object,
                                   G_GNUC_UNUSED GValue *value,
                                   GParamSpec           *pspec)
 {
+        GSSDPSocketSource *self;
+        GSSDPSocketSourcePrivate *priv;
+
+        self = GSSDP_SOCKET_SOURCE (object);
+        priv = gssdp_socket_source_get_instance_private (self);
+
         /* All properties are construct-only, write-only */
         switch (property_id) {
+        case PROP_PORT:
+                g_value_set_uint (value, priv->port);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -319,6 +328,21 @@ gssdp_socket_source_do_init (GInitable                   *initable,
                 goto error;
         }
 
+        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH && priv->port == 0) {
+                GSocketAddress *addr =
+                        g_socket_get_local_address (priv->socket, &inner_error);
+
+                if (inner_error != NULL) {
+                    g_propagate_prefixed_error (
+                            error,
+                            inner_error,
+                            "Failed to get port from socket");
+                }
+
+                priv->port = g_inet_socket_address_get_port (
+                        G_INET_SOCKET_ADDRESS (addr));
+        }
+
         if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
                 /* The 4th argument 'iface_name' can't be NULL even though Glib API doc says you
                  * can. 'NULL' will fail the test.
@@ -499,17 +523,17 @@ gssdp_socket_source_class_init (GSSDPSocketSourceClass *klass)
                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                          G_PARAM_STATIC_BLURB));
 
-        g_object_class_install_property
-                (object_class,
-                 PROP_PORT,
-                 g_param_spec_uint
-                        ("port",
-                         "UDP port",
-                         "UDP port to use for TYPE_SEARCH sockets",
-                         0, G_MAXUINT16,
-                         0,
-                         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS));
+        g_object_class_install_property (
+                object_class,
+                PROP_PORT,
+                g_param_spec_uint ("port",
+                                   "UDP port",
+                                   "UDP port to use for TYPE_SEARCH sockets",
+                                   0,
+                                   G_MAXUINT16,
+                                   0,
+                                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                                           G_PARAM_STATIC_STRINGS));
 
         g_object_class_install_property
                 (object_class,
