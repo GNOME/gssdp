@@ -1,3 +1,11 @@
+1.6.2 (stable)
+==============
+ - Propagate random port up to client, partial fix for GUPnP/81
+ - Add manpage for sniffer
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.6.1 (stable)
 ==============
  - Potential fix for sending discovery responses with the wrong
