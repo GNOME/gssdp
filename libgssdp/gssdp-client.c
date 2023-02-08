@@ -38,12 +38,12 @@
 #else
 #include <sys/utsname.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #endif
 
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#include <unistd.h>
 
 #include <libsoup/soup-headers.h>
 
