@@ -17,6 +17,7 @@ headers = files(
     'gssdp-resource-browser.h',
     'gssdp-resource-group.h',
     'gssdp-error.h',
+    'gssdp-macros.h',
     'gssdp.h',
 )
 
