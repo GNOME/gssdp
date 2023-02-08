@@ -37,8 +37,12 @@ if pktinfo_available
   sources += 'gssdp-pktinfo6-message.c'
 endif
 
+extra_cflags = []
 if host_machine.system() == 'windows'
   sources += 'gssdp-net-win32.c'
+  if cc.get_argument_syntax() == 'msvc' and get_option('default_library') == 'shared'
+    extra_cflags += '-D_GSSDP_API=__declspec(dllexport)'
+  endif
 endif
 
 if bionic_available
@@ -68,6 +72,7 @@ libgssdp = library(
     sources + enums,
     version : version,
     darwin_versions : darwin_versions,
+    c_args: extra_cflags,
     dependencies : dependencies + system_deps,
     include_directories : [include_directories('..'), config_h_inc],
     install : true)
