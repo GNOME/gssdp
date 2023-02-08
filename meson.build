@@ -39,8 +39,11 @@ siocgifindex_available = cc.compiles(siocgifindex_test,
                                      name : 'SIOCGIFINDEX is available')
 conf.set('HAVE_SIOCGIFINDEX', siocgifindex_available)
 
-getipnettable2_available = cc.compiles(files('build-aux/getipnettable2-test.c'), args: '-liphlpapi', name: 'GetIpNetTable2 is available')
-conf.set('HAVE_GETIPNETTABLE2', getipnettable2_available)
+iphlpapi_lib = cc.find_library('iphlpapi', required: host_machine.system() == 'windows')
+if iphlpapi_lib.found()
+  getipnettable2_available = cc.compiles(files('build-aux/getipnettable2-test.c'), dependencies: iphlpapi_lib, name: 'GetIpNetTable2 is available')
+  conf.set('HAVE_GETIPNETTABLE2', getipnettable2_available)
+endif
 
 glib_version = '2.70'
 conf.set('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_@0@'.format(glib_version.underscorify()))
@@ -66,7 +69,7 @@ endif
 # Check whether we are compiling on/against windows
 if host_machine.system() == 'windows'
   system_deps += cc.find_library('ws2_32', required: true)
-  system_deps += cc.find_library('iphlpapi', required: true)
+  system_deps += iphlpapi_lib
 endif
 
 # Assume "other" unix or linux then
