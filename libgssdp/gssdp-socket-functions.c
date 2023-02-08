@@ -25,7 +25,6 @@
 #ifdef G_OS_WIN32
     #include <winsock2.h>
     #include <ws2tcpip.h>
-    typedef int socklen_t;
 #else
     #include <sys/socket.h>
     #include <sys/types.h>

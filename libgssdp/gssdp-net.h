@@ -19,7 +19,6 @@
 
 #ifdef G_OS_WIN32
 #include <winsock2.h>
-typedef unsigned long in_addr_t;
 #else
 #include <netinet/in.h>
 #endif
