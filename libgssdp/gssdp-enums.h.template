@@ -2,6 +2,8 @@
 #ifndef GSSDP_ENUMS_H
 #define GSSDP_ENUMS_H
 
+#include "gssdp-macros.h"
+
 #include <glib-object.h>
 
 G_BEGIN_DECLS
@@ -14,6 +16,7 @@ G_BEGIN_DECLS
 /*** END file-production ***/
 
 /*** BEGIN enumeration-production ***/
+_GSSDP_API
 GType @enum_name@_get_type (void);
 #define GSSDP_TYPE_@ENUMSHORT@ (@enum_name@_get_type())
 

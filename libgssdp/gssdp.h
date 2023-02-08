@@ -9,5 +9,6 @@
 
 #include <libgssdp/gssdp-client.h>
 #include <libgssdp/gssdp-error.h>
+#include <libgssdp/gssdp-macros.h>
 #include <libgssdp/gssdp-resource-browser.h>
 #include <libgssdp/gssdp-resource-group.h>

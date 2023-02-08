@@ -11,6 +11,7 @@
 #define GSSDP_RESOURCE_BROWSER_H
 
 #include "gssdp-client.h"
+#include "gssdp-macros.h"
 
 #include <glib-object.h>
 
@@ -18,6 +19,7 @@ G_BEGIN_DECLS
 
 #define GSSDP_TYPE_RESOURCE_BROWSER (gssdp_resource_browser_get_type ())
 
+_GSSDP_API
 G_DECLARE_DERIVABLE_TYPE (GSSDPResourceBrowser,
                           gssdp_resource_browser,
                           GSSDP,
@@ -54,34 +56,43 @@ struct _GSSDPResourceBrowserClass {
  **/
 #define GSSDP_ALL_RESOURCES "ssdp:all"
 
+_GSSDP_API
 GSSDPResourceBrowser *
 gssdp_resource_browser_new        (GSSDPClient          *client,
                                    const char           *target);
 
+_GSSDP_API
 GSSDPClient *
 gssdp_resource_browser_get_client (GSSDPResourceBrowser *resource_browser);
 
+_GSSDP_API
 void
 gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
                                    const char           *target);
 
+_GSSDP_API
 const char *
 gssdp_resource_browser_get_target (GSSDPResourceBrowser *resource_browser);
 
+_GSSDP_API
 void
 gssdp_resource_browser_set_mx     (GSSDPResourceBrowser *resource_browser,
                                    gushort               mx);
 
+_GSSDP_API
 gushort
 gssdp_resource_browser_get_mx     (GSSDPResourceBrowser *resource_browser);
 
+_GSSDP_API
 void
 gssdp_resource_browser_set_active (GSSDPResourceBrowser *resource_browser,
                                    gboolean              active);
 
+_GSSDP_API
 gboolean
 gssdp_resource_browser_get_active (GSSDPResourceBrowser *resource_browser);
 
+_GSSDP_API
 gboolean
 gssdp_resource_browser_rescan     (GSSDPResourceBrowser *resource_browser);
 

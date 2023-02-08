@@ -10,10 +10,13 @@
 #ifndef GSSDP_ERROR_H
 #define GSSDP_ERROR_H
 
+#include "gssdp-macros.h"
+
 #include <glib.h>
 
 G_BEGIN_DECLS
 
+_GSSDP_API
 GQuark
 gssdp_error_quark (void) G_GNUC_CONST;
 
