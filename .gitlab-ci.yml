@@ -96,7 +96,6 @@ check-merge-request:
       junit: "build/meson-logs/testlog.junit.xml"
 
 .gssdp.fedora@common:
-   extends: .fdo.container-build@fedora@x86_64
    variables:
       BASE_TAG: '${FEDORA_BASE_TAG}'
       FDO_UPSTREAM_REPO: GNOME/gssdp

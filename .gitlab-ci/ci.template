@@ -98,7 +98,6 @@ check-merge-request:
 {% for distro in distributions %}
 {% for version in distributions[distro] %}
 .{{project}}.{{distro}}@common:
-   extends: .fdo.container-build@{{distro}}@{{arch}}
    variables:
       BASE_TAG: '${{"{"}}{{distro|upper}}_BASE_TAG}'
       FDO_UPSTREAM_REPO: GNOME/{{project}}
