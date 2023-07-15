@@ -113,7 +113,7 @@ check-merge-request:
 
 build-container-fedora:38@x86_64:
     extends:
-        - .fdo.container-build@
+        - .fdo.container-build@fedora
         - .gssdp.fedora:38@x86_64
     stage: prepare
     variables:
