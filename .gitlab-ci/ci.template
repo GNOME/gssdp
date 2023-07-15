@@ -115,7 +115,7 @@ check-merge-request:
 
 build-container-{{distro}}:{{version}}@{{arch}}:
     extends:
-        - .fdo.container-build@{{distribution}}
+        - .fdo.container-build@{{distro}}
         - .{{project}}.{{distro}}:{{version}}@{{arch}}
     stage: prepare
     variables:
