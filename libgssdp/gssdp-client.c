@@ -1553,8 +1553,8 @@ socket_source_cb (GSSDPSocketSource *socket_source, GSSDPClient *client)
         guint16 port;
         GError *error = NULL;
         GInputVector vector;
-        GSocketControlMessage **messages;
-        gint num_messages;
+        GSocketControlMessage **messages = NULL;
+        gint num_messages = 0;
         GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
         gboolean ret = TRUE;
 
