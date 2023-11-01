@@ -493,7 +493,7 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 {
         char *pattern;
         char *version;
-        const char *version_pattern;
+        const char version_pattern[] = "([0-9]+)";
         GError *error;
         GSSDPResourceBrowserPrivate *priv;
 
@@ -508,10 +508,9 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
 
         g_clear_pointer (&priv->target_regex, g_regex_unref);
 
-        version_pattern = "([0-9]+)";
         /* Make sure we have enough room for version pattern */
         pattern = g_strndup (target,
-                             strlen (target) + strlen (version_pattern));
+                             strlen (target) + sizeof (version_pattern));
 
         version = g_strrstr (pattern, ":");
         if (version != NULL &&
@@ -522,7 +521,7 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
                                   G_REGEX_ANCHORED,
                                   G_REGEX_MATCH_ANCHORED)) {
                 priv->version = atoi (version + 1);
-                strcpy (version + 1, version_pattern);
+                strncpy (version + 1, version_pattern, sizeof(version_pattern));
         }
 
         error = NULL;
