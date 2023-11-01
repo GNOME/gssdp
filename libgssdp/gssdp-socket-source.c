@@ -341,6 +341,7 @@ gssdp_socket_source_do_init (GInitable                   *initable,
 
                 priv->port = g_inet_socket_address_get_port (
                         G_INET_SOCKET_ADDRESS (addr));
+                g_object_unref (addr);
         }
 
         if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
