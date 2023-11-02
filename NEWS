@@ -1,3 +1,15 @@
+1.6.3 (stable)
+==============
+ - Do not crash if socket receive fails
+ - Do not leak local address in SocketSource
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/12
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+ - Colin <colin@uninsane.org>
+
 1.6.2 (stable)
 ==============
  - Propagate random port up to client, partial fix for GUPnP/81
