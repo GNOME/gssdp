@@ -7,11 +7,11 @@ arch: x86_64
 # Those are all jobs that are just run once, not on all distributions and versions
 # format has to be distribution:version@arch
 targets:
-  coverage: fedora:40@x86_64
-  coverity: fedora:40@x86_64
-  static-scan: fedora:40@x86_64
-  pages: fedora:40@x86_64
-  downstream: fedora:40@x86_64
+  coverage: fedora:38@x86_64
+  coverity: fedora:38@x86_64
+  static-scan: fedora:38@x86_64
+  pages: fedora:38@x86_64
+  downstream: fedora:38@x86_64
 
 # Projects to trigger after a successful build
 # Format is name: gitlab project on this server
@@ -20,7 +20,7 @@ triggers:
 
 # Distribution configurations
 distributions:
-  fedora: [40]
+  fedora: [38]
 
 packages:
   fedora:

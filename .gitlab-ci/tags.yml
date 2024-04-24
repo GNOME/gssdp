@@ -1,2 +1,2 @@
 variables:
-  FEDORA_BASE_TAG: "2024-04-24.0"
+  FEDORA_BASE_TAG: "2023-07-15.0"
