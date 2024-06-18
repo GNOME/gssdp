@@ -102,9 +102,7 @@ check-merge-request:
       BASE_TAG: '${{"{"}}{{distro|upper}}_BASE_TAG}'
       FDO_UPSTREAM_REPO: GNOME/{{project}}
       FDO_DISTRIBUTION_PACKAGES: "{{" ".join(packages[distro].needed)}}"
-      FDO_DISTRIBUTION_EXEC: |
-        dnf clean all &&
-        pip3 install meson markdown gi-docgen jinja2 Markdown markupsafe pygments toml typogrify
+      FDO_DISTRIBUTION_EXEC: .gitlab.ci/setup-image-{{distro}}.sh
 
 .{{project}}.{{distro}}:{{version}}@{{arch}}:
     extends: .{{project}}.{{distro}}@common
