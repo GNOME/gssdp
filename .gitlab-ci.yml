@@ -102,42 +102,42 @@ check-merge-request:
       FDO_DISTRIBUTION_PACKAGES: "clang clang-analyzer gcovr git libasan libubsan python3-gobject python3-pip xmlto gobject-introspection-devel gtk-doc libsoup3-devel libuuid-devel libxml2-devel vala ninja-build python3-setuptools gtk4-devel pandoc"
       FDO_DISTRIBUTION_EXEC: .gitlab-ci/setup-image-fedora.sh
 
-.gssdp.fedora:38@x86_64:
+.gssdp.fedora:41@x86_64:
     extends: .gssdp.fedora@common
     variables:
-      FDO_DISTRIBUTION_VERSION: "38"
+      FDO_DISTRIBUTION_VERSION: "41"
       FDO_DISTRIBUTION_TAG: "x86_64-${BASE_TAG}"
 
-build-container-fedora:38@x86_64:
+build-container-fedora:41@x86_64:
     extends:
         - .fdo.container-build@fedora
-        - .gssdp.fedora:38@x86_64
+        - .gssdp.fedora:41@x86_64
     stage: prepare
     variables:
         GIT_STRATEGY: none
 
-build-fedora:38@x86_64:
+build-fedora:41@x86_64:
     extends:
         - .fdo.distribution-image@fedora
-        - .gssdp.fedora:38@x86_64
+        - .gssdp.fedora:41@x86_64
     needs:
-        - build-container-fedora:38@x86_64
+        - build-container-fedora:41@x86_64
     <<: *build
 
-test-fedora:38@x86_64:
+test-fedora:41@x86_64:
     tags:
         - ipv6
     extends:
         - .fdo.distribution-image@fedora
-        - .gssdp.fedora:38@x86_64
+        - .gssdp.fedora:41@x86_64
     needs:
-        - build-fedora:38@x86_64
+        - build-fedora:41@x86_64
     <<: *test
 
 trigger-gupnp:
     stage: analysis
     needs:
-        - test-fedora:38@x86_64
+        - test-fedora:41@x86_64
     trigger: GNOME/gupnp
     only:
         - master
@@ -145,7 +145,7 @@ trigger-gupnp:
 coverage-analysis:
   extends:
     - .fdo.distribution-image@fedora
-    - .gssdp.fedora:38@x86_64
+    - .gssdp.fedora:41@x86_64
   stage: analysis
   allow_failure: true
   script:
@@ -158,15 +158,15 @@ coverage-analysis:
     paths:
     - build/coveragereport
   needs:
-    - test-fedora:38@x86_64
+    - test-fedora:41@x86_64
 
 static-scan:
   extends:
     - .fdo.distribution-image@fedora
-    - .gssdp.fedora:38@x86_64
+    - .gssdp.fedora:41@x86_64
   stage: analysis
   needs:
-    - build-container-fedora:38@x86_64
+    - build-container-fedora:41@x86_64
   script:
     - meson --buildtype=debug _scan_build
     - export SCANBUILD="$PWD/.gitlab-ci/scanbuild-wrapper.sh"
@@ -183,7 +183,7 @@ static-scan:
 coverity:
   extends:
     - .fdo.distribution-image@fedora
-    - .gssdp.fedora:38@x86_64
+    - .gssdp.fedora:41@x86_64
   stage: analysis
   allow_failure: true
   script:
@@ -199,7 +199,7 @@ coverity:
       --form file=@cov-int.tar.gz --form version="`git describe --tags`"
       --form description="gitlab CI build"
   needs:
-    - build-container-fedora:38@x86_64
+    - build-container-fedora:41@x86_64
   only:
     - master
   except:
@@ -209,7 +209,7 @@ coverity:
 pages:
   extends:
     - .fdo.distribution-image@fedora
-    - .gssdp.fedora:38@x86_64
+    - .gssdp.fedora:41@x86_64
   stage: website
   script:
       - meson doc-build -Dgtk_doc=true
@@ -221,7 +221,7 @@ pages:
     paths:
       - public
   needs:
-    - build-container-fedora:38@x86_64
+    - build-container-fedora:41@x86_64
   only:
     - master
     - /^wip\/.*\/ci.*$/
