@@ -100,7 +100,7 @@ check-merge-request:
       BASE_TAG: '${FEDORA_BASE_TAG}'
       FDO_UPSTREAM_REPO: GNOME/gssdp
       FDO_DISTRIBUTION_PACKAGES: "clang clang-analyzer gcovr git libasan libubsan python3-gobject python3-pip xmlto gobject-introspection-devel gtk-doc libsoup3-devel libuuid-devel libxml2-devel vala ninja-build python3-setuptools gtk4-devel pandoc"
-      FDO_DISTRIBUTION_EXEC: .gitlab.ci/setup-image-fedora.sh
+      FDO_DISTRIBUTION_EXEC: .gitlab-ci/setup-image-fedora.sh
 
 .gssdp.fedora:38@x86_64:
     extends: .gssdp.fedora@common
@@ -226,4 +226,5 @@ pages:
     - master
     - /^wip\/.*\/ci.*$/
     - /^wip\/.*\/.*doc.*$/
+
 
