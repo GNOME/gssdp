@@ -1,8 +1,8 @@
 ## This file is generated. Do not modify 
 
 include:
-    - remote: "https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/0c312d9c7255f46e741d43bcd1930f09cd12efe7/templates/ci-fairy.yml"
-    - remote: 'https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/0c312d9c7255f46e741d43bcd1930f09cd12efe7/templates/fedora.yml'
+    - remote: "https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/e195d80f35b45cc73668be3767b923fd76c70ed5/templates/ci-fairy.yml"
+    - remote: 'https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/e195d80f35b45cc73668be3767b923fd76c70ed5/templates/fedora.yml'
     - '/.gitlab-ci/tags.yml'
 
 variables:
