@@ -168,7 +168,7 @@ static-scan:
   needs:
     - build-container-fedora:41@x86_64
   script:
-    - meson --buildtype=debug _scan_build
+    - meson --buildtype=debug _scan_build -Dintrospection=false
     - export SCANBUILD="$PWD/.gitlab-ci/scanbuild-wrapper.sh"
     - ninja -C _scan_build scan-build
   artifacts:
