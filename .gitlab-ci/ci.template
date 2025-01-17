@@ -4,6 +4,14 @@ include:
     - remote: "https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/e195d80f35b45cc73668be3767b923fd76c70ed5/templates/ci-fairy.yml"
     - remote: 'https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/e195d80f35b45cc73668be3767b923fd76c70ed5/templates/fedora.yml'
     - '/.gitlab-ci/tags.yml'
+    - component: "gitlab.gnome.org/GNOME/citemplates/release-service@release-service-sandbox"
+      inputs:
+        dist-job-name: build-{{targets["dist"]}}
+        # gupnp tags are always of the format {PROJECT_NAME}-{version}
+        tarball-artifact-path: "build/meson-dist/${CI_COMMIT_TAG}.tar.xz"
+    - project: "GNOME/citemplates"
+      file: "templates/default-rules.yml"
+
 
 variables:
     MESON_TEST_TIMEOUT_MULTIPLIER: 3
@@ -13,8 +21,9 @@ stages:
     - prepare
     - build
     - test
-    - analysis
     - website
+    - analysis
+    - deploy
 
 .check-template: &check
   extends:
@@ -55,8 +64,9 @@ check-merge-request:
 .build-template: &build
   stage: build
   script:
-      - meson . build --prefix=/usr -Db_coverage=true
+      - meson . build --prefix=/usr -Db_coverage=true -Dgtk_doc=true
       - ninja -C build
+      - meson dist -C build --no-tests
   artifacts:
       expire_in: 1 day
       paths:
@@ -218,16 +228,14 @@ pages:
     - .{{project}}.{{targets["pages"]}}
   stage: website
   script:
-      - meson doc-build -Dgtk_doc=true
-      - ninja -C doc-build doc/{{project}}-{{api_version}}
       - mkdir -p public
-      - mv doc-build/doc/{{project}}-{{api_version}} public/docs
+      - mv build/doc/{{project}}-{{api_version}} public/docs
 
   artifacts:
     paths:
       - public
   needs:
-    - build-container-{{targets["pages"]}}
+    - build-{{targets["pages"]}}
   only:
     - master
     - /^wip\/.*\/ci.*$/

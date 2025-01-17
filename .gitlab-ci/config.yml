@@ -12,6 +12,7 @@ targets:
   static-scan: fedora:41@x86_64
   pages: fedora:41@x86_64
   downstream: fedora:41@x86_64
+  dist: fedora:41@x86_64
 
 # Projects to trigger after a successful build
 # Format is name: gitlab project on this server
