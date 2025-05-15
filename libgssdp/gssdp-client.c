@@ -532,7 +532,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
          *
          * The IP address of the assoicated network interface.
          *
-         * Deprecated: 1.6. Use [property@GSSDP.Client:address] instead.
+         * Deprecated: 1.6.0: Use [property@GSSDP.Client:address] instead.
          **/
         g_object_class_install_property (
                 object_class,
@@ -779,7 +779,7 @@ gssdp_client_class_init (GSSDPClientClass *klass)
  * Using this utility function, the created client will be using UDA 1.0 and
  * IPv4 only.
  *
- * Deprecated: 1.6. Use [ctor@GSSDP.Client.new_for_address] instead.
+ * Deprecated: 1.6.0: Use [ctor@GSSDP.Client.new_for_address] instead.
  *
  * Return value: (nullable): A new #GSSDPClient object.
  **/
@@ -806,7 +806,7 @@ gssdp_client_new (const char *iface, GError **error)
  *
  * Using this utility function, the created client will be using UDA 1.0 and IPv4 only.
  *
- * Deprecated: 1.6. Use [ctor@GSSDP.Client.new_for_address] instead.
+ * Deprecated: 1.6.0: Use [ctor@GSSDP.Client.new_for_address] instead.
  *
  * Return value: (nullable):  A new #GSSDPClient object or %NULL on error.
  */
@@ -839,7 +839,7 @@ gssdp_client_new_with_port (const char *iface,
  * Creates a GSSDP client with address @addr. If none is specified, GSSDP
  * will chose the address it deems most suitable.
  *
- * Since: 1.6.
+ * Since: 1.6.0
  *
  * Return value: (nullable):  A new #GSSDPClient object or %NULL on error.
  */
@@ -877,7 +877,7 @@ gssdp_client_new_full (const char *iface,
  * Creates a GSSDP client with address @addr. If none is specified, GSSDP
  * will chose the address it deems most suitable.
  *
- * Since: 1.6.
+ * Since: 1.6.0
  *
  * Return value: (nullable):  A new #GSSDPClient object or %NULL on error.
  */
