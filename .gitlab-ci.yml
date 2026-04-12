@@ -204,6 +204,9 @@ coverity:
     - tar zxf /tmp/coverity_tool.tgz
     - mkdir coverity-build
     - cd coverity-build
+    - /usr/bin/file || true
+    - rpm -qa | grep file
+    - ls -l /usr/bin/file
     - env CC=clang meson ..
     - ../cov-analysis-linux64-*/bin/cov-build --dir cov-int ninja
     - tar czf cov-int.tar.gz cov-int
