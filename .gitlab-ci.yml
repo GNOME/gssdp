@@ -218,6 +218,7 @@ coverity:
     - build-container-fedora:43@x86_64
   only:
     - master
+    - wip/ci
   except:
     changes:
       - po/*.po
