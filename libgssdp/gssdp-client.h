@@ -145,6 +145,9 @@ gboolean
 gssdp_client_can_reach (GSSDPClient *client,
                         GInetSocketAddress *address);
 
+GSocket *
+gssdp_client_get_tcp_socket (GSSDPClient *client);
+
 G_END_DECLS
 
 #endif /* GSSDP_CLIENT_H */

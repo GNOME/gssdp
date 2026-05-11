@@ -12,6 +12,8 @@
  *
  */
 
+#define G_LOG_DOMAIN "gssdp-socket-source"
+
 #include <config.h>
 
 #include "gssdp-socket-functions.h"
@@ -33,6 +35,7 @@ struct _GSSDPSocketSourceClass {
 struct _GSSDPSocketSourcePrivate {
         GSource              *source;
         GSocket              *socket;
+        GSocket *tcp_socket;
         GSSDPSocketSourceType type;
 
         GInetAddress         *address;
@@ -379,69 +382,106 @@ gssdp_socket_source_new (GSSDPSocketSourceType type,
 }
 
 static gboolean
-gssdp_socket_source_do_init (GInitable                   *initable,
-                             G_GNUC_UNUSED GCancellable  *cancellable,
-                             GError                     **error)
+gssdp_socket_source_do_init (GInitable *initable, G_GNUC_UNUSED GCancellable *cancellable, GError **error)
 {
         GSSDPSocketSource *self = NULL;
         GSSDPSocketSourcePrivate *priv = NULL;
-        GSocketAddress *bind_address = NULL;
-        GInetAddress *group = NULL;
+        g_autoptr (GSocketAddress) bind_address = NULL;
+        g_autoptr (GInetAddress) group = NULL;
         GSocketFamily family;
         gboolean link_local = FALSE;
+        g_autoptr (GError) inner_error = NULL;
 
         self = GSSDP_SOCKET_SOURCE (initable);
         priv = gssdp_socket_source_get_instance_private (self);
 
         family = g_inet_address_get_family (priv->address);
 
-        if (family == G_SOCKET_FAMILY_IPV4)
+        if (family == G_SOCKET_FAMILY_IPV4) {
                 group = g_inet_address_new_from_string (SSDP_ADDR);
-        else
+        } else {
                 group = gssdp_socket_source_get_multicast_group (priv, &link_local);
+        }
 
+retry:
         /* Create and configure socket */
-        if (!gssdp_socket_source_create_socket (priv, family, error))
+        if (!gssdp_socket_source_create_socket (priv, family, &inner_error)) {
                 goto error;
+        }
 
         /* Configure socket for type */
-        if (!gssdp_socket_source_configure_socket (priv, family, error))
+        if (!gssdp_socket_source_configure_socket (priv, family, &inner_error)) {
                 goto error;
+        }
 
         /* Get port for binding */
         guint port = SSDP_PORT;
-        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH)
+        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH) {
                 port = priv->port;
+        }
 
         /* Create bind address */
         bind_address = gssdp_socket_source_create_bind_address (priv, group, port, link_local);
 
         /* Bind socket */
-        if (!gssdp_socket_source_bind_socket (priv, family, bind_address, error))
+        if (!gssdp_socket_source_bind_socket (priv, family, bind_address, &inner_error)) {
                 goto error;
+        }
 
-        /* Get assigned port for SEARCH type */
-        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH && priv->port == 0)
-                gssdp_socket_source_get_assigned_port (priv, error);
+        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_SEARCH) {
+                gboolean should_retry = FALSE;
+                if (priv->port == 0) {
+                        /* Get assigned port for SEARCH type */
+                        gssdp_socket_source_get_assigned_port (priv, &inner_error);
+
+                        /* Flag that if binding to TCP failed, we should retry */
+                        should_retry = TRUE;
+                }
+
+                g_autoptr (GSocket) socket =
+                        g_socket_new (family, G_SOCKET_TYPE_STREAM, G_SOCKET_PROTOCOL_TCP, &inner_error);
+
+                if (socket == NULL) {
+                        goto error;
+                }
+
+                g_autoptr (GSocketAddress) tcp_socket_address =
+                        gssdp_socket_source_create_bind_address (priv, NULL, priv->port, link_local);
+
+                if (!g_socket_bind (socket, tcp_socket_address, FALSE, &inner_error)) {
+                        g_clear_error (&inner_error);
+                        if (should_retry) {
+                                priv->port = 0;
+                                g_debug ("Failed to claim TCP port, retrying with a different port");
+
+                                goto retry;
+                        }
+
+                        g_set_error (&inner_error, GSSDP_ERROR, GSSDP_ERROR_FAILED, "Could not claim TCP socket");
+
+                        goto error;
+                }
+
+                priv->tcp_socket = g_steal_pointer (&socket);
+        }
 
         /* Join multicast group if needed */
         if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
-                if (!gssdp_socket_source_join_multicast_group (priv, group, error))
+                if (!gssdp_socket_source_join_multicast_group (priv, group, &inner_error)) {
                         goto error;
+                }
         }
 
-        priv->source = g_socket_create_source (priv->socket,
-                                               G_IO_IN | G_IO_ERR,
-                                               NULL);
+        priv->source = g_socket_create_source (priv->socket, G_IO_IN | G_IO_ERR, NULL);
 
         return TRUE;
 
 error:
-        g_clear_object (&bind_address);
-        g_clear_object (&group);
+        if (inner_error != NULL) {
+                g_warning ("Failed to create socket source: %s", inner_error->message);
+        }
 
-        if (error == NULL)
-                g_warning ("Failed to create socket source");
+        g_propagate_error (error, g_steal_pointer (&inner_error));
 
         return FALSE;
 }
@@ -477,8 +517,21 @@ gssdp_socket_source_attach (GSSDPSocketSource *self)
         g_return_if_fail (GSSDP_IS_SOCKET_SOURCE (self));
         priv = gssdp_socket_source_get_instance_private (self);
 
-        g_source_attach (priv->source,
-                         g_main_context_get_thread_default ());
+        g_source_attach (priv->source, g_main_context_get_thread_default ());
+}
+
+GSocket *
+gssdp_socket_source_steal_associated_tcp_socket (GSSDPSocketSource *self)
+{
+        GSSDPSocketSourcePrivate *priv;
+        g_return_val_if_fail (self != NULL, NULL);
+        g_return_val_if_fail (GSSDP_IS_SOCKET_SOURCE (self), NULL);
+        priv = gssdp_socket_source_get_instance_private (self);
+
+        GSocket *socket = priv->tcp_socket;
+        priv->tcp_socket = NULL;
+
+        return socket;
 }
 
 static void
@@ -501,6 +554,8 @@ gssdp_socket_source_dispose (GObject *object)
                 g_object_unref (priv->socket);
                 priv->socket = NULL;
         }
+
+        g_clear_object (&priv->tcp_socket);
 
         G_OBJECT_CLASS (gssdp_socket_source_parent_class)->dispose (object);
 }
