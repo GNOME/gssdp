@@ -75,6 +75,7 @@ struct _GSSDPClientPrivate {
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
         GSSDPSocketSource *search_socket;
+        GSocket *tcp_socket;
 
         gboolean           active;
         gboolean           initialized;
@@ -277,6 +278,10 @@ gssdp_client_initable_init (GInitable                   *initable,
                                       NULL);
                 }
 
+                priv->tcp_socket =
+                        gssdp_socket_source_steal_associated_tcp_socket (
+                                priv->search_socket);
+
                 gssdp_socket_source_set_callback
                                         (priv->search_socket,
                                          (GSourceFunc) search_socket_source_cb,
@@ -437,6 +442,7 @@ gssdp_client_dispose (GObject *object)
         g_clear_object (&priv->search_socket);
         g_clear_object (&priv->device.host_addr);
         g_clear_object (&priv->device.host_mask);
+        g_clear_object (&priv->tcp_socket);
 
         G_OBJECT_CLASS (gssdp_client_parent_class)->dispose (object);
 }
@@ -1415,6 +1421,17 @@ gssdp_client_get_port (GSSDPClient *client)
 
         return priv->msearch_port;
 }
+
+GSocket *
+gssdp_client_get_tcp_socket (GSSDPClient *client)
+{
+        g_return_val_if_fail (GSSDP_IS_CLIENT (client), NULL);
+
+        GSSDPClientPrivate *priv = gssdp_client_get_instance_private (client);
+
+        return g_object_ref (priv->tcp_socket);
+}
+
 
 /**
  * _gssdp_client_send_message:

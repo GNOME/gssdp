@@ -51,6 +51,9 @@ gssdp_socket_source_set_callback (GSSDPSocketSource   *socket_source,
 G_GNUC_INTERNAL void
 gssdp_socket_source_attach       (GSSDPSocketSource   *socket_source);
 
+G_GNUC_INTERNAL GSocket *
+gssdp_socket_source_steal_associated_tcp_socket (GSSDPSocketSource *self);
+
 G_END_DECLS
 
 #endif /* GSSDP_SOCKET_SOURCE_H */
