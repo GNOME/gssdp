@@ -42,7 +42,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
 #include <unistd.h>
 
 #include <libsoup/soup-headers.h>
@@ -75,6 +74,7 @@ struct _GSSDPClientPrivate {
         GSSDPSocketSource *request_socket;
         GSSDPSocketSource *multicast_socket;
         GSSDPSocketSource *search_socket;
+        gboolean allocate_tcp_socket;
         GSocket *tcp_socket;
 
         gboolean           active;
@@ -128,6 +128,8 @@ enum
         PROP_CONFIG_ID,
         PROP_PORT,
         PROP_HOST_ADDR,
+        PROP_TCP_SOCKET,
+        PROP_ALLOCATE_TCP_SOCKET,
 };
 
 enum {
@@ -268,6 +270,7 @@ gssdp_client_initable_init (GInitable                   *initable,
                                          "port", priv->msearch_port,
                                          "device-name", priv->device.iface_name,
                                          "index", priv->device.index,
+                                         "allocate-tcp-socket", priv->allocate_tcp_socket,
                                          NULL));
 
         if (priv->search_socket != NULL) {
@@ -367,6 +370,12 @@ gssdp_client_get_property (GObject    *object,
         case PROP_CONFIG_ID:
                 g_value_set_int (value, priv->config_id);
                 break;
+        case PROP_ALLOCATE_TCP_SOCKET:
+                g_value_set_boolean (value, priv->allocate_tcp_socket);
+                break;
+        case PROP_TCP_SOCKET:
+                g_value_set_object (value, priv->tcp_socket);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -423,6 +432,9 @@ gssdp_client_set_property (GObject      *object,
                 break;
         case PROP_CONFIG_ID:
                 gssdp_client_set_config_id (client, g_value_get_int (value));
+                break;
+        case PROP_ALLOCATE_TCP_SOCKET:
+                priv->allocate_tcp_socket = g_value_get_boolean(value);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -745,6 +757,41 @@ gssdp_client_class_init (GSSDPClientClass *klass)
                                   -1,
                                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
                                           G_PARAM_STATIC_STRINGS));
+
+        /**
+         * GSSDPClient:allocate-tcp-socket:
+         *
+         * The whether to allocate a TCP socket. Mainly used by GUPnPContext
+         * to signalize that it can handle a pre-allocated socket. Will become
+         * non-configurable default-on in a future release.
+         *
+         * Since: 1.6.5
+         */
+        g_object_class_install_property (
+                object_class,
+                PROP_ALLOCATE_TCP_SOCKET,
+                g_param_spec_boolean ("allocate-tcp-socket",
+                                      NULL,
+                                      NULL,
+                                      FALSE,
+                                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+                                              G_PARAM_STATIC_STRINGS));
+
+        /**
+         * GSSDPClient:tcp-socket:
+         *
+         * The allocated TCP socket bound to the same port as [property@GSSDP.Client:port]
+         * Since: 1.6.5
+         */
+        g_object_class_install_property (
+                object_class,
+                PROP_TCP_SOCKET,
+                g_param_spec_object ("tcp-socket",
+                                     NULL,
+                                     NULL,
+                                     G_TYPE_SOCKET,
+                                     G_PARAM_READABLE |
+                                             G_PARAM_STATIC_STRINGS));
 
         /**
          * GSSDPClient::message-received: (skip)
@@ -1422,6 +1469,14 @@ gssdp_client_get_port (GSSDPClient *client)
         return priv->msearch_port;
 }
 
+/**
+ * gssdp_client_get_tcp_socket:
+ * @client: A #GSSDPClient
+ *
+ * Get the associated TCP socket.
+ * Since: 1.6.5
+ * Returns: (transfer full): A bound TCP socket
+ */
 GSocket *
 gssdp_client_get_tcp_socket (GSSDPClient *client)
 {
