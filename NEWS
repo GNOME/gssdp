@@ -1,3 +1,13 @@
+1.6.5 (stabe)
+=============
+ - Block corresponding TCP socket when allocating UDP socket
+
+Bugs fixed in this release:
+ - https://gitlab.gnome.org/GNOME/gssdp/issues/31
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
 1.6.4 (stable)
 ==============
  - Fix build path leaking into code
