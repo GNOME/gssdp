@@ -106,8 +106,8 @@ gssdp_socket_source_create_bind_address (GSSDPSocketSourcePrivate *priv,
                                          guint                     port,
                                          gboolean                  is_link_local)
 {
-        if (group) {
-                /* Multicast bind */
+        if (priv->type == GSSDP_SOCKET_SOURCE_TYPE_MULTICAST) {
+                /* Multicast bind - bind to multicast group address */
 #ifdef G_OS_WIN32
                 return g_inet_socket_address_new (priv->address, port);
 #else
@@ -119,7 +119,7 @@ gssdp_socket_source_create_bind_address (GSSDPSocketSourcePrivate *priv,
 #endif
         }
 
-        /* Unicast bind */
+        /* Unicast bind - bind to interface address */
         if (is_link_local) {
                 return g_object_new (G_TYPE_INET_SOCKET_ADDRESS,
                                      "address", priv->address,
