@@ -1,4 +1,12 @@
-1.6.5 (stabe)
+1.6.6 (stable)
+==============
+
+ - Fix binding to unicast sockets (Regression introduced by 1.6.5)
+
+All contributors to this release:
+ - Jens Georg <mail@jensge.org>
+
+1.6.5 (stable)
 =============
  - Block corresponding TCP socket when allocating UDP socket
 
