@@ -894,11 +894,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                         GDateTime *exp_time;
 
                         exp_time = soup_date_time_new_from_http_string (expires);
-                        GDateTime *now = g_date_time_new_now_local ();
-
-                        if (g_date_time_compare (now, exp_time) == 1)
-                                timeout = g_date_time_difference (now, exp_time) / 1000 / 1000;
-                        else {
+                        if (exp_time == NULL) {
                                 g_warning ("Invalid 'Expires' header. Assuming "
                                            "default max-age of %d.\n"
                                            "Header was:\n%s",
@@ -906,9 +902,23 @@ resource_available (GSSDPResourceBrowser *resource_browser,
                                            expires);
 
                                 timeout = SSDP_DEFAULT_MAX_AGE;
+                        } else {
+                                GDateTime *now = g_date_time_new_now_local ();
+
+                                if (g_date_time_compare (now, exp_time) == 1)
+                                        timeout = g_date_time_difference (now, exp_time) / 1000 / 1000;
+                                else {
+                                        g_warning ("Invalid 'Expires' header. Assuming "
+                                                   "default max-age of %d.\n"
+                                                   "Header was:\n%s",
+                                                   SSDP_DEFAULT_MAX_AGE,
+                                                   expires);
+
+                                        timeout = SSDP_DEFAULT_MAX_AGE;
+                                }
+                                g_date_time_unref (now);
+                                g_date_time_unref (exp_time);
                         }
-                        g_date_time_unref (exp_time);
-                        g_date_time_unref (now);
                 } else {
                         g_warning ("No 'Cache-Control' nor any 'Expires' "
                                    "header was specified. Assuming default "
