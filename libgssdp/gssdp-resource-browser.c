@@ -101,6 +101,9 @@ refresh_cache                    (gpointer data);
 static void
 resource_unavailable             (GSSDPResourceBrowser *resource_browser,
                                   SoupMessageHeaders   *headers);
+static char *
+canonicalise_usn                 (GSSDPResourceBrowserPrivate *priv,
+                                  const char                  *usn);
 
 static void
 gssdp_resource_browser_init (GSSDPResourceBrowser *resource_browser)
@@ -692,6 +695,25 @@ gssdp_resource_browser_rescan (GSSDPResourceBrowser *resource_browser)
 }
 
 /*
+ * Strips the trailing ":version" suffix from @usn to obtain a
+ * version-agnostic key, if the browser is interested in versions.
+ */
+static char *
+canonicalise_usn (GSSDPResourceBrowserPrivate *priv, const char *usn)
+{
+        const char *version;
+
+        if (priv->version == 0)
+                return g_strdup (usn);
+
+        version = g_strrstr (usn, ":");
+        if (version == NULL)
+                return g_strdup (usn);
+
+        return g_strndup (usn, version - usn);
+}
+
+/*
  * Resource expired: Remove
  */
 static gboolean
@@ -712,14 +734,7 @@ resource_expire (gpointer user_data)
          */
         usn = g_steal_pointer (&resource->usn);
 
-        if (priv->version > 0) {
-                char *version;
-
-                version = g_strrstr (usn, ":");
-                canonical_usn = g_strndup (usn, version - usn);
-        } else {
-                canonical_usn = g_strdup (usn);
-        }
+        canonical_usn = canonicalise_usn (priv, usn);
 
         g_hash_table_remove (priv->resources, canonical_usn);
 
@@ -788,14 +803,7 @@ resource_available (GSSDPResourceBrowser *resource_browser,
         if (!locations)
                 return; /* No location specified */
 
-        if (priv->version > 0) {
-                char *version;
-
-                version = g_strrstr (usn, ":");
-                canonical_usn = g_strndup (usn, version - usn);
-        } else {
-                canonical_usn = g_strdup (usn);
-        }
+        canonical_usn = canonicalise_usn (priv, usn);
 
         /* Get from cache, if possible */
         resource = g_hash_table_lookup (priv->resources,
@@ -970,13 +978,7 @@ resource_update (GSSDPResourceBrowser *resource_browser,
                 return;
         next_boot_id = out;
 
-        if (priv->version > 0) {
-                char *version;
-                version = g_strrstr (usn, ":");
-                canonical_usn = g_strndup (usn, version - usn);
-        } else {
-                canonical_usn = g_strdup (usn);
-        }
+        canonical_usn = canonicalise_usn (priv, usn);
 
         /* Only continue if we know about this. if not, there will be an
          * announcement afterwards anyway */
@@ -1008,14 +1010,7 @@ resource_unavailable (GSSDPResourceBrowser *resource_browser,
         if (!usn)
                 return; /* No USN specified */
 
-        if (priv->version > 0) {
-                char *version;
-
-                version = g_strrstr (usn, ":");
-                canonical_usn = g_strndup (usn, version - usn);
-        } else {
-                canonical_usn = g_strdup (usn);
-        }
+        canonical_usn = canonicalise_usn (priv, usn);
 
         /* Only process if we were cached */
         if (!g_hash_table_lookup (priv->resources,
