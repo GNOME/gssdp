@@ -12,6 +12,7 @@
 #include "gssdp-resource-group.h"
 #include "gssdp-resource-browser.h"
 #include "gssdp-client-private.h"
+#include "gssdp-error.h"
 #include "gssdp-protocol.h"
 
 #include <string.h>
@@ -1276,6 +1277,16 @@ create_target_regex (const char *target, guint *version, GError **error)
         char *version_str;
 
         *version = 0;
+
+        if (!g_utf8_validate (target, -1, NULL)) {
+                g_set_error (error,
+                             GSSDP_ERROR,
+                             GSSDP_ERROR_FAILED,
+                             "Target is not valid UTF-8");
+
+                return NULL;
+        }
+
         /* Make sure we have enough room for version pattern */
         pattern = g_strndup (target,
                              strlen (target) + strlen (VERSION_PATTERN));

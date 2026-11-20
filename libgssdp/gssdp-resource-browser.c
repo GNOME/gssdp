@@ -503,6 +503,12 @@ gssdp_resource_browser_set_target (GSSDPResourceBrowser *resource_browser,
         priv = gssdp_resource_browser_get_instance_private (resource_browser);
         g_return_if_fail (!priv->active);
 
+        if (!g_utf8_validate (target, -1, NULL)) {
+                g_warning ("Target is not valid UTF-8, ignoring");
+
+                return;
+        }
+
         g_free (priv->target);
         priv->target = g_strdup (target);
 
